@@ -37,13 +37,15 @@ export default async function ConfirmPage({
   return (
     <section className="mx-auto max-w-3xl px-5 py-12">
       <h1 className="text-3xl font-semibold text-slate-950">Termin bestätigen</h1>
-      <div className="mt-6 rounded-lg border border-slate-200 bg-white p-5">
-        <p className="text-sm text-slate-500">Ausgewählter Termin</p>
-        <p className="mt-1 font-semibold text-slate-950">{bookingType.name}</p>
-        <p className="mt-1 text-slate-700">{buildSlotLabel(startsAt, endsAt)}</p>
+      <div className="mt-6 flex flex-col gap-4 rounded-lg border border-slate-200 bg-white p-5 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <p className="text-sm text-slate-500">Ausgewählter Termin</p>
+          <p className="mt-1 font-semibold text-slate-950">{bookingType.name}</p>
+          <p className="mt-1 text-slate-700">{buildSlotLabel(startsAt, endsAt)}</p>
+        </div>
         <Link
           href={`/book/${type}`}
-          className="mt-4 inline-flex min-h-10 items-center justify-center rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-brand-500 hover:text-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2"
+          className="inline-flex min-h-10 shrink-0 items-center justify-center rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-brand-500 hover:text-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2"
         >
           Zurück zur Terminauswahl
         </Link>
