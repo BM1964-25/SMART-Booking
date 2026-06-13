@@ -11,6 +11,7 @@ type BookingEmail = {
   customer_email: string;
   company: string;
   meeting_location?: string | null;
+  meeting_url?: string | null;
   phone?: string | null;
   topic: string;
   starts_at: string;
@@ -135,7 +136,7 @@ function createMailTransport(env: ReturnType<typeof getEnv>) {
 }
 
 function customerHtml(booking: BookingEmail, label: string, cancelUrl: string, changeUrl: string) {
-  const meeting = getMeetingLocationDetails(booking.meeting_location, booking.phone);
+  const meeting = getMeetingLocationDetails(booking.meeting_location, booking.phone, booking.meeting_url);
 
   return `
     <div style="font-family:Arial,sans-serif;color:#111827;line-height:1.6">
@@ -154,7 +155,7 @@ function customerHtml(booking: BookingEmail, label: string, cancelUrl: string, c
 }
 
 function ownerHtml(booking: BookingEmail, label: string) {
-  const meeting = getMeetingLocationDetails(booking.meeting_location, booking.phone);
+  const meeting = getMeetingLocationDetails(booking.meeting_location, booking.phone, booking.meeting_url);
 
   return `
     <div style="font-family:Arial,sans-serif;color:#111827;line-height:1.6">

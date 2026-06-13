@@ -18,6 +18,9 @@ const envSchema = z.object({
   SUPABASE_SERVICE_ROLE_KEY: z.string(),
   NEXT_PUBLIC_SITE_URL: z.string().url().default("http://localhost:3000"),
   ZOOM_MEETING_URL: optionalUrl,
+  ZOOM_ACCOUNT_ID: z.string().optional(),
+  ZOOM_CLIENT_ID: z.string().optional(),
+  ZOOM_CLIENT_SECRET: z.string().optional(),
   TEAMS_MEETING_URL: optionalUrl,
   GOOGLE_MEET_URL: optionalUrl,
   ONSITE_MEETING_URL: optionalUrl
@@ -40,6 +43,9 @@ export function getEnv() {
     SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
     NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
     ZOOM_MEETING_URL: process.env.ZOOM_MEETING_URL,
+    ZOOM_ACCOUNT_ID: process.env.ZOOM_ACCOUNT_ID,
+    ZOOM_CLIENT_ID: process.env.ZOOM_CLIENT_ID,
+    ZOOM_CLIENT_SECRET: process.env.ZOOM_CLIENT_SECRET,
     TEAMS_MEETING_URL: process.env.TEAMS_MEETING_URL,
     GOOGLE_MEET_URL: process.env.GOOGLE_MEET_URL,
     ONSITE_MEETING_URL: process.env.ONSITE_MEETING_URL

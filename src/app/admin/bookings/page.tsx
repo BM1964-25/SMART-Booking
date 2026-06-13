@@ -121,6 +121,11 @@ export default async function AdminBookingsPage() {
                 <td className="px-4 py-3">
                   <p>{booking.company}</p>
                   <p className="text-slate-500">{getMeetingLocationLabel(booking.meeting_location)}</p>
+                  {booking.meeting_url ? (
+                    <a href={booking.meeting_url} target="_blank" rel="noreferrer" className="mt-1 inline-flex text-xs font-semibold text-brand-600 hover:text-brand-700">
+                      Meeting-Link öffnen
+                    </a>
+                  ) : null}
                 </td>
                 <td className="px-4 py-3">
                   <StatusBadge status={booking.status} />

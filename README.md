@@ -98,7 +98,17 @@ GOOGLE_MEET_URL=https://...
 ONSITE_MEETING_URL=https://...
 ```
 
-Wenn diese Werte gesetzt sind, werden sie in Bestätigungs-E-Mails und Kalendereinträgen klickbar ausgegeben. Automatisch neu erzeugte Einzel-Meeting-Links pro Buchung erfordern später eine zusätzliche Integration mit Zoom, Microsoft Graph oder Google Calendar/Meet API.
+Wenn diese Werte gesetzt sind, werden sie in Bestätigungs-E-Mails und Kalendereinträgen klickbar ausgegeben.
+
+Für Zoom kann die App automatisch pro Buchung einen individuellen Link erzeugen. Dafür werden in Vercel zusätzlich diese Werte aus einer Zoom Server-to-Server-OAuth-App benötigt:
+
+```bash
+ZOOM_ACCOUNT_ID=
+ZOOM_CLIENT_ID=
+ZOOM_CLIENT_SECRET=
+```
+
+Wenn diese Zoom-Werte fehlen, nutzt die App `ZOOM_MEETING_URL` als festen Raum. Microsoft Teams und Google Meet benötigen für automatisch erzeugte Einzellinks später eine zusätzliche Integration mit Microsoft Graph bzw. Google Calendar/Meet API.
 
 ## Vercel Deployment
 

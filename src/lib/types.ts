@@ -29,6 +29,7 @@ export type Booking = {
   company: string;
   phone: string | null;
   meeting_location: MeetingLocation;
+  meeting_url: string | null;
   topic: string;
   starts_at: string;
   ends_at: string;

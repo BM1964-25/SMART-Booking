@@ -20,6 +20,7 @@ type BookingForCalendar = {
   company: string;
   topic: string;
   meeting_location?: string | null;
+  meeting_url?: string | null;
   phone?: string | null;
   starts_at: string;
   ends_at: string;
@@ -110,12 +111,12 @@ export async function createEvent(booking: BookingForCalendar) {
   const startsAt = new Date(booking.starts_at);
   const endsAt = new Date(booking.ends_at);
   const title = `${booking.bookingType?.name || "Termin"}: ${booking.customer_name}`;
-  const meetingDetails = getMeetingLocationDetails(booking.meeting_location, booking.phone);
+  const meetingDetails = getMeetingLocationDetails(booking.meeting_location, booking.phone, booking.meeting_url);
   const description = [
     `Unternehmen: ${booking.company}`,
     `E-Mail: ${booking.customer_email}`,
     booking.phone ? `Telefon: ${booking.phone}` : null,
-    ...getMeetingLocationCalendarLines(booking.meeting_location, booking.phone),
+    ...getMeetingLocationCalendarLines(booking.meeting_location, booking.phone, booking.meeting_url),
     "",
     booking.topic
   ]
@@ -170,8 +171,8 @@ export async function checkAvailability(startDate: Date, endDate: Date) {
 export function createIcsFallback(booking: BookingForCalendar) {
   const startsAt = new Date(booking.starts_at);
   const endsAt = new Date(booking.ends_at);
-  const meetingDetails = getMeetingLocationDetails(booking.meeting_location, booking.phone);
-  const description = [...getMeetingLocationCalendarLines(booking.meeting_location, booking.phone), "", booking.topic].join("\n");
+  const meetingDetails = getMeetingLocationDetails(booking.meeting_location, booking.phone, booking.meeting_url);
+  const description = [...getMeetingLocationCalendarLines(booking.meeting_location, booking.phone, booking.meeting_url), "", booking.topic].join("\n");
 
   const result = createIcsEvent({
     title: booking.bookingType?.name || "Termin mit BuiltSmart AI",

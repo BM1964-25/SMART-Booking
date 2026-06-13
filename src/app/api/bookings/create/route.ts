@@ -4,6 +4,7 @@ import { assertSlotAvailable } from "@/lib/availability";
 import { createEvent } from "@/lib/calendar/caldav";
 import { hasSupabaseConfig } from "@/lib/config";
 import { getEnv } from "@/lib/env";
+import { createMeetingLink } from "@/lib/meeting-links";
 import { rateLimit } from "@/lib/rate-limit";
 import { createSupabaseAdmin } from "@/lib/supabase/admin";
 import { BookingType } from "@/lib/types";
@@ -133,8 +134,29 @@ export async function POST(request: NextRequest) {
     return navigate(`/booking-error?reason=unknown&type=${encodeURIComponent(parsed.data.bookingTypeSlug)}`);
   }
 
+  let bookingWithMeeting = { ...booking, bookingType };
+
   try {
-    const calendarEvent = await createEvent({ ...booking, bookingType });
+    const meetingUrl = await createMeetingLink(bookingWithMeeting);
+
+    if (meetingUrl) {
+      const { data: updatedBooking } = await supabase
+        .from("bookings")
+        .update({ meeting_url: meetingUrl })
+        .eq("id", booking.id)
+        .select("*")
+        .single();
+
+      if (updatedBooking) {
+        bookingWithMeeting = { ...updatedBooking, bookingType };
+      }
+    }
+  } catch (error) {
+    console.error("Meeting link creation failed", error);
+  }
+
+  try {
+    const calendarEvent = await createEvent(bookingWithMeeting);
     await supabase
       .from("bookings")
       .update({ calendar_event_id: calendarEvent.eventId, calendar_event_url: calendarEvent.eventUrl })
@@ -146,7 +168,7 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    await sendBookingEmails({ ...booking, bookingType });
+    await sendBookingEmails(bookingWithMeeting);
   } catch (error) {
     console.error("Booking email delivery failed", error);
   }

@@ -24,30 +24,33 @@ export function getMeetingLocationLabel(value?: string | null) {
   return meetingLocationOptions.find((option) => option.value === value)?.label || "Telefon";
 }
 
-export function getMeetingLocationDetails(value?: string | null, phone?: string | null): MeetingLocationDetails {
+export function getMeetingLocationDetails(value?: string | null, phone?: string | null, meetingUrl?: string | null): MeetingLocationDetails {
   const env = getEnv();
   const label = getMeetingLocationLabel(value);
 
   switch (value) {
     case "zoom":
+      const zoomLink = meetingUrl || env.ZOOM_MEETING_URL;
       return {
         label,
-        description: env.ZOOM_MEETING_URL ? "Der Zoom-Link ist unten hinterlegt." : "Der Zoom-Link wird separat bereitgestellt.",
-        link: env.ZOOM_MEETING_URL,
+        description: zoomLink ? "Der Zoom-Link ist unten hinterlegt." : "Der Zoom-Link wird separat bereitgestellt.",
+        link: zoomLink,
         linkLabel: "Zoom-Link öffnen"
       };
     case "teams":
+      const teamsLink = meetingUrl || env.TEAMS_MEETING_URL;
       return {
         label,
-        description: env.TEAMS_MEETING_URL ? "Der Teams-Link ist unten hinterlegt." : "Der Teams-Link wird separat bereitgestellt.",
-        link: env.TEAMS_MEETING_URL,
+        description: teamsLink ? "Der Teams-Link ist unten hinterlegt." : "Der Teams-Link wird separat bereitgestellt.",
+        link: teamsLink,
         linkLabel: "Teams-Link öffnen"
       };
     case "google_meet":
+      const googleMeetLink = meetingUrl || env.GOOGLE_MEET_URL;
       return {
         label,
-        description: env.GOOGLE_MEET_URL ? "Der Google-Meet-Link ist unten hinterlegt." : "Der Google-Meet-Link wird separat bereitgestellt.",
-        link: env.GOOGLE_MEET_URL,
+        description: googleMeetLink ? "Der Google-Meet-Link ist unten hinterlegt." : "Der Google-Meet-Link wird separat bereitgestellt.",
+        link: googleMeetLink,
         linkLabel: "Google Meet öffnen"
       };
     case "onsite":
@@ -73,8 +76,8 @@ export function getMeetingLocationDetails(value?: string | null, phone?: string 
   }
 }
 
-export function getMeetingLocationCalendarLines(value?: string | null, phone?: string | null) {
-  const details = getMeetingLocationDetails(value, phone);
+export function getMeetingLocationCalendarLines(value?: string | null, phone?: string | null, meetingUrl?: string | null) {
+  const details = getMeetingLocationDetails(value, phone, meetingUrl);
 
   return [
     `Terminort: ${details.label}`,
