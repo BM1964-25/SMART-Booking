@@ -17,6 +17,10 @@ type DaySlotPickerProps = {
 
 const dayFormatter = new Intl.DateTimeFormat("de-DE", {
   weekday: "short",
+  timeZone: TIMEZONE
+});
+
+const dateFormatter = new Intl.DateTimeFormat("de-DE", {
   day: "2-digit",
   month: "2-digit",
   timeZone: TIMEZONE
@@ -57,7 +61,7 @@ export function DaySlotPicker({ bookingTypeSlug, days, groupedSlots }: DaySlotPi
                 type="button"
                 disabled={!hasSlots}
                 onClick={() => setSelectedDay(day)}
-                className={`min-h-20 rounded-md border px-3 py-2 text-left transition focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 ${
+                className={`min-h-16 rounded-md border px-3 py-2 text-left transition focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 ${
                   isSelected
                     ? "border-brand-500 bg-brand-50 text-brand-800"
                     : hasSlots
@@ -65,8 +69,9 @@ export function DaySlotPicker({ bookingTypeSlug, days, groupedSlots }: DaySlotPi
                       : "border-slate-100 bg-slate-50 text-slate-300"
                 }`}
               >
-                <span className="block text-sm font-semibold">{dayFormatter.format(new Date(`${day}T12:00:00`))}</span>
-                <span className="mt-2 block text-xs">{hasSlots ? `${slots.length} Zeiten` : "Belegt"}</span>
+                <span className="block text-xs font-semibold uppercase tracking-wide">{dayFormatter.format(new Date(`${day}T12:00:00`))}</span>
+                <span className="mt-1 block text-base font-semibold">{dateFormatter.format(new Date(`${day}T12:00:00`))}</span>
+                {!hasSlots ? <span className="mt-1 block text-xs">Belegt</span> : null}
               </button>
             );
           })}

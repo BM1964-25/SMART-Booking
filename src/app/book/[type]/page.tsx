@@ -1,4 +1,4 @@
-import { addDays } from "date-fns";
+import { addDays, getDay, startOfWeek } from "date-fns";
 import { DaySlotPicker } from "@/components/day-slot-picker";
 import { getAvailableSlots } from "@/lib/availability";
 import { hasSupabaseConfig } from "@/lib/config";
@@ -15,6 +15,7 @@ export default async function SlotPage({ params }: { params: Promise<{ type: str
   let bookingType: BookingType | null | undefined = findSeedBookingType(type);
   const from = new Date();
   const previewDays = 28;
+  const pickerStart = buildPickerStartDate(from);
   const to = addDays(from, previewDays);
 
   if (isConfigured) {
@@ -24,7 +25,7 @@ export default async function SlotPage({ params }: { params: Promise<{ type: str
   }
 
   const slots = bookingType ? (isConfigured ? await getAvailableSlots(type, from, to) : demoSlots(bookingType.duration_minutes)) : [];
-  const days = buildPickerDays(from, previewDays);
+  const days = buildPickerDays(pickerStart, previewDays);
   const grouped = groupByDay(slots);
 
   if (!bookingType) {
@@ -52,6 +53,20 @@ export default async function SlotPage({ params }: { params: Promise<{ type: str
 
 function buildPickerDays(from: Date, count: number) {
   return Array.from({ length: count }, (_, index) => htmlDateValue(addDays(from, index)));
+}
+
+function buildPickerStartDate(from: Date) {
+  const weekday = getDay(from);
+
+  if (weekday === 6) {
+    return addDays(from, 2);
+  }
+
+  if (weekday === 0) {
+    return addDays(from, 1);
+  }
+
+  return startOfWeek(from, { weekStartsOn: 1 });
 }
 
 function groupByDay(slots: { startsAt: string; endsAt: string }[]) {
