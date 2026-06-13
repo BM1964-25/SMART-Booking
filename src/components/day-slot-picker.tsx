@@ -42,12 +42,9 @@ export function DaySlotPicker({ bookingTypeSlug, days, groupedSlots }: DaySlotPi
   return (
     <div className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1.05fr)_minmax(320px,0.95fr)]">
       <section className="rounded-lg border border-slate-200 bg-white p-5">
-        <div className="flex flex-wrap items-end justify-between gap-3">
-          <div>
-            <h2 className="text-lg font-semibold text-slate-950">Tag auswählen</h2>
-            <p className="mt-1 text-sm text-slate-500">Buchbar sind Termine innerhalb der nächsten 4 Wochen.</p>
-          </div>
-          <p className="text-xs font-medium uppercase tracking-wide text-slate-400">Europe/Berlin</p>
+        <div>
+          <h2 className="text-lg font-semibold text-slate-950">Tag auswählen</h2>
+          <p className="mt-1 text-sm text-slate-500">Buchbar sind Termine innerhalb der nächsten 4 Wochen.</p>
         </div>
         <div className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-4 md:grid-cols-7">
           {days.map((day) => {
@@ -80,6 +77,7 @@ export function DaySlotPicker({ bookingTypeSlug, days, groupedSlots }: DaySlotPi
 
       <section className="rounded-lg border border-slate-200 bg-white p-5">
         <h2 className="text-lg font-semibold text-slate-950">{longDayFormatter.format(new Date(`${selectedDay}T12:00:00`))}</h2>
+        <p className="mt-1 text-sm text-slate-500">Alle Uhrzeiten in Europe/Berlin.</p>
         {selectedSlots.length > 0 ? (
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
             {selectedSlots.map((slot) => (
