@@ -1229,7 +1229,7 @@ render();
 // ── PWA: Service Worker (inline via blob) ──
 if ('serviceWorker' in navigator) {
   const swCode = `
-const CACHE = 'builtsmart-hub-v1';
+const CACHE = 'builtsmart-hub-v2';
 const SHELL = [self.location.href.replace('/sw.js','/')];
 
 self.addEventListener('install', e => {
@@ -1247,10 +1247,19 @@ self.addEventListener('activate', e => {
 });
 
 self.addEventListener('fetch', e => {
+  // Network-first: immer zuerst vom Server, Cache nur als Fallback
   e.respondWith(
-    caches.match(e.request).then(r => r || fetch(e.request).catch(() =>
-      caches.match(SHELL[0])
-    ))
+    fetch(e.request)
+      .then(response => {
+        // Frische Antwort im Cache speichern
+        const clone = response.clone();
+        caches.open(CACHE).then(cache => cache.put(e.request, clone));
+        return response;
+      })
+      .catch(() =>
+        // Kein Internet: aus Cache laden
+        caches.match(e.request).then(r => r || caches.match(SHELL[0]))
+      )
   );
 });
 `;
