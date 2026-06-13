@@ -1,4 +1,5 @@
 import { addMinutes } from "date-fns";
+import Link from "next/link";
 import { BookingForm } from "@/components/booking-form";
 import { hasSupabaseConfig } from "@/lib/config";
 import { buildSlotLabel } from "@/lib/date";
@@ -40,6 +41,12 @@ export default async function ConfirmPage({
         <p className="text-sm text-slate-500">Ausgewählter Termin</p>
         <p className="mt-1 font-semibold text-slate-950">{bookingType.name}</p>
         <p className="mt-1 text-slate-700">{buildSlotLabel(startsAt, endsAt)}</p>
+        <Link
+          href={`/book/${type}`}
+          className="mt-4 inline-flex min-h-10 items-center justify-center rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-brand-500 hover:text-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2"
+        >
+          Zurück zur Terminauswahl
+        </Link>
       </div>
       {!isConfigured ? (
         <div className="mt-6 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-900">
