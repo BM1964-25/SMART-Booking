@@ -61,7 +61,7 @@ export function DaySlotPicker({ bookingTypeSlug, days, groupedSlots }: DaySlotPi
                 type="button"
                 disabled={!hasSlots}
                 onClick={() => setSelectedDay(day)}
-                className={`min-h-16 rounded-md border px-3 py-2 text-left transition focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 ${
+                className={`flex min-h-16 flex-col items-center justify-center rounded-md border px-3 py-2 text-center transition focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 ${
                   isSelected
                     ? "border-brand-500 bg-brand-50 text-brand-800"
                     : hasSlots
