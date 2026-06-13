@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useRef, useState } from "react";
 import { Check } from "lucide-react";
 import { PrimaryButton } from "@/components/button";
 
@@ -10,16 +10,41 @@ type BookingFormProps = {
 };
 
 export function BookingForm({ bookingTypeSlug, startsAt }: BookingFormProps) {
+  const formRef = useRef<HTMLFormElement>(null);
   const [status, setStatus] = useState<"idle" | "submitting" | "success">("idle");
   const [message, setMessage] = useState<string | null>(null);
   const isSubmitting = status === "submitting" || status === "success";
 
+  function validateForm(form: HTMLFormElement) {
+    if (form.checkValidity()) {
+      return true;
+    }
+
+    setStatus("idle");
+    setMessage("Bitte ergänzen Sie das markierte Pflichtfeld. Ihre bisherigen Eingaben bleiben erhalten.");
+
+    const firstInvalidField = form.querySelector<HTMLElement>("input:invalid, select:invalid, textarea:invalid");
+    firstInvalidField?.scrollIntoView({ block: "center", behavior: "smooth" });
+    firstInvalidField?.focus();
+
+    window.requestAnimationFrame(() => {
+      form.reportValidity();
+    });
+
+    return false;
+  }
+
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    const form = event.currentTarget;
+
+    if (!validateForm(form)) {
+      return;
+    }
+
     setStatus("submitting");
     setMessage("Termin wird geprüft und gespeichert.");
 
-    const form = event.currentTarget;
     const formData = new FormData(form);
 
     try {
@@ -50,7 +75,7 @@ export function BookingForm({ bookingTypeSlug, startsAt }: BookingFormProps) {
   }
 
   return (
-    <form onSubmit={submit} className="mt-6 space-y-5 rounded-lg border border-slate-200 bg-white p-5">
+    <form ref={formRef} noValidate onSubmit={submit} className="mt-6 space-y-5 rounded-lg border border-slate-200 bg-white p-5">
       <input type="hidden" name="bookingTypeSlug" value={bookingTypeSlug} />
       <input type="hidden" name="startsAt" value={startsAt} />
       <Field label="Name" name="customerName" minLength={2} required />
@@ -63,7 +88,7 @@ export function BookingForm({ bookingTypeSlug, startsAt }: BookingFormProps) {
           name="meetingLocation"
           required
           defaultValue="phone"
-          className="mt-2 w-full rounded-md border border-slate-300 px-3 py-2 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+          className="mt-2 w-full rounded-md border border-slate-300 px-3 py-2 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 invalid:border-red-300"
         >
           <option value="phone">Telefon</option>
           <option value="zoom">Zoom</option>
@@ -79,17 +104,32 @@ export function BookingForm({ bookingTypeSlug, startsAt }: BookingFormProps) {
           required
           minLength={10}
           rows={5}
-          className="mt-2 w-full rounded-md border border-slate-300 px-3 py-2 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+          className="mt-2 w-full rounded-md border border-slate-300 px-3 py-2 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 invalid:border-red-300"
         />
         <span className="mt-1 block text-xs text-slate-500">Bitte mindestens 10 Zeichen eingeben.</span>
       </label>
       <label className="flex gap-3 text-sm leading-6 text-slate-700">
-        <input type="checkbox" name="privacyAccepted" value="true" required className="mt-1 h-4 w-4 rounded border-slate-300 text-brand-600" />
+        <input
+          type="checkbox"
+          name="privacyAccepted"
+          value="true"
+          required
+          className="mt-1 h-4 w-4 rounded border-slate-300 text-brand-600 invalid:outline invalid:outline-2 invalid:outline-red-300"
+        />
         <span>Ich habe die Datenschutzhinweise gelesen und stimme zu, dass meine Angaben zur Bearbeitung der Terminanfrage verarbeitet werden.</span>
       </label>
       <div>
         <div className="flex flex-wrap items-center gap-3">
-          <PrimaryButton disabled={isSubmitting}>
+          <PrimaryButton
+            disabled={isSubmitting}
+            onClick={(event) => {
+              const form = formRef.current;
+
+              if (form && !validateForm(form)) {
+                event.preventDefault();
+              }
+            }}
+          >
             {status === "success" ? "Termin gespeichert" : status === "submitting" ? "Termin wird gebucht" : "Termin verbindlich buchen"}
           </PrimaryButton>
           {status === "success" ? (
@@ -102,7 +142,11 @@ export function BookingForm({ bookingTypeSlug, startsAt }: BookingFormProps) {
         <p className="mt-3 text-xs leading-5 text-slate-500">
           Bitte nur einmal absenden. Nach dem Speichern wird der Termin automatisch im Kalender eingetragen.
         </p>
-        {message ? <p className="mt-3 rounded-md bg-slate-50 p-3 text-sm leading-6 text-slate-700">{message}</p> : null}
+        {message ? (
+          <p aria-live="polite" className="mt-3 rounded-md bg-slate-50 p-3 text-sm leading-6 text-slate-700">
+            {message}
+          </p>
+        ) : null}
       </div>
     </form>
   );
@@ -129,7 +173,7 @@ function Field({
         type={type}
         required={required}
         minLength={minLength}
-        className="mt-2 w-full rounded-md border border-slate-300 px-3 py-2 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+        className="mt-2 w-full rounded-md border border-slate-300 px-3 py-2 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 invalid:border-red-300"
       />
     </label>
   );
