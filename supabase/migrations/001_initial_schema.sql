@@ -139,9 +139,9 @@ create policy "Admins can manage calendar connections"
 insert into booking_types (slug, name, description, duration_minutes, buffer_before_minutes, buffer_after_minutes, sort_order)
 values
   ('erstgespraech', 'Kostenloses Erstgespräch', 'Kurzes Kennenlernen und Einordnung Ihres Vorhabens.', 30, 5, 10, 1),
-  ('ki-demo-builtsmart-ai', 'KI-Demo BuiltSmart AI', 'Live-Demo der wichtigsten Funktionen und Einsatzszenarien.', 45, 10, 10, 2),
-  ('projektanalyse', 'Projektanalyse', 'Strukturierte Analyse Ihres Projekts und nächste Schritte.', 60, 10, 15, 3),
-  ('beratung-bau-immobilien', 'Beratung Bau und Immobilien', 'Fachliche Beratung für Bau- und Immobilienprozesse.', 60, 10, 15, 4)
+  ('ki-demo-builtsmart-ai', 'KI-Demo BuiltSmart AI', 'Live-Demo der wichtigsten Funktionen und Einsatzszenarien.', 30, 10, 10, 2),
+  ('projektanalyse', 'Projektanalyse', 'Strukturierte Analyse Ihres Projekts und nächste Schritte.', 30, 10, 15, 3),
+  ('beratung-bau-immobilien', 'Beratung Bau und Immobilien', 'Fachliche Beratung für Bau- und Immobilienprozesse.', 30, 10, 15, 4)
 on conflict (slug) do nothing;
 
 insert into availability_rules (weekday, start_time, end_time)

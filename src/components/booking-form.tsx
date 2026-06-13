@@ -5,6 +5,8 @@ import { Check } from "lucide-react";
 import { PrimaryButton } from "@/components/button";
 import { meetingLocationOptions } from "@/lib/meeting-location";
 
+const disabledMeetingLocations = new Set(["teams", "google_meet"]);
+
 type BookingFormProps = {
   bookingTypeSlug: string;
   startsAt: string;
@@ -86,30 +88,48 @@ export function BookingForm({ bookingTypeSlug, startsAt }: BookingFormProps) {
       <fieldset>
         <legend className="text-sm font-medium text-slate-700">Terminort</legend>
         <div className="mt-2 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {meetingLocationOptions.map((option) => (
-            <label
-              key={option.value}
-              className="group relative flex min-h-24 cursor-pointer gap-3 rounded-md border border-slate-300 bg-white p-4 text-left transition has-[:checked]:border-brand-500 has-[:checked]:bg-brand-50 hover:border-brand-300"
-            >
-              <input
-                type="radio"
-                name="meetingLocation"
-                value={option.value}
-                required
-                defaultChecked={option.value === "phone"}
-                className="mt-1 h-4 w-4 shrink-0 border-slate-300 text-brand-600 focus:ring-brand-500"
-              />
-              <span className="block min-w-0">
-                <span className="flex items-center justify-between gap-3">
-                  <span className="font-semibold text-slate-950">{option.label}</span>
+          {meetingLocationOptions.map((option) => {
+            const isDisabled = disabledMeetingLocations.has(option.value);
+
+            return (
+              <label
+                key={option.value}
+                aria-disabled={isDisabled}
+                className={`group relative flex min-h-24 gap-3 rounded-md border p-4 text-left transition has-[:checked]:border-brand-500 has-[:checked]:bg-brand-50 ${
+                  isDisabled
+                    ? "cursor-not-allowed border-slate-200 bg-slate-50 opacity-60"
+                    : "cursor-pointer border-slate-300 bg-white hover:border-brand-300"
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="meetingLocation"
+                  value={option.value}
+                  required
+                  disabled={isDisabled}
+                  defaultChecked={option.value === "phone"}
+                  className="mt-1 h-4 w-4 shrink-0 border-slate-300 text-brand-600 focus:ring-brand-500 disabled:cursor-not-allowed disabled:text-slate-300"
+                />
+                <span className="block min-w-0">
+                  <span className="flex items-center justify-between gap-3">
+                    <span className="font-semibold text-slate-950">{option.label}</span>
+                  </span>
+                  <span className="mt-2 block text-sm leading-5 text-slate-500">
+                    {isDisabled ? "Diese Option wird später freigeschaltet." : option.description}
+                  </span>
+                  {isDisabled ? (
+                    <span className="mt-3 inline-flex w-fit rounded-full bg-slate-200 px-2 py-0.5 text-[11px] font-semibold text-slate-600">
+                      Später verfügbar
+                    </span>
+                  ) : (
+                    <span className="mt-3 hidden w-fit rounded-full bg-brand-500 px-2 py-0.5 text-[11px] font-semibold text-white group-has-[:checked]:block">
+                      Aktiv
+                    </span>
+                  )}
                 </span>
-                <span className="mt-2 block text-sm leading-5 text-slate-500">{option.description}</span>
-                <span className="mt-3 hidden w-fit rounded-full bg-brand-500 px-2 py-0.5 text-[11px] font-semibold text-white group-has-[:checked]:block">
-                  Aktiv
-                </span>
-              </span>
-            </label>
-          ))}
+              </label>
+            );
+          })}
         </div>
       </fieldset>
       <label className="block">

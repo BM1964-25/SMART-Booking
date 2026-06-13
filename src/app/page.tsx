@@ -21,11 +21,11 @@ export default function HomePage() {
           <div className="rounded-md bg-white p-5">
             <div className="mb-6 h-2 w-28 rounded bg-brand-500" />
             <div className="space-y-3">
-              {["Erstgespräch", "KI-Demo", "Projektanalyse"].map((item, index) => (
+              {["Erstgespräch", "KI-Demo", "Projektanalyse"].map((item) => (
                 <div key={item} className="flex items-center justify-between rounded-md border border-slate-200 p-4">
                   <div>
                     <p className="font-medium text-slate-950">{item}</p>
-                    <p className="text-sm text-slate-500">{index === 0 ? "30 Minuten" : index === 1 ? "45 Minuten" : "60 Minuten"}</p>
+                    <p className="text-sm text-slate-500">30 Minuten</p>
                   </div>
                   <span className="h-3 w-3 rounded-full bg-brand-500" />
                 </div>
