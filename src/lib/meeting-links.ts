@@ -28,6 +28,32 @@ export async function createMeetingLink(booking: MeetingLinkBooking) {
   return createZoomMeeting(booking);
 }
 
+export async function testZoomMeetingLink() {
+  const startsAt = new Date(Date.now() + 60 * 60 * 1000);
+  const endsAt = new Date(startsAt.getTime() + 30 * 60 * 1000);
+
+  return createZoomMeeting({
+    id: "zoom-test",
+    customer_name: "SMART Booking Test",
+    customer_email: "test@builtsmart-ai.app",
+    company: "BuiltSmart AI",
+    meeting_location: "zoom",
+    starts_at: startsAt.toISOString(),
+    ends_at: endsAt.toISOString(),
+    bookingType: {
+      id: "zoom-test",
+      slug: "zoom-test",
+      name: "SMART Booking Zoom-Test",
+      description: null,
+      duration_minutes: 30,
+      buffer_before_minutes: 0,
+      buffer_after_minutes: 0,
+      is_active: true,
+      sort_order: 0
+    }
+  });
+}
+
 async function createZoomMeeting(booking: MeetingLinkBooking) {
   const env = getEnv();
 
@@ -66,7 +92,7 @@ async function createZoomMeeting(booking: MeetingLinkBooking) {
   });
 
   if (!response.ok) {
-    throw new Error(`Zoom-Meeting konnte nicht erstellt werden (${response.status}).`);
+    throw new Error(`Zoom-Meeting konnte nicht erstellt werden (${response.status}): ${await response.text()}`);
   }
 
   const meeting = (await response.json()) as ZoomMeetingResponse;
@@ -88,7 +114,7 @@ async function getZoomAccessToken(input: { accountId: string; clientId: string; 
   });
 
   if (!response.ok) {
-    throw new Error(`Zoom-Zugang konnte nicht authentifiziert werden (${response.status}).`);
+    throw new Error(`Zoom-Zugang konnte nicht authentifiziert werden (${response.status}): ${await response.text()}`);
   }
 
   const token = (await response.json()) as ZoomTokenResponse;

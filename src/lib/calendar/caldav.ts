@@ -121,7 +121,7 @@ export async function createEvent(booking: BookingForCalendar) {
     booking.topic
   ]
     .filter(Boolean)
-    .join("\\n");
+    .join("\n");
 
   const ics = buildCalendarObject({
     uid,
