@@ -1247,27 +1247,56 @@ self.addEventListener('activate', e => {
 });
 
 self.addEventListener('fetch', e => {
-  // Network-first: immer zuerst vom Server, Cache nur als Fallback
   e.respondWith(
     fetch(e.request)
       .then(response => {
-        // Frische Antwort im Cache speichern
         const clone = response.clone();
         caches.open(CACHE).then(cache => cache.put(e.request, clone));
         return response;
       })
       .catch(() =>
-        // Kein Internet: aus Cache laden
         caches.match(e.request).then(r => r || caches.match(SHELL[0]))
       )
   );
 });
+
+// Notify all clients when a new SW takes over
+self.addEventListener('message', e => {
+  if (e.data === 'skipWaiting') self.skipWaiting();
+});
 `;
   const swBlob = new Blob([swCode], {type: 'application/javascript'});
   const swUrl  = URL.createObjectURL(swBlob);
+
   navigator.serviceWorker.register(swUrl, {scope: './'})
-    .then(reg => console.log('[PWA] Service Worker registered', reg.scope))
+    .then(reg => {
+      console.log('[PWA] Service Worker registered');
+
+      // Check for updates every 60 seconds
+      setInterval(() => reg.update(), 60000);
+
+      // When a new SW is waiting, activate it immediately and reload
+      reg.addEventListener('updatefound', () => {
+        const newWorker = reg.installing;
+        newWorker.addEventListener('statechange', () => {
+          if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+            console.log('[PWA] Neue Version verfügbar – wird geladen…');
+            newWorker.postMessage('skipWaiting');
+          }
+        });
+      });
+    })
     .catch(err => console.warn('[PWA] SW registration failed:', err));
+
+  // When SW controller changes → reload to get fresh version
+  let refreshing = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (!refreshing) {
+      refreshing = true;
+      console.log('[PWA] Update aktiv – Seite wird neu geladen');
+      window.location.reload();
+    }
+  });
 }
 
 // ── PWA: Install prompt banner ─────────────────────────────
