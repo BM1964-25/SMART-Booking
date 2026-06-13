@@ -14,7 +14,7 @@ export function AdminCancelBookingButton({ action, bookingId, customerName }: Ad
       action={action}
       onSubmit={(event) => {
         const confirmed = window.confirm(
-          `Soll der Termin mit ${customerName} wirklich gelöscht werden? Der Kalendereintrag wird entfernt und der Kunde wird per E-Mail informiert, sobald E-Mail-Versand konfiguriert ist.`
+          `Soll der Termin mit ${customerName} wirklich storniert werden? Der Kalendereintrag wird entfernt, die Buchung bleibt als storniert in der Historie sichtbar und der Kunde wird per E-Mail informiert, sobald E-Mail-Versand konfiguriert ist.`
         );
 
         if (!confirmed) {
@@ -37,7 +37,7 @@ function SubmitButton() {
       disabled={pending}
       className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-xs font-semibold text-red-700 hover:border-red-300 hover:bg-red-100 disabled:cursor-wait disabled:opacity-60"
     >
-      {pending ? "Wird gelöscht" : "Löschen"}
+      {pending ? "Wird storniert" : "Stornieren"}
     </button>
   );
 }
