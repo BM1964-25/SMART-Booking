@@ -82,7 +82,7 @@ export function BookingForm({ bookingTypeSlug, startsAt }: BookingFormProps) {
       <Field label="Name" name="customerName" minLength={2} required />
       <Field label="E-Mail" name="customerEmail" type="email" required />
       <Field label="Unternehmen" name="company" minLength={2} required />
-      <Field label="Telefonnummer optional" name="phone" />
+      <Field label="Telefonnummer" name="phone" type="tel" minLength={5} required />
       <fieldset>
         <legend className="text-sm font-medium text-slate-700">Terminort</legend>
         <div className="mt-2 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">

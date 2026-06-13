@@ -7,7 +7,7 @@ export const createBookingSchema = z.object({
   customerName: z.string().min(2, "Bitte geben Sie Ihren Namen ein."),
   customerEmail: z.string().email("Bitte geben Sie eine gültige E-Mail-Adresse ein."),
   company: z.string().min(2, "Bitte geben Sie Ihr Unternehmen ein."),
-  phone: z.string().max(60).optional().or(z.literal("")),
+  phone: z.string().trim().min(5, "Bitte geben Sie Ihre Telefonnummer ein.").max(60, "Die Telefonnummer ist zu lang."),
   meetingLocation: z.enum(meetingLocationValues),
   topic: z.string().min(10, "Bitte beschreiben Sie Ihr Anliegen kurz."),
   privacyAccepted: z.literal(true, {
