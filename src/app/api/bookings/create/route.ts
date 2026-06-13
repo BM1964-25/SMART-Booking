@@ -22,6 +22,19 @@ export async function POST(request: NextRequest) {
       ? NextResponse.json({ error: message }, { status: 400 })
       : navigate(`/booking-error?reason=invalid`);
   };
+  const buildRetryParams = (reason: string, type: string, start: Date, detail?: string) => {
+    const params = new URLSearchParams({
+      reason,
+      type,
+      start: start.toISOString()
+    });
+
+    if (detail) {
+      params.set("detail", detail);
+    }
+
+    return `/booking-error?${params.toString()}`;
+  };
 
   if (!hasSupabaseConfig()) {
     return navigate("/booking-error?reason=config");
@@ -126,12 +139,27 @@ export async function POST(request: NextRequest) {
       .from("bookings")
       .update({ calendar_event_id: calendarEvent.eventId, calendar_event_url: calendarEvent.eventUrl })
       .eq("id", booking.id);
-  } catch {
+  } catch (error) {
+    console.error("Apple calendar booking failed", error);
     await supabase.from("bookings").update({ status: "cancelled" }).eq("id", booking.id);
-    return navigate(`/booking-error?reason=calendar&type=${encodeURIComponent(parsed.data.bookingTypeSlug)}`);
+    return navigate(buildRetryParams("calendar", parsed.data.bookingTypeSlug, startsAt, getCalendarErrorCode(error)));
   }
 
   await sendBookingEmails({ ...booking, bookingType });
 
   return navigate("/success");
+}
+
+function getCalendarErrorCode(error: unknown) {
+  const message = error instanceof Error ? error.message.toLowerCase() : "";
+
+  if (message.includes("kein apple kalender")) {
+    return "calendar-not-found";
+  }
+
+  if (message.includes("nicht vollständig konfiguriert")) {
+    return "calendar-config";
+  }
+
+  return "calendar-write";
 }

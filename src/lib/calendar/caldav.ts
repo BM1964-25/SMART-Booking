@@ -69,7 +69,15 @@ async function getConfiguredCalendar() {
     return calendars[0];
   }
 
-  return calendars.find((calendar) => calendar.url === configured || calendar.displayName === configured);
+  return calendars.find((calendar) => {
+    const calendarUrl = calendar.url || "";
+    return (
+      calendarUrl === configured ||
+      calendarUrl.endsWith(`/calendars/${configured}/`) ||
+      calendarUrl.includes(`/calendars/${configured}/`) ||
+      calendar.displayName === configured
+    );
+  });
 }
 
 export async function getEvents(startDate: Date, endDate: Date): Promise<CalendarEvent[]> {
