@@ -53,9 +53,9 @@ export function BookingForm({ bookingTypeSlug, startsAt }: BookingFormProps) {
     <form onSubmit={submit} className="mt-6 space-y-5 rounded-lg border border-slate-200 bg-white p-5">
       <input type="hidden" name="bookingTypeSlug" value={bookingTypeSlug} />
       <input type="hidden" name="startsAt" value={startsAt} />
-      <Field label="Name" name="customerName" required />
+      <Field label="Name" name="customerName" minLength={2} required />
       <Field label="E-Mail" name="customerEmail" type="email" required />
-      <Field label="Unternehmen" name="company" required />
+      <Field label="Unternehmen" name="company" minLength={2} required />
       <Field label="Telefonnummer optional" name="phone" />
       <label className="block">
         <span className="text-sm font-medium text-slate-700">Terminort</span>
@@ -77,9 +77,11 @@ export function BookingForm({ bookingTypeSlug, startsAt }: BookingFormProps) {
         <textarea
           name="topic"
           required
+          minLength={10}
           rows={5}
           className="mt-2 w-full rounded-md border border-slate-300 px-3 py-2 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
         />
+        <span className="mt-1 block text-xs text-slate-500">Bitte mindestens 10 Zeichen eingeben.</span>
       </label>
       <label className="flex gap-3 text-sm leading-6 text-slate-700">
         <input type="checkbox" name="privacyAccepted" value="true" required className="mt-1 h-4 w-4 rounded border-slate-300 text-brand-600" />
@@ -106,7 +108,19 @@ export function BookingForm({ bookingTypeSlug, startsAt }: BookingFormProps) {
   );
 }
 
-function Field({ label, name, type = "text", required = false }: { label: string; name: string; type?: string; required?: boolean }) {
+function Field({
+  label,
+  name,
+  type = "text",
+  required = false,
+  minLength
+}: {
+  label: string;
+  name: string;
+  type?: string;
+  required?: boolean;
+  minLength?: number;
+}) {
   return (
     <label className="block">
       <span className="text-sm font-medium text-slate-700">{label}</span>
@@ -114,6 +128,7 @@ function Field({ label, name, type = "text", required = false }: { label: string
         name={name}
         type={type}
         required={required}
+        minLength={minLength}
         className="mt-2 w-full rounded-md border border-slate-300 px-3 py-2 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
       />
     </label>

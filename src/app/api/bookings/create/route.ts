@@ -17,6 +17,11 @@ export async function POST(request: NextRequest) {
     const url = path.startsWith("http") ? path : `${env.NEXT_PUBLIC_SITE_URL}${path}`;
     return isAjax ? NextResponse.json({ redirectTo: url }) : NextResponse.redirect(url, { status: 303 });
   };
+  const validationError = (message: string) => {
+    return isAjax
+      ? NextResponse.json({ error: message }, { status: 400 })
+      : navigate(`/booking-error?reason=invalid`);
+  };
 
   if (!hasSupabaseConfig()) {
     return navigate("/booking-error?reason=config");
@@ -44,7 +49,8 @@ export async function POST(request: NextRequest) {
   const parsed = createBookingSchema.safeParse(payload);
 
   if (!parsed.success) {
-    return navigate(`/booking-error?reason=invalid&type=${encodeURIComponent(String(payload.bookingTypeSlug || ""))}`);
+    const firstError = parsed.error.issues[0]?.message;
+    return validationError(firstError || "Bitte prüfen Sie Ihre Eingaben und bestätigen Sie den Datenschutzhinweis.");
   }
 
   const supabase = createSupabaseAdmin();
