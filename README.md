@@ -1,6 +1,6 @@
 # SMART Booking
 
-Professionelle Terminbuchungs-App für BuiltSmart AI. Die App nutzt Next.js App Router, TypeScript, Tailwind CSS, Supabase, CalDAV für Apple iCloud Kalender und Resend für E-Mail-Bestätigungen.
+Professionelle Terminbuchungs-App für BuiltSmart AI. Die App nutzt Next.js App Router, TypeScript, Tailwind CSS, Supabase, CalDAV für Apple iCloud Kalender und SMTP/Brevo für E-Mail-Bestätigungen.
 
 ## Installation
 
@@ -71,6 +71,20 @@ Apple Kalender erfordert für externe Apps ein app-spezifisches Passwort.
 
 Die App liest belegte Zeiten über CalDAV und schreibt neue Buchungen als VEVENT in den Apple Kalender.
 
+## Brevo SMTP einrichten
+
+Die App versendet Bestätigungs- und Storno-Mails über SMTP. Für Brevo werden folgende Variablen benötigt:
+
+```bash
+SMTP_HOST=smtp-relay.brevo.com
+SMTP_PORT=587
+SMTP_USER=<Brevo SMTP Login>
+SMTP_PASSWORD=<Brevo SMTP Key>
+MAIL_FROM=SMART Booking <termine@builtsmart-ai.app>
+```
+
+In Brevo muss die Absenderdomain oder Absenderadresse freigegeben sein. Danach die Variablen in Vercel eintragen und ein neues Deployment starten.
+
 ## Terminorte und Meeting-Links
 
 Im Buchungsformular kann der Kunde zwischen Telefon, Zoom, Microsoft Teams, Google Meet, Ortstermin und individueller Abstimmung wählen. Die Auswahl wird in Supabase gespeichert und in Apple Kalender, ICS-Datei und E-Mail übernommen.
@@ -102,7 +116,7 @@ Vor dem Livegang die Checkliste in `docs/live-checklist.md` abarbeiten. Besonder
 - `src/app` enthält Pages und API Routes.
 - `src/lib/availability.ts` berechnet freie Slots aus Verfügbarkeitsregeln, bestehenden Supabase-Buchungen, blockierten Zeiten, Apple-Kalender-Events und Pufferzeiten.
 - `src/lib/calendar/caldav.ts` kapselt CalDAV-Zugriffe auf Apple iCloud.
-- `src/lib/email.ts` versendet Kundenbestätigungen und interne Benachrichtigungen über Resend. Eine ICS-Datei wird als Fallback angehängt.
+- `src/lib/email.ts` versendet Kundenbestätigungen und interne Benachrichtigungen über SMTP/Brevo. Eine ICS-Datei wird als Fallback angehängt.
 - `src/lib/supabase` trennt Browser-, Server- und Admin-Clients. Der Service Role Key wird nur serverseitig verwendet.
 - `src/lib/rate-limit.ts` enthält ein einfaches In-Memory-Rate-Limit für Buchungs-API-Aufrufe. Für hohes Volumen sollte Vercel KV oder Upstash Redis genutzt werden.
 
@@ -137,3 +151,4 @@ Vor dem Livegang die Checkliste in `docs/live-checklist.md` abarbeiten. Besonder
 - `POST /api/admin/availability`
 - `GET /api/calendar/test`
 - `GET /api/calendar/events`
+- `GET /api/email/test`

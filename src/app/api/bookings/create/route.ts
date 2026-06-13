@@ -145,7 +145,11 @@ export async function POST(request: NextRequest) {
     return navigate(buildRetryParams("calendar", parsed.data.bookingTypeSlug, startsAt, getCalendarErrorCode(error)));
   }
 
-  await sendBookingEmails({ ...booking, bookingType });
+  try {
+    await sendBookingEmails({ ...booking, bookingType });
+  } catch (error) {
+    console.error("Booking email delivery failed", error);
+  }
 
   return navigate("/success");
 }

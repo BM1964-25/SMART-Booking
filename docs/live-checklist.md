@@ -6,6 +6,6 @@ Vor dem echten Deployment auf Vercel:
 2. Apple app-spezifisches Passwort für SMART Booking neu erzeugen und das alte Passwort widerrufen.
 3. Neue Werte ausschließlich in Vercel Environment Variables eintragen.
 4. `.env.local` lokal behalten, aber niemals committen oder veröffentlichen.
-5. Resend API-Key eintragen und Testmail auslösen.
+5. Brevo SMTP-Zugangsdaten eintragen und Testmail auslösen.
 6. Admin-Benutzer prüfen.
 7. Testbuchung durchführen und im Apple Kalender kontrollieren.

@@ -52,7 +52,7 @@ export default async function ConfirmPage({
       </div>
       {!isConfigured ? (
         <div className="mt-6 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-900">
-          Setup-Modus: Das Formular ist sichtbar, aber echte Buchungen werden erst nach Supabase-, Resend- und Apple-CalDAV-Konfiguration gespeichert und versendet.
+          Setup-Modus: Das Formular ist sichtbar, aber echte Buchungen werden erst nach Supabase-, Brevo-SMTP- und Apple-CalDAV-Konfiguration gespeichert und versendet.
         </div>
       ) : null}
       {isConfigured ? (

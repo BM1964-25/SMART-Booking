@@ -1,4 +1,4 @@
-import { Resend } from "resend";
+import nodemailer from "nodemailer";
 import { createIcsFallback } from "@/lib/calendar/caldav";
 import { buildSlotLabel } from "@/lib/date";
 import { getEnv } from "@/lib/env";
@@ -22,33 +22,35 @@ type BookingEmail = {
 export async function sendBookingEmails(booking: BookingEmail) {
   const env = getEnv();
 
-  if (!env.RESEND_API_KEY) {
-    console.warn("RESEND_API_KEY fehlt. E-Mail-Versand wurde übersprungen.");
+  if (!hasSmtpConfig(env)) {
+    console.warn("SMTP-Konfiguration fehlt. E-Mail-Versand wurde übersprungen.");
     return;
   }
 
-  const resend = new Resend(env.RESEND_API_KEY);
+  const transporter = createMailTransport(env);
   const ownerEmail = env.BOOKING_OWNER_EMAIL || "bernhard@builtsmart-ai.app";
   const cancelUrl = `${env.NEXT_PUBLIC_SITE_URL}/cancel/${booking.cancellation_token}`;
   const changeUrl = `${env.NEXT_PUBLIC_SITE_URL}/change/${booking.cancellation_token}`;
   const label = buildSlotLabel(new Date(booking.starts_at), new Date(booking.ends_at));
   const ics = createIcsFallback(booking);
+  const from = env.MAIL_FROM || "SMART Booking <termine@builtsmart-ai.app>";
 
   await Promise.all([
-    resend.emails.send({
-      from: "BuiltSmart AI <termine@builtsmart-ai.app>",
+    transporter.sendMail({
+      from,
       to: booking.customer_email,
       subject: "Ihre Terminbuchung bei BuiltSmart AI",
       html: customerHtml(booking, label, cancelUrl, changeUrl),
       attachments: [
         {
           filename: "termin-builtsmart-ai.ics",
-          content: Buffer.from(ics).toString("base64")
+          content: ics,
+          contentType: "text/calendar; charset=utf-8; method=PUBLISH"
         }
       ]
     }),
-    resend.emails.send({
-      from: "SMART Booking <termine@builtsmart-ai.app>",
+    transporter.sendMail({
+      from,
       to: ownerEmail,
       subject: `Neue Buchung: ${booking.bookingType.name}`,
       html: ownerHtml(booking, label)
@@ -59,29 +61,77 @@ export async function sendBookingEmails(booking: BookingEmail) {
 export async function sendBookingCancellationEmails(booking: BookingEmail) {
   const env = getEnv();
 
-  if (!env.RESEND_API_KEY) {
-    console.warn("RESEND_API_KEY fehlt. Storno-E-Mail wurde übersprungen.");
+  if (!hasSmtpConfig(env)) {
+    console.warn("SMTP-Konfiguration fehlt. Storno-E-Mail wurde übersprungen.");
     return;
   }
 
-  const resend = new Resend(env.RESEND_API_KEY);
+  const transporter = createMailTransport(env);
   const ownerEmail = env.BOOKING_OWNER_EMAIL || "bernhard@builtsmart-ai.app";
   const label = buildSlotLabel(new Date(booking.starts_at), new Date(booking.ends_at));
+  const from = env.MAIL_FROM || "SMART Booking <termine@builtsmart-ai.app>";
 
   await Promise.all([
-    resend.emails.send({
-      from: "BuiltSmart AI <termine@builtsmart-ai.app>",
+    transporter.sendMail({
+      from,
       to: booking.customer_email,
       subject: "Ihr Termin bei BuiltSmart AI wurde storniert",
       html: customerCancellationHtml(booking, label)
     }),
-    resend.emails.send({
-      from: "SMART Booking <termine@builtsmart-ai.app>",
+    transporter.sendMail({
+      from,
       to: ownerEmail,
       subject: `Termin storniert: ${booking.bookingType.name}`,
       html: ownerCancellationHtml(booking, label)
     })
   ]);
+}
+
+export async function sendEmailTest() {
+  const env = getEnv();
+
+  if (!hasSmtpConfig(env)) {
+    throw new Error("SMTP-Konfiguration fehlt.");
+  }
+
+  const ownerEmail = env.BOOKING_OWNER_EMAIL;
+
+  if (!ownerEmail) {
+    throw new Error("BOOKING_OWNER_EMAIL fehlt.");
+  }
+
+  const transporter = createMailTransport(env);
+  const from = env.MAIL_FROM || "SMART Booking <termine@builtsmart-ai.app>";
+
+  await transporter.sendMail({
+    from,
+    to: ownerEmail,
+    subject: "SMART Booking E-Mail-Test",
+    html: `
+      <div style="font-family:Arial,sans-serif;color:#111827;line-height:1.6">
+        <h1>E-Mail-Versand funktioniert</h1>
+        <p>SMART Booking kann E-Mails über Brevo SMTP versenden.</p>
+      </div>
+    `
+  });
+}
+
+function hasSmtpConfig(env: ReturnType<typeof getEnv>) {
+  return Boolean(env.SMTP_USER && env.SMTP_PASSWORD);
+}
+
+function createMailTransport(env: ReturnType<typeof getEnv>) {
+  const port = env.SMTP_PORT || 587;
+
+  return nodemailer.createTransport({
+    host: env.SMTP_HOST || "smtp-relay.brevo.com",
+    port,
+    secure: port === 465,
+    auth: {
+      user: env.SMTP_USER,
+      pass: env.SMTP_PASSWORD
+    }
+  });
 }
 
 function customerHtml(booking: BookingEmail, label: string, cancelUrl: string, changeUrl: string) {

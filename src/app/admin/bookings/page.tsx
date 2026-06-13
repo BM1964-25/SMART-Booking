@@ -53,7 +53,11 @@ export default async function AdminBookingsPage() {
     await supabase.from("bookings").update({ status: "cancelled" }).eq("id", booking.id);
 
     if (booking.booking_types) {
-      await sendBookingCancellationEmails({ ...booking, bookingType: booking.booking_types });
+      try {
+        await sendBookingCancellationEmails({ ...booking, bookingType: booking.booking_types });
+      } catch (error) {
+        console.error("Cancellation email delivery failed", error);
+      }
     }
 
     revalidatePath("/admin/bookings");
@@ -66,7 +70,7 @@ export default async function AdminBookingsPage() {
         <div>
           <h1 className="text-3xl font-semibold text-slate-950">Buchungsübersicht</h1>
           <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-600">
-            Hier verwalten Sie eingegangene Termine. Beim Stornieren wird der Apple-Kalendereintrag entfernt, die Buchung nachvollziehbar als storniert markiert und der Kunde per E-Mail informiert, sobald Resend eingerichtet ist.
+            Hier verwalten Sie eingegangene Termine. Beim Stornieren wird der Apple-Kalendereintrag entfernt, die Buchung nachvollziehbar als storniert markiert und der Kunde per E-Mail informiert, sobald Brevo SMTP eingerichtet ist.
           </p>
         </div>
       </div>
