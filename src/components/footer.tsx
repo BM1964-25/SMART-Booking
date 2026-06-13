@@ -9,7 +9,7 @@ export function Footer() {
           <Image src="/smart-booking-icon.png" alt="" width={48} height={48} className="h-12 w-12 rounded-xl" />
           <div>
             <p className="text-base font-semibold text-slate-950">SMART Booking</p>
-            <p className="mt-1 max-w-md text-sm leading-6 text-slate-500">Terminplanung für Beratung und KI-Demos.</p>
+            <p className="mt-1 max-w-md text-sm leading-6 text-slate-500">Intelligente Terminbuchung für professionelle Services.</p>
           </div>
         </div>
 
