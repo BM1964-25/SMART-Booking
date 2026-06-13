@@ -1,0 +1,131 @@
+import { addMinutes } from "date-fns";
+import { NextRequest, NextResponse } from "next/server";
+import { assertSlotAvailable } from "@/lib/availability";
+import { createEvent } from "@/lib/calendar/caldav";
+import { hasSupabaseConfig } from "@/lib/config";
+import { getEnv } from "@/lib/env";
+import { rateLimit } from "@/lib/rate-limit";
+import { createSupabaseAdmin } from "@/lib/supabase/admin";
+import { BookingType } from "@/lib/types";
+import { createBookingSchema } from "@/lib/validation";
+import { sendBookingEmails } from "@/lib/email";
+
+export async function POST(request: NextRequest) {
+  const env = getEnv();
+  const isAjax = request.headers.get("x-smart-booking-ajax") === "1";
+  const navigate = (path: string) => {
+    const url = path.startsWith("http") ? path : `${env.NEXT_PUBLIC_SITE_URL}${path}`;
+    return isAjax ? NextResponse.json({ redirectTo: url }) : NextResponse.redirect(url, { status: 303 });
+  };
+
+  if (!hasSupabaseConfig()) {
+    return navigate("/booking-error?reason=config");
+  }
+
+  const ip = request.headers.get("x-forwarded-for")?.split(",")[0] || "local";
+  const limited = rateLimit(`booking:${ip}`);
+
+  if (!limited.ok) {
+    return navigate("/booking-error?reason=unknown");
+  }
+
+  const formData = await request.formData();
+  const payload = {
+    bookingTypeSlug: formData.get("bookingTypeSlug"),
+    startsAt: formData.get("startsAt"),
+    customerName: formData.get("customerName"),
+    customerEmail: formData.get("customerEmail"),
+    company: formData.get("company"),
+    phone: formData.get("phone") || undefined,
+    meetingLocation: formData.get("meetingLocation"),
+    topic: formData.get("topic"),
+    privacyAccepted: formData.get("privacyAccepted") === "true"
+  };
+  const parsed = createBookingSchema.safeParse(payload);
+
+  if (!parsed.success) {
+    return navigate(`/booking-error?reason=invalid&type=${encodeURIComponent(String(payload.bookingTypeSlug || ""))}`);
+  }
+
+  const supabase = createSupabaseAdmin();
+  const { data: bookingType, error: typeError } = await supabase
+    .from("booking_types")
+    .select("*")
+    .eq("slug", parsed.data.bookingTypeSlug)
+    .eq("is_active", true)
+    .single<BookingType>();
+
+  if (typeError || !bookingType) {
+    return navigate("/booking-error?reason=unknown");
+  }
+
+  const startsAt = new Date(parsed.data.startsAt);
+  const endsAt = addMinutes(startsAt, bookingType.duration_minutes);
+  const { data: existingBooking } = await supabase
+    .from("bookings")
+    .select("id")
+    .eq("booking_type_id", bookingType.id)
+    .eq("customer_email", parsed.data.customerEmail)
+    .eq("starts_at", startsAt.toISOString())
+    .eq("status", "confirmed")
+    .maybeSingle();
+
+  if (existingBooking) {
+    return navigate("/success?existing=1");
+  }
+
+  const isAvailable = await assertSlotAvailable(parsed.data.bookingTypeSlug, startsAt, endsAt);
+
+  if (!isAvailable) {
+    const { data: concurrentBooking } = await supabase
+      .from("bookings")
+      .select("id")
+      .eq("booking_type_id", bookingType.id)
+      .eq("customer_email", parsed.data.customerEmail)
+      .eq("starts_at", startsAt.toISOString())
+      .eq("status", "confirmed")
+      .maybeSingle();
+
+    if (concurrentBooking) {
+      return navigate("/success?existing=1");
+    }
+
+    return navigate(`/booking-error?reason=unavailable&type=${encodeURIComponent(parsed.data.bookingTypeSlug)}`);
+  }
+
+  const { data: booking, error: insertError } = await supabase
+    .from("bookings")
+    .insert({
+      booking_type_id: bookingType.id,
+      customer_name: parsed.data.customerName,
+      customer_email: parsed.data.customerEmail,
+      company: parsed.data.company,
+      phone: parsed.data.phone || null,
+      meeting_location: parsed.data.meetingLocation,
+      topic: parsed.data.topic,
+      starts_at: startsAt.toISOString(),
+      ends_at: endsAt.toISOString(),
+      timezone: "Europe/Berlin"
+    })
+    .select("*")
+    .single();
+
+  if (insertError || !booking) {
+    return navigate(`/booking-error?reason=unknown&type=${encodeURIComponent(parsed.data.bookingTypeSlug)}`);
+  }
+
+  try {
+    const calendarEvent = await createEvent({ ...booking, bookingType });
+    await supabase
+      .from("bookings")
+      .update({ calendar_event_id: calendarEvent.eventId, calendar_event_url: calendarEvent.eventUrl })
+      .eq("id", booking.id);
+  } catch {
+    await supabase.from("bookings").update({ status: "cancelled" }).eq("id", booking.id);
+    return navigate(`/booking-error?reason=calendar&type=${encodeURIComponent(parsed.data.bookingTypeSlug)}`);
+  }
+
+  await sendBookingEmails({ ...booking, bookingType });
+
+  return navigate("/success");
+}
