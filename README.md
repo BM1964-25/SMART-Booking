@@ -71,6 +71,21 @@ Apple Kalender erfordert für externe Apps ein app-spezifisches Passwort.
 
 Die App liest belegte Zeiten über CalDAV und schreibt neue Buchungen als VEVENT in den Apple Kalender.
 
+## Terminorte und Meeting-Links
+
+Im Buchungsformular kann der Kunde zwischen Telefon, Zoom, Microsoft Teams, Google Meet, Ortstermin und individueller Abstimmung wählen. Die Auswahl wird in Supabase gespeichert und in Apple Kalender, ICS-Datei und E-Mail übernommen.
+
+Optional können feste Links hinterlegt werden:
+
+```bash
+ZOOM_MEETING_URL=https://...
+TEAMS_MEETING_URL=https://...
+GOOGLE_MEET_URL=https://...
+ONSITE_MEETING_URL=https://...
+```
+
+Wenn diese Werte gesetzt sind, werden sie in Bestätigungs-E-Mails und Kalendereinträgen klickbar ausgegeben. Automatisch neu erzeugte Einzel-Meeting-Links pro Buchung erfordern später eine zusätzliche Integration mit Zoom, Microsoft Graph oder Google Calendar/Meet API.
+
 ## Vercel Deployment
 
 1. Repository mit Vercel verbinden.

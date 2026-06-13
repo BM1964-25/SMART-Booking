@@ -1,3 +1,5 @@
+import type { MeetingLocation } from "@/lib/meeting-location";
+
 export type BookingType = {
   id: string;
   slug: string;
@@ -26,7 +28,7 @@ export type Booking = {
   customer_email: string;
   company: string;
   phone: string | null;
-  meeting_location: "phone" | "zoom" | "google_meet" | "onsite" | "individual";
+  meeting_location: MeetingLocation;
   topic: string;
   starts_at: string;
   ends_at: string;

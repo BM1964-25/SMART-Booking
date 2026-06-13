@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { meetingLocationValues } from "@/lib/meeting-location";
 
 export const createBookingSchema = z.object({
   bookingTypeSlug: z.string().min(2),
@@ -7,7 +8,7 @@ export const createBookingSchema = z.object({
   customerEmail: z.string().email("Bitte geben Sie eine gültige E-Mail-Adresse ein."),
   company: z.string().min(2, "Bitte geben Sie Ihr Unternehmen ein."),
   phone: z.string().max(60).optional().or(z.literal("")),
-  meetingLocation: z.enum(["phone", "zoom", "google_meet", "onsite", "individual"]),
+  meetingLocation: z.enum(meetingLocationValues),
   topic: z.string().min(10, "Bitte beschreiben Sie Ihr Anliegen kurz."),
   privacyAccepted: z.literal(true, {
     errorMap: () => ({ message: "Bitte bestätigen Sie den Datenschutzhinweis." })

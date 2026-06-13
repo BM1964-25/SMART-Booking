@@ -1,7 +1,9 @@
 import { z } from "zod";
 
+const optionalUrl = z.preprocess((value) => (value === "" ? undefined : value), z.string().url().optional());
+
 const envSchema = z.object({
-  APPLE_CALDAV_URL: z.string().url().optional(),
+  APPLE_CALDAV_URL: optionalUrl,
   APPLE_CALDAV_USERNAME: z.string().optional(),
   APPLE_CALDAV_APP_PASSWORD: z.string().optional(),
   APPLE_CALENDAR_ID: z.string().optional(),
@@ -10,7 +12,11 @@ const envSchema = z.object({
   SUPABASE_URL: z.string().url(),
   SUPABASE_ANON_KEY: z.string(),
   SUPABASE_SERVICE_ROLE_KEY: z.string(),
-  NEXT_PUBLIC_SITE_URL: z.string().url().default("http://localhost:3000")
+  NEXT_PUBLIC_SITE_URL: z.string().url().default("http://localhost:3000"),
+  ZOOM_MEETING_URL: optionalUrl,
+  TEAMS_MEETING_URL: optionalUrl,
+  GOOGLE_MEET_URL: optionalUrl,
+  ONSITE_MEETING_URL: optionalUrl
 });
 
 export function getEnv() {
@@ -24,6 +30,10 @@ export function getEnv() {
     SUPABASE_URL: process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL,
     SUPABASE_ANON_KEY: process.env.SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
     SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
-    NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL
+    NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
+    ZOOM_MEETING_URL: process.env.ZOOM_MEETING_URL,
+    TEAMS_MEETING_URL: process.env.TEAMS_MEETING_URL,
+    GOOGLE_MEET_URL: process.env.GOOGLE_MEET_URL,
+    ONSITE_MEETING_URL: process.env.ONSITE_MEETING_URL
   });
 }

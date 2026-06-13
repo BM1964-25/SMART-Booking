@@ -5,6 +5,7 @@ import { requireAdmin } from "@/lib/admin";
 import { deleteEvent } from "@/lib/calendar/caldav";
 import { formatGermanDate, formatGermanTime } from "@/lib/date";
 import { sendBookingCancellationEmails } from "@/lib/email";
+import { getMeetingLocationLabel } from "@/lib/meeting-location";
 import { createSupabaseAdmin } from "@/lib/supabase/admin";
 
 export const dynamic = "force-dynamic";
@@ -115,7 +116,7 @@ export default async function AdminBookingsPage() {
                 </td>
                 <td className="px-4 py-3">
                   <p>{booking.company}</p>
-                  <p className="text-slate-500">{meetingLocationLabel(booking.meeting_location)}</p>
+                  <p className="text-slate-500">{getMeetingLocationLabel(booking.meeting_location)}</p>
                 </td>
                 <td className="px-4 py-3">
                   <StatusBadge status={booking.status} />
@@ -134,18 +135,6 @@ export default async function AdminBookingsPage() {
       </div>
     </section>
   );
-}
-
-function meetingLocationLabel(value?: string | null) {
-  const labels: Record<string, string> = {
-    phone: "Telefon",
-    zoom: "Zoom",
-    google_meet: "Google Meet",
-    onsite: "Vor Ort",
-    individual: "Individuell abstimmen"
-  };
-
-  return labels[value || "phone"] || labels.phone;
 }
 
 function StatusBadge({ status }: { status: string }) {

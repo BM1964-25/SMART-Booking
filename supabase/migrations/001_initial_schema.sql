@@ -44,7 +44,7 @@ create table if not exists bookings (
   customer_email text not null,
   company text not null,
   phone text,
-  meeting_location text not null default 'phone' check (meeting_location in ('phone', 'zoom', 'google_meet', 'onsite', 'individual')),
+  meeting_location text not null default 'phone' check (meeting_location in ('phone', 'zoom', 'teams', 'google_meet', 'onsite', 'individual')),
   topic text not null,
   starts_at timestamptz not null,
   ends_at timestamptz not null,

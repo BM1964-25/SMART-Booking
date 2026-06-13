@@ -3,6 +3,7 @@
 import { FormEvent, useRef, useState } from "react";
 import { Check } from "lucide-react";
 import { PrimaryButton } from "@/components/button";
+import { meetingLocationOptions } from "@/lib/meeting-location";
 
 type BookingFormProps = {
   bookingTypeSlug: string;
@@ -82,21 +83,35 @@ export function BookingForm({ bookingTypeSlug, startsAt }: BookingFormProps) {
       <Field label="E-Mail" name="customerEmail" type="email" required />
       <Field label="Unternehmen" name="company" minLength={2} required />
       <Field label="Telefonnummer optional" name="phone" />
-      <label className="block">
-        <span className="text-sm font-medium text-slate-700">Terminort</span>
-        <select
-          name="meetingLocation"
-          required
-          defaultValue="phone"
-          className="mt-2 w-full rounded-md border border-slate-300 px-3 py-2 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 invalid:border-red-300"
-        >
-          <option value="phone">Telefon</option>
-          <option value="zoom">Zoom</option>
-          <option value="google_meet">Google Meet</option>
-          <option value="onsite">Vor Ort</option>
-          <option value="individual">Individuell abstimmen</option>
-        </select>
-      </label>
+      <fieldset>
+        <legend className="text-sm font-medium text-slate-700">Terminort</legend>
+        <div className="mt-2 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {meetingLocationOptions.map((option) => (
+            <label
+              key={option.value}
+              className="group relative flex min-h-24 cursor-pointer gap-3 rounded-md border border-slate-300 bg-white p-4 text-left transition has-[:checked]:border-brand-500 has-[:checked]:bg-brand-50 hover:border-brand-300"
+            >
+              <input
+                type="radio"
+                name="meetingLocation"
+                value={option.value}
+                required
+                defaultChecked={option.value === "phone"}
+                className="mt-1 h-4 w-4 shrink-0 border-slate-300 text-brand-600 focus:ring-brand-500"
+              />
+              <span className="block min-w-0">
+                <span className="flex items-center justify-between gap-3">
+                  <span className="font-semibold text-slate-950">{option.label}</span>
+                </span>
+                <span className="mt-2 block text-sm leading-5 text-slate-500">{option.description}</span>
+                <span className="mt-3 hidden w-fit rounded-full bg-brand-500 px-2 py-0.5 text-[11px] font-semibold text-white group-has-[:checked]:block">
+                  Aktiv
+                </span>
+              </span>
+            </label>
+          ))}
+        </div>
+      </fieldset>
       <label className="block">
         <span className="text-sm font-medium text-slate-700">Anliegen</span>
         <textarea

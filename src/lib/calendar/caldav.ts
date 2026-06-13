@@ -1,6 +1,7 @@
 import { createDAVClient } from "tsdav";
 import { createEvent as createIcsEvent } from "ics";
 import { getEnv } from "@/lib/env";
+import { getMeetingLocationCalendarLines, getMeetingLocationDetails } from "@/lib/meeting-location";
 import { BookingType } from "@/lib/types";
 
 type CalendarEvent = {
@@ -101,11 +102,12 @@ export async function createEvent(booking: BookingForCalendar) {
   const startsAt = new Date(booking.starts_at);
   const endsAt = new Date(booking.ends_at);
   const title = `${booking.bookingType?.name || "Termin"}: ${booking.customer_name}`;
+  const meetingDetails = getMeetingLocationDetails(booking.meeting_location, booking.phone);
   const description = [
     `Unternehmen: ${booking.company}`,
     `E-Mail: ${booking.customer_email}`,
     booking.phone ? `Telefon: ${booking.phone}` : null,
-    `Terminort: ${meetingLocationLabel(booking.meeting_location)}`,
+    ...getMeetingLocationCalendarLines(booking.meeting_location, booking.phone),
     "",
     booking.topic
   ]
@@ -118,7 +120,9 @@ export async function createEvent(booking: BookingForCalendar) {
     description,
     startsAt,
     endsAt,
-    attendeeEmail: booking.customer_email
+    attendeeEmail: booking.customer_email,
+    location: meetingDetails.label,
+    url: meetingDetails.link
   });
 
   const objectUrl = `${calendar.url}${uid}.ics`;
@@ -158,10 +162,14 @@ export async function checkAvailability(startDate: Date, endDate: Date) {
 export function createIcsFallback(booking: BookingForCalendar) {
   const startsAt = new Date(booking.starts_at);
   const endsAt = new Date(booking.ends_at);
+  const meetingDetails = getMeetingLocationDetails(booking.meeting_location, booking.phone);
+  const description = [...getMeetingLocationCalendarLines(booking.meeting_location, booking.phone), "", booking.topic].join("\n");
 
   const result = createIcsEvent({
     title: booking.bookingType?.name || "Termin mit BuiltSmart AI",
-    description: booking.topic,
+    description,
+    location: meetingDetails.label,
+    url: meetingDetails.link,
     start: [
       startsAt.getFullYear(),
       startsAt.getMonth() + 1,
@@ -190,6 +198,8 @@ function buildCalendarObject(input: {
   startsAt: Date;
   endsAt: Date;
   attendeeEmail: string;
+  location?: string;
+  url?: string;
 }) {
   const now = toCalDavDate(new Date());
   return [
@@ -204,11 +214,15 @@ function buildCalendarObject(input: {
     `DTEND:${toCalDavDate(input.endsAt)}`,
     `SUMMARY:${escapeIcs(input.title)}`,
     `DESCRIPTION:${escapeIcs(input.description)}`,
+    input.location ? `LOCATION:${escapeIcs(input.location)}` : null,
+    input.url ? `URL:${escapeIcs(input.url)}` : null,
     `ATTENDEE;CN=${escapeIcs(input.attendeeEmail)}:mailto:${input.attendeeEmail}`,
     "STATUS:CONFIRMED",
     "END:VEVENT",
     "END:VCALENDAR"
-  ].join("\r\n");
+  ]
+    .filter(Boolean)
+    .join("\r\n");
 }
 
 function parseVEvent(data: string, href?: string, etag?: string): CalendarEvent[] {
@@ -259,16 +273,4 @@ function rangesOverlap(aStart: Date, aEnd: Date, bStart: Date, bEnd: Date) {
 
 function escapeIcs(value: string) {
   return value.replace(/\\/g, "\\\\").replace(/\n/g, "\\n").replace(/,/g, "\\,").replace(/;/g, "\\;");
-}
-
-function meetingLocationLabel(value?: string | null) {
-  const labels: Record<string, string> = {
-    phone: "Telefon",
-    zoom: "Zoom",
-    google_meet: "Google Meet",
-    onsite: "Vor Ort",
-    individual: "Individuell abstimmen"
-  };
-
-  return labels[value || "phone"] || labels.phone;
 }
