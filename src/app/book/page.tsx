@@ -80,6 +80,10 @@ export default async function BookPage({ searchParams }: { searchParams?: Promis
   const requestedProfile = (await searchParams)?.profile;
   const profile = await getBookingProfile(requestedProfile);
   const primaryColor = normalizeColor(profile.primary_color);
+  const profileCardBgColor = normalizeColor(profile.profile_card_bg_color, "#F8FAFC");
+  const portraitPositionX = clampNumber(profile.portrait_position_x, 0, 100, 50);
+  const portraitPositionY = clampNumber(profile.portrait_position_y, 0, 100, 35);
+  const portraitZoom = clampNumber(profile.portrait_zoom, 1, 1.8, 1);
   const showPortrait = profile.show_portrait !== false;
   const showSubheadline = profile.show_subheadline !== false;
   const showContactLinks = profile.show_contact_links !== false;
@@ -127,13 +131,17 @@ export default async function BookPage({ searchParams }: { searchParams?: Promis
               {showSubheadline ? <p className="mt-5 max-w-2xl text-base leading-7 text-slate-600">{profile.subheadline}</p> : null}
             </div>
             {profile.contact_name || (showPortrait && profile.portrait_url) || contactLinks.length > 0 ? (
-              <div className="rounded-lg bg-slate-50 p-5 text-center ring-1 ring-slate-200 lg:w-80">
+              <div className="rounded-lg p-5 text-center ring-1 ring-slate-200 lg:w-80" style={{ backgroundColor: profileCardBgColor }}>
                 {showPortrait && profile.portrait_url ? (
                   <div className="mx-auto h-28 w-28 overflow-hidden rounded-full border-4 border-white bg-slate-100 shadow-sm ring-1 ring-slate-200">
                     <img
                       src={profile.portrait_url}
                       alt={profile.contact_name || profile.name}
-                      className="h-full w-full object-cover object-[center_35%]"
+                      className="h-full w-full object-cover"
+                      style={{
+                        objectPosition: `${portraitPositionX}% ${portraitPositionY}%`,
+                        transform: `scale(${portraitZoom})`
+                      }}
                     />
                   </div>
                 ) : null}
@@ -240,7 +248,17 @@ export default async function BookPage({ searchParams }: { searchParams?: Promis
   );
 }
 
-function normalizeColor(value: string | null | undefined) {
+function normalizeColor(value: string | null | undefined, fallback = "#527DF6") {
   const color = String(value || "").trim();
-  return /^#[0-9a-fA-F]{6}$/.test(color) ? color : "#527DF6";
+  return /^#[0-9a-fA-F]{6}$/.test(color) ? color : fallback;
+}
+
+function clampNumber(value: number | string | null | undefined, min: number, max: number, fallback: number) {
+  const number = Number(value);
+
+  if (!Number.isFinite(number)) {
+    return fallback;
+  }
+
+  return Math.min(max, Math.max(min, number));
 }

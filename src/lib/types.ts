@@ -31,6 +31,10 @@ export type BookingProfile = {
   secondary_website_url: string | null;
   portrait_url: string | null;
   primary_color: string;
+  profile_card_bg_color: string;
+  portrait_position_x: number;
+  portrait_position_y: number;
+  portrait_zoom: number;
   show_portrait: boolean;
   show_subheadline: boolean;
   show_contact_links: boolean;

@@ -41,6 +41,10 @@ export default async function AdminProfilesPage() {
       secondary_website_url: null,
       portrait_url: removePortrait ? null : uploadedPortraitUrl || nullableString(formData.get("portrait_url")),
       primary_color: normalizeColor(String(formData.get("primary_color") || "#527DF6")),
+      profile_card_bg_color: normalizeColor(String(formData.get("profile_card_bg_color") || "#F8FAFC"), "#F8FAFC"),
+      portrait_position_x: clampNumber(formData.get("portrait_position_x"), 0, 100, 50),
+      portrait_position_y: clampNumber(formData.get("portrait_position_y"), 0, 100, 35),
+      portrait_zoom: clampNumber(formData.get("portrait_zoom"), 1, 1.8, 1),
       show_portrait: formData.get("show_portrait") === "on",
       show_subheadline: formData.get("show_subheadline") === "on",
       show_contact_links: formData.get("show_contact_links") === "on",
@@ -98,6 +102,10 @@ export default async function AdminProfilesPage() {
       secondary_website_url: sourceProfile.secondary_website_url,
       portrait_url: sourceProfile.portrait_url,
       primary_color: sourceProfile.primary_color,
+      profile_card_bg_color: sourceProfile.profile_card_bg_color,
+      portrait_position_x: sourceProfile.portrait_position_x,
+      portrait_position_y: sourceProfile.portrait_position_y,
+      portrait_zoom: sourceProfile.portrait_zoom,
       show_portrait: sourceProfile.show_portrait,
       show_subheadline: sourceProfile.show_subheadline,
       show_contact_links: sourceProfile.show_contact_links,
@@ -195,7 +203,17 @@ function ProfileForm({
           <span className="text-sm font-medium text-slate-700">Profilbild</span>
           <div className="mt-2 grid gap-3 rounded-md border border-slate-200 bg-slate-50 p-3 sm:grid-cols-[auto_1fr] sm:items-center">
             {profile?.portrait_url ? (
-              <img src={profile.portrait_url} alt="" className="h-16 w-16 rounded-full object-cover ring-1 ring-slate-200" />
+              <div className="h-16 w-16 overflow-hidden rounded-full bg-white ring-1 ring-slate-200">
+                <img
+                  src={profile.portrait_url}
+                  alt=""
+                  className="h-full w-full object-cover"
+                  style={{
+                    objectPosition: `${profile.portrait_position_x ?? 50}% ${profile.portrait_position_y ?? 35}%`,
+                    transform: `scale(${profile.portrait_zoom ?? 1})`
+                  }}
+                />
+              </div>
             ) : (
               <div className="flex h-16 w-16 items-center justify-center rounded-full bg-white text-xs font-semibold text-slate-400 ring-1 ring-slate-200">Kein Bild</div>
             )}
@@ -216,6 +234,20 @@ function ProfileForm({
           </div>
         </div>
         <ColorField label="Primärfarbe" name="primary_color" defaultValue={profile?.primary_color || "#527DF6"} />
+        <ColorField
+          label="Profilkarten-Hintergrund"
+          name="profile_card_bg_color"
+          defaultValue={profile?.profile_card_bg_color || "#F8FAFC"}
+          description="Dezente Hintergrundfarbe für die Kontaktkarte."
+        />
+        <fieldset className="sm:col-span-2 rounded-md border border-slate-200 bg-slate-50 p-3">
+          <legend className="px-1 text-sm font-semibold text-slate-800">Bildausschnitt im runden Rahmen</legend>
+          <div className="mt-3 grid gap-3 sm:grid-cols-3">
+            <RangeField label="Horizontal" name="portrait_position_x" min={0} max={100} step={1} defaultValue={profile?.portrait_position_x ?? 50} suffix="%" />
+            <RangeField label="Vertikal" name="portrait_position_y" min={0} max={100} step={1} defaultValue={profile?.portrait_position_y ?? 35} suffix="%" />
+            <RangeField label="Zoom" name="portrait_zoom" min={1} max={1.8} step={0.05} defaultValue={profile?.portrait_zoom ?? 1} suffix="x" />
+          </div>
+        </fieldset>
         <fieldset className="sm:col-span-2 rounded-md border border-slate-200 bg-slate-50 p-3">
           <legend className="px-1 text-sm font-semibold text-slate-800">Auf öffentlicher Buchungsseite anzeigen</legend>
           <div className="mt-2 grid gap-2 sm:grid-cols-3">
@@ -273,14 +305,55 @@ function Field({
   );
 }
 
-function ColorField({ label, name, defaultValue }: { label: string; name: string; defaultValue: string }) {
+function ColorField({
+  label,
+  name,
+  defaultValue,
+  description = "Akzentfarbe für Linien, Ziffern und Buchungsbuttons."
+}: {
+  label: string;
+  name: string;
+  defaultValue: string;
+  description?: string;
+}) {
   return (
     <label className="block">
       <span className="text-sm font-medium text-slate-700">{label}</span>
       <div className="mt-2 flex items-center gap-3 rounded-md border border-slate-300 bg-white px-3 py-2">
         <input name={name} type="color" defaultValue={normalizeColor(defaultValue)} className="h-9 w-12 cursor-pointer rounded border border-slate-200 bg-white p-1" />
-        <span className="text-sm text-slate-500">Akzentfarbe für Linien, Ziffern und Buchungsbuttons.</span>
+        <span className="text-sm text-slate-500">{description}</span>
       </div>
+    </label>
+  );
+}
+
+function RangeField({
+  label,
+  name,
+  min,
+  max,
+  step,
+  defaultValue,
+  suffix
+}: {
+  label: string;
+  name: string;
+  min: number;
+  max: number;
+  step: number;
+  defaultValue: number;
+  suffix: string;
+}) {
+  return (
+    <label className="block rounded-md bg-white px-3 py-2 ring-1 ring-slate-200">
+      <span className="flex items-center justify-between gap-3 text-sm font-medium text-slate-700">
+        {label}
+        <span className="text-xs font-semibold text-slate-500">
+          {defaultValue}
+          {suffix}
+        </span>
+      </span>
+      <input name={name} type="range" min={min} max={max} step={step} defaultValue={defaultValue} className="mt-2 w-full accent-brand-600" />
     </label>
   );
 }
@@ -311,9 +384,19 @@ function slugify(value: string) {
     .replace(/^-+|-+$/g, "");
 }
 
-function normalizeColor(value: string) {
+function normalizeColor(value: string, fallback = "#527DF6") {
   const color = String(value || "").trim();
-  return /^#[0-9a-fA-F]{6}$/.test(color) ? color : "#527DF6";
+  return /^#[0-9a-fA-F]{6}$/.test(color) ? color : fallback;
+}
+
+function clampNumber(value: FormDataEntryValue | null, min: number, max: number, fallback: number) {
+  const number = Number(value);
+
+  if (!Number.isFinite(number)) {
+    return fallback;
+  }
+
+  return Math.min(max, Math.max(min, number));
 }
 
 async function uploadProfilePortrait(fileValue: FormDataEntryValue | null, profileId: string, supabase: ReturnType<typeof createSupabaseAdmin>) {
