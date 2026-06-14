@@ -24,6 +24,7 @@ export type BookingProfile = {
   contact_phone: string | null;
   linkedin_url: string | null;
   xing_url: string | null;
+  x_url: string | null;
   instagram_url: string | null;
   facebook_url: string | null;
   youtube_url: string | null;
@@ -44,6 +45,7 @@ export type BookingProfile = {
   show_contact_phone: boolean;
   show_linkedin: boolean;
   show_xing: boolean;
+  show_x: boolean;
   show_instagram: boolean;
   show_facebook: boolean;
   show_youtube: boolean;

@@ -45,6 +45,14 @@ function XingIcon({ className }: { className?: string }) {
   );
 }
 
+function XIcon({ className }: { className?: string }) {
+  return (
+    <svg aria-hidden="true" viewBox="0 0 24 24" className={className} fill="currentColor">
+      <path d="M14.25 10.16 22.03 1h-1.84l-6.76 7.95L8.04 1H1.82l8.16 12.03L1.82 22h1.84l7.14-7.82L16.5 22h6.22l-8.47-11.84Zm-2.53 2.79-.83-1.2L4.32 2.4h2.84l5.31 7.55.83 1.2 6.89 9.8h-2.84l-5.63-8Z" />
+    </svg>
+  );
+}
+
 function getTypeIcon(name: string) {
   const lowerName = name.toLowerCase();
 
@@ -67,6 +75,7 @@ function getContactLinks(profile: BookingProfile) {
   return [
     profile.show_linkedin !== false && profile.linkedin_url ? { href: profile.linkedin_url, label: "LinkedIn", icon: Linkedin } : null,
     profile.show_xing !== false && profile.xing_url ? { href: profile.xing_url, label: "Xing", icon: XingIcon } : null,
+    profile.show_x !== false && profile.x_url ? { href: profile.x_url, label: "X / Twitter", icon: XIcon } : null,
     profile.show_instagram !== false && profile.instagram_url ? { href: profile.instagram_url, label: "Instagram", icon: Instagram } : null,
     profile.show_facebook !== false && profile.facebook_url ? { href: profile.facebook_url, label: "Facebook", icon: Facebook } : null,
     profile.show_youtube !== false && profile.youtube_url ? { href: profile.youtube_url, label: "YouTube", icon: Youtube } : null,

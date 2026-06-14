@@ -20,6 +20,14 @@ function XingIcon({ className }: { className?: string }) {
   );
 }
 
+function XIcon({ className }: { className?: string }) {
+  return (
+    <svg aria-hidden="true" viewBox="0 0 24 24" className={className} fill="currentColor">
+      <path d="M14.25 10.16 22.03 1h-1.84l-6.76 7.95L8.04 1H1.82l8.16 12.03L1.82 22h1.84l7.14-7.82L16.5 22h6.22l-8.47-11.84Zm-2.53 2.79-.83-1.2L4.32 2.4h2.84l5.31 7.55.83 1.2 6.89 9.8h-2.84l-5.63-8Z" />
+    </svg>
+  );
+}
+
 export default async function AdminProfilesPage() {
   await requireAdmin();
   const supabase = createSupabaseAdmin();
@@ -45,6 +53,7 @@ export default async function AdminProfilesPage() {
       contact_phone: nullableString(formData.get("contact_phone")),
       linkedin_url: nullableString(formData.get("linkedin_url")),
       xing_url: nullableString(formData.get("xing_url")),
+      x_url: nullableString(formData.get("x_url")),
       instagram_url: nullableString(formData.get("instagram_url")),
       facebook_url: nullableString(formData.get("facebook_url")),
       youtube_url: nullableString(formData.get("youtube_url")),
@@ -65,6 +74,7 @@ export default async function AdminProfilesPage() {
       show_contact_phone: formData.get("show_contact_phone") === "on",
       show_linkedin: formData.get("show_linkedin") === "on",
       show_xing: formData.get("show_xing") === "on",
+      show_x: formData.get("show_x") === "on",
       show_instagram: formData.get("show_instagram") === "on",
       show_facebook: formData.get("show_facebook") === "on",
       show_youtube: formData.get("show_youtube") === "on",
@@ -116,6 +126,7 @@ export default async function AdminProfilesPage() {
       contact_phone: sourceProfile.contact_phone,
       linkedin_url: sourceProfile.linkedin_url,
       xing_url: sourceProfile.xing_url,
+      x_url: sourceProfile.x_url,
       instagram_url: sourceProfile.instagram_url,
       facebook_url: sourceProfile.facebook_url,
       youtube_url: sourceProfile.youtube_url,
@@ -136,6 +147,7 @@ export default async function AdminProfilesPage() {
       show_contact_phone: sourceProfile.show_contact_phone,
       show_linkedin: sourceProfile.show_linkedin,
       show_xing: sourceProfile.show_xing,
+      show_x: sourceProfile.show_x,
       show_instagram: sourceProfile.show_instagram,
       show_facebook: sourceProfile.show_facebook,
       show_youtube: sourceProfile.show_youtube,
@@ -228,12 +240,13 @@ function ProfileForm({
         </label>
         <fieldset className="rounded-md border border-slate-200 bg-slate-50 p-3 sm:col-span-2 lg:col-span-3">
           <legend className="px-1 text-sm font-semibold text-slate-800">Kontaktdaten und Links</legend>
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <VisibleField label="Kontaktname" icon={UserRound} name="contact_name" visibilityName="show_contact_name" defaultValue={profile?.contact_name || ""} defaultChecked={profile?.show_contact_name ?? true} />
             <VisibleField label="Kontakt-E-Mail" icon={Mail} name="contact_email" visibilityName="show_contact_email" type="email" defaultValue={profile?.contact_email || ""} defaultChecked={profile?.show_contact_email ?? true} />
             <VisibleField label="Telefon" icon={Phone} name="contact_phone" visibilityName="show_contact_phone" defaultValue={profile?.contact_phone || ""} defaultChecked={profile?.show_contact_phone ?? true} />
             <VisibleField label="LinkedIn URL" icon={Linkedin} name="linkedin_url" visibilityName="show_linkedin" type="url" defaultValue={profile?.linkedin_url || ""} defaultChecked={profile?.show_linkedin ?? true} />
             <VisibleField label="Xing URL" icon={XingIcon} name="xing_url" visibilityName="show_xing" type="url" defaultValue={profile?.xing_url || ""} defaultChecked={profile?.show_xing ?? true} />
+            <VisibleField label="X / Twitter URL" icon={XIcon} name="x_url" visibilityName="show_x" type="url" defaultValue={profile?.x_url || ""} defaultChecked={profile?.show_x ?? true} />
             <VisibleField label="Instagram URL" icon={Instagram} name="instagram_url" visibilityName="show_instagram" type="url" defaultValue={profile?.instagram_url || ""} defaultChecked={profile?.show_instagram ?? true} />
             <VisibleField label="Facebook URL" icon={Facebook} name="facebook_url" visibilityName="show_facebook" type="url" defaultValue={profile?.facebook_url || ""} defaultChecked={profile?.show_facebook ?? true} />
             <VisibleField label="YouTube URL" icon={Youtube} name="youtube_url" visibilityName="show_youtube" type="url" defaultValue={profile?.youtube_url || ""} defaultChecked={profile?.show_youtube ?? true} />
