@@ -81,6 +81,7 @@ export default async function BookPage({ searchParams }: { searchParams?: Promis
   const profile = await getBookingProfile(requestedProfile);
   const primaryColor = normalizeColor(profile.primary_color);
   const profileCardBgColor = normalizeColor(profile.profile_card_bg_color, "#F8FAFC");
+  const bookingCardBgColor = normalizeColor(profile.booking_card_bg_color, "#FFFFFF");
   const portraitPositionX = clampNumber(profile.portrait_position_x, 0, 100, 50);
   const portraitPositionY = clampNumber(profile.portrait_position_y, 0, 100, 35);
   const portraitZoom = clampNumber(profile.portrait_zoom, 1, 1.8, 1);
@@ -215,8 +216,8 @@ export default async function BookPage({ searchParams }: { searchParams?: Promis
             <Link
               key={type.id}
               href={`/book/${type.slug}${profileQuery}`}
-              className="group rounded-lg border border-slate-200 bg-gradient-to-br from-white to-slate-50 p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
-              style={{ borderTopColor: primaryColor }}
+              className="group rounded-lg border border-slate-200 p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+              style={{ borderTopColor: primaryColor, backgroundColor: bookingCardBgColor }}
             >
               <div className="flex h-full flex-col justify-between gap-6">
                 <div>

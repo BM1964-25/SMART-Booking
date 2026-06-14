@@ -43,6 +43,7 @@ export default async function AdminProfilesPage() {
       portrait_url: removePortrait ? null : uploadedPortraitUrl || nullableString(formData.get("portrait_url")),
       primary_color: normalizeColor(String(formData.get("primary_color") || "#527DF6")),
       profile_card_bg_color: normalizeColor(String(formData.get("profile_card_bg_color") || "#F8FAFC"), "#F8FAFC"),
+      booking_card_bg_color: normalizeColor(String(formData.get("booking_card_bg_color") || "#FFFFFF"), "#FFFFFF"),
       portrait_position_x: clampNumber(formData.get("portrait_position_x"), 0, 100, 50),
       portrait_position_y: clampNumber(formData.get("portrait_position_y"), 0, 100, 35),
       portrait_zoom: clampNumber(formData.get("portrait_zoom"), 1, 1.8, 1),
@@ -113,6 +114,7 @@ export default async function AdminProfilesPage() {
       portrait_url: sourceProfile.portrait_url,
       primary_color: sourceProfile.primary_color,
       profile_card_bg_color: sourceProfile.profile_card_bg_color,
+      booking_card_bg_color: sourceProfile.booking_card_bg_color,
       portrait_position_x: sourceProfile.portrait_position_x,
       portrait_position_y: sourceProfile.portrait_position_y,
       portrait_zoom: sourceProfile.portrait_zoom,
@@ -247,6 +249,12 @@ function ProfileForm({
           name="profile_card_bg_color"
           defaultValue={profile?.profile_card_bg_color || "#F8FAFC"}
           description="Dezente Hintergrundfarbe für die Kontaktkarte."
+        />
+        <ColorField
+          label="Terminauswahlkarten"
+          name="booking_card_bg_color"
+          defaultValue={profile?.booking_card_bg_color || "#FFFFFF"}
+          description="Hintergrundfarbe für die Terminart-Karten auf der Buchungsseite."
         />
       </div>
 

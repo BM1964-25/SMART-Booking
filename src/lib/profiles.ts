@@ -21,6 +21,7 @@ export const defaultBookingProfile: BookingProfile = {
   portrait_url: "/bernhard-metzger.jpg",
   primary_color: "#527DF6",
   profile_card_bg_color: "#F8FAFC",
+  booking_card_bg_color: "#FFFFFF",
   portrait_position_x: 50,
   portrait_position_y: 35,
   portrait_zoom: 1,
