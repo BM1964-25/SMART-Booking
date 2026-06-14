@@ -172,7 +172,6 @@ export default async function BookPage() {
                   </div>
                   <h3 className="mt-5 text-xl font-semibold text-slate-950">{type.name}</h3>
                   <p className="mt-3 text-sm leading-6 text-slate-600">{type.description}</p>
-                  <p className="mt-4 text-sm font-medium text-slate-500">Freie Zeiten werden im nächsten Schritt angezeigt.</p>
                 </div>
                 <div className="flex items-center justify-between border-t border-slate-100 pt-4">
                   <span className="text-sm font-semibold text-slate-500">Nächster Schritt: Uhrzeit wählen</span>
