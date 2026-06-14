@@ -93,7 +93,6 @@ export default async function BookPage() {
                 />
               </div>
               <p className="mt-4 text-base font-semibold text-slate-950">Bernhard Metzger</p>
-              <p className="mt-1 text-sm leading-6 text-slate-600">BuiltSmart AI · Beratung und KI-Demos</p>
               <div className="mt-4 flex items-center justify-center gap-2">
                 {contactLinks.map((item) => (
                   <a
