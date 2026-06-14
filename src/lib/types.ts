@@ -23,6 +23,10 @@ export type BookingProfile = {
   contact_email: string | null;
   contact_phone: string | null;
   linkedin_url: string | null;
+  xing_url: string | null;
+  instagram_url: string | null;
+  facebook_url: string | null;
+  youtube_url: string | null;
   website_url: string | null;
   secondary_website_url: string | null;
   portrait_url: string | null;

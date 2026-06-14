@@ -1,5 +1,22 @@
 import Link from "next/link";
-import { ArrowRight, Building2, CalendarCheck, Globe2, Linkedin, Mail, MailCheck, Phone, SearchCheck, ShieldCheck, Sparkles, Video } from "lucide-react";
+import type { ComponentType } from "react";
+import {
+  ArrowRight,
+  Building2,
+  CalendarCheck,
+  Facebook,
+  Globe2,
+  Instagram,
+  Linkedin,
+  Mail,
+  MailCheck,
+  Phone,
+  SearchCheck,
+  ShieldCheck,
+  Sparkles,
+  Video,
+  Youtube
+} from "lucide-react";
 import { hasSupabaseConfig, missingSupabaseKeys } from "@/lib/config";
 import { defaultBookingProfile, getBookingProfile } from "@/lib/profiles";
 import { seedBookingTypes } from "@/lib/seed-data";
@@ -19,6 +36,14 @@ const highlights = [
 ];
 
 const workflowSteps = ["Terminart wählen", "Tag und Uhrzeit auswählen", "Daten bestätigen"];
+
+function XingIcon({ className }: { className?: string }) {
+  return (
+    <span aria-hidden className={`font-bold leading-none ${className || ""}`}>
+      X
+    </span>
+  );
+}
 
 function getTypeIcon(name: string) {
   const lowerName = name.toLowerCase();
@@ -41,10 +66,14 @@ function getTypeIcon(name: string) {
 function getContactLinks(profile: BookingProfile) {
   return [
     profile.linkedin_url ? { href: profile.linkedin_url, label: "LinkedIn", icon: Linkedin } : null,
+    profile.xing_url ? { href: profile.xing_url, label: "Xing", icon: XingIcon } : null,
+    profile.instagram_url ? { href: profile.instagram_url, label: "Instagram", icon: Instagram } : null,
+    profile.facebook_url ? { href: profile.facebook_url, label: "Facebook", icon: Facebook } : null,
+    profile.youtube_url ? { href: profile.youtube_url, label: "YouTube", icon: Youtube } : null,
     profile.contact_email ? { href: `mailto:${profile.contact_email}`, label: "E-Mail", icon: Mail } : null,
     profile.website_url ? { href: profile.website_url, label: "Website", icon: Globe2 } : null,
     profile.contact_phone ? { href: `tel:${profile.contact_phone.replace(/\s+/g, "")}`, label: "Mobil anrufen", icon: Phone } : null
-  ].filter(Boolean) as Array<{ href: string; label: string; icon: typeof Linkedin }>;
+  ].filter(Boolean) as Array<{ href: string; label: string; icon: ComponentType<{ className?: string }> }>;
 }
 
 export default async function BookPage({ searchParams }: { searchParams?: Promise<{ profile?: string }> }) {

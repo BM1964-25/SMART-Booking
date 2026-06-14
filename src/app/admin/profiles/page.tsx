@@ -33,6 +33,10 @@ export default async function AdminProfilesPage() {
       contact_email: nullableString(formData.get("contact_email")),
       contact_phone: nullableString(formData.get("contact_phone")),
       linkedin_url: nullableString(formData.get("linkedin_url")),
+      xing_url: nullableString(formData.get("xing_url")),
+      instagram_url: nullableString(formData.get("instagram_url")),
+      facebook_url: nullableString(formData.get("facebook_url")),
+      youtube_url: nullableString(formData.get("youtube_url")),
       website_url: nullableString(formData.get("website_url")),
       secondary_website_url: null,
       portrait_url: removePortrait ? null : uploadedPortraitUrl || nullableString(formData.get("portrait_url")),
@@ -86,6 +90,10 @@ export default async function AdminProfilesPage() {
       contact_email: sourceProfile.contact_email,
       contact_phone: sourceProfile.contact_phone,
       linkedin_url: sourceProfile.linkedin_url,
+      xing_url: sourceProfile.xing_url,
+      instagram_url: sourceProfile.instagram_url,
+      facebook_url: sourceProfile.facebook_url,
+      youtube_url: sourceProfile.youtube_url,
       website_url: sourceProfile.website_url,
       secondary_website_url: sourceProfile.secondary_website_url,
       portrait_url: sourceProfile.portrait_url,
@@ -177,6 +185,10 @@ function ProfileForm({
         <Field label="Kontakt-E-Mail" name="contact_email" type="email" defaultValue={profile?.contact_email || ""} />
         <Field label="Telefon" name="contact_phone" defaultValue={profile?.contact_phone || ""} />
         <Field label="LinkedIn URL" name="linkedin_url" type="url" defaultValue={profile?.linkedin_url || ""} />
+        <Field label="Xing URL" name="xing_url" type="url" defaultValue={profile?.xing_url || ""} />
+        <Field label="Instagram URL" name="instagram_url" type="url" defaultValue={profile?.instagram_url || ""} />
+        <Field label="Facebook URL" name="facebook_url" type="url" defaultValue={profile?.facebook_url || ""} />
+        <Field label="YouTube URL" name="youtube_url" type="url" defaultValue={profile?.youtube_url || ""} />
         <Field label="Website URL" name="website_url" type="url" defaultValue={profile?.website_url || ""} />
         <input type="hidden" name="portrait_url" value={profile?.portrait_url || ""} />
         <div className="sm:col-span-2">
