@@ -88,7 +88,7 @@ export default async function BookPage() {
                   alt="Bernhard Metzger"
                   width={160}
                   height={160}
-                  className="h-full w-full object-cover"
+                  className="h-full w-full object-cover object-[center_35%]"
                   priority
                 />
               </div>
