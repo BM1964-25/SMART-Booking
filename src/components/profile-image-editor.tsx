@@ -73,6 +73,10 @@ export function ProfileImageEditor({ portraitUrl, positionX, positionY, zoom, sh
               setPreviewUrl(nextUrl);
             }}
           />
+          <p className="text-xs leading-5 text-slate-500">
+            Wählen Sie ein Portrait aus, passen Sie den runden Ausschnitt an und speichern Sie das Profil. „Bild entfernen“ löscht das aktuell gespeicherte Bild
+            erst nach dem Speichern.
+          </p>
           {portraitUrl ? (
             <label className="flex items-center gap-2 text-sm text-slate-700">
               <input name="remove_portrait" type="checkbox" className="h-4 w-4 rounded border-slate-300 text-brand-600" />
