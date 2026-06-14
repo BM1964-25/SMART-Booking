@@ -53,38 +53,40 @@ export function ProfileImageEditor({ portraitUrl, positionX, positionY, zoom, sh
         </div>
         <div className="grid gap-3">
           <div className="grid gap-3 lg:grid-cols-2 lg:items-start">
-            <input
-              name="portrait_file"
-              type="file"
-              accept="image/png,image/jpeg,image/webp"
-              className="block w-full text-sm text-slate-600 file:mr-3 file:rounded-md file:border-0 file:bg-brand-50 file:px-3 file:py-2 file:text-sm file:font-semibold file:text-brand-700"
-              onChange={(event) => {
-                const file = event.target.files?.[0];
+            <div className="flex flex-col items-start gap-2">
+              <input
+                name="portrait_file"
+                type="file"
+                accept="image/png,image/jpeg,image/webp"
+                className="block w-full text-sm text-slate-600 file:mr-3 file:rounded-md file:border-0 file:bg-brand-50 file:px-3 file:py-2 file:text-sm file:font-semibold file:text-brand-700"
+                onChange={(event) => {
+                  const file = event.target.files?.[0];
 
-                if (!file) {
-                  return;
-                }
+                  if (!file) {
+                    return;
+                  }
 
-                if (objectUrl) {
-                  URL.revokeObjectURL(objectUrl);
-                }
+                  if (objectUrl) {
+                    URL.revokeObjectURL(objectUrl);
+                  }
 
-                const nextUrl = URL.createObjectURL(file);
-                setObjectUrl(nextUrl);
-                setPreviewUrl(nextUrl);
-              }}
-            />
+                  const nextUrl = URL.createObjectURL(file);
+                  setObjectUrl(nextUrl);
+                  setPreviewUrl(nextUrl);
+                }}
+              />
+              {portraitUrl ? (
+                <label className="inline-flex items-center gap-2 rounded-md bg-white px-2 py-1.5 text-sm text-slate-700 ring-1 ring-slate-200">
+                  <input name="remove_portrait" type="checkbox" className="h-4 w-4 rounded border-slate-300 text-brand-600" />
+                  Bild entfernen
+                </label>
+              ) : null}
+            </div>
             <p className="rounded-md bg-white px-3 py-2 text-xs leading-5 text-slate-500 ring-1 ring-slate-200">
               Wählen Sie ein Portrait aus, passen Sie den runden Ausschnitt an und speichern Sie das Profil. „Bild entfernen“ löscht das aktuell gespeicherte Bild
               erst nach dem Speichern.
             </p>
           </div>
-          {portraitUrl ? (
-            <label className="flex items-center gap-2 text-sm text-slate-700">
-              <input name="remove_portrait" type="checkbox" className="h-4 w-4 rounded border-slate-300 text-brand-600" />
-              Bild entfernen
-            </label>
-          ) : null}
           <div className="grid gap-3 sm:grid-cols-3">
             <RangeControl label="Horizontal" name="portrait_position_x" min={0} max={100} step={1} value={currentX} suffix="%" onChange={setCurrentX} />
             <RangeControl label="Vertikal" name="portrait_position_y" min={0} max={100} step={1} value={currentY} suffix="%" onChange={setCurrentY} />
