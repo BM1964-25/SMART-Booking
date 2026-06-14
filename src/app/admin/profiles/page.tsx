@@ -4,6 +4,7 @@ import type { ComponentType } from "react";
 import { Globe2, Mail, Phone, UserRound } from "lucide-react";
 import { AdminNav } from "@/components/admin-nav";
 import { FacebookIcon, InstagramIcon, LinkedInIcon, XIcon, XingIcon, YouTubeIcon } from "@/components/brand-icons";
+import { ColorPalettePresets } from "@/components/color-palette-presets";
 import { EmbedCodeOptions } from "@/components/embed-code-options";
 import { ProfileImageEditor } from "@/components/profile-image-editor";
 import { requireAdmin } from "@/lib/admin";
@@ -247,12 +248,13 @@ function ProfileForm({
           zoom={profile?.portrait_zoom ?? 1}
           showPortrait={profile?.show_portrait ?? true}
         />
+        <ColorPalettePresets />
         <ColorField label="Primärfarbe" name="primary_color" defaultValue={profile?.primary_color || "#527DF6"} />
         <ColorField
           label="Profilkarten-Hintergrund"
           name="profile_card_bg_color"
           defaultValue={profile?.profile_card_bg_color || "#F8FAFC"}
-          description="Dezente Hintergrundfarbe für die Kontaktkarte."
+          description="Hintergrundfarbe der Profilfläche mit Portrait und Kontakticons."
         />
         <ColorField
           label="Terminauswahlkarten"
