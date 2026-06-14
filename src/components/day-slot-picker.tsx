@@ -11,6 +11,7 @@ type Slot = {
 
 type DaySlotPickerProps = {
   bookingTypeSlug: string;
+  profileSlug?: string;
   days: string[];
   groupedSlots: Record<string, Slot[]>;
 };
@@ -34,7 +35,7 @@ const longDayFormatter = new Intl.DateTimeFormat("de-DE", {
   timeZone: TIMEZONE
 });
 
-export function DaySlotPicker({ bookingTypeSlug, days, groupedSlots }: DaySlotPickerProps) {
+export function DaySlotPicker({ bookingTypeSlug, profileSlug, days, groupedSlots }: DaySlotPickerProps) {
   const firstAvailableDay = days.find((day) => (groupedSlots[day] || []).length > 0) || days[0];
   const [selectedDay, setSelectedDay] = useState(firstAvailableDay);
   const selectedSlots = groupedSlots[selectedDay] || [];
@@ -83,7 +84,7 @@ export function DaySlotPicker({ bookingTypeSlug, days, groupedSlots }: DaySlotPi
             {selectedSlots.map((slot) => (
               <Link
                 key={slot.startsAt}
-                href={`/book/${bookingTypeSlug}/confirm?start=${encodeURIComponent(slot.startsAt)}`}
+                href={`/book/${bookingTypeSlug}/confirm?start=${encodeURIComponent(slot.startsAt)}${profileSlug ? `&profile=${encodeURIComponent(profileSlug)}` : ""}`}
                 className="rounded-md border border-slate-200 px-4 py-3 text-center text-sm font-semibold text-slate-800 transition hover:border-brand-500 hover:text-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2"
               >
                 {formatGermanTime(new Date(slot.startsAt))}

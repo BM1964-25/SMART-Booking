@@ -1,10 +1,10 @@
 import Link from "next/link";
-import Image from "next/image";
 import { ArrowRight, Building2, CalendarCheck, Globe2, Linkedin, Mail, MailCheck, Phone, SearchCheck, ShieldCheck, Sparkles, Video } from "lucide-react";
 import { hasSupabaseConfig, missingSupabaseKeys } from "@/lib/config";
+import { defaultBookingProfile, getBookingProfile } from "@/lib/profiles";
 import { seedBookingTypes } from "@/lib/seed-data";
 import { createSupabaseAdmin } from "@/lib/supabase/admin";
-import { BookingType } from "@/lib/types";
+import { BookingProfile, BookingType } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
@@ -19,14 +19,6 @@ const highlights = [
 ];
 
 const workflowSteps = ["Terminart wählen", "Tag und Uhrzeit auswählen", "Daten bestätigen"];
-
-const contactLinks = [
-  { href: "https://www.linkedin.com/in/bernhard-metzger-8376539a", label: "LinkedIn", icon: Linkedin },
-  { href: "mailto:info@built-smart-hub.com", label: "E-Mail", icon: Mail },
-  { href: "https://www.builtsmart-ai.app", label: "BuiltSmart AI Website", icon: Globe2 },
-  { href: "https://www.built-smart-hub.com", label: "BuiltSmart Hub Website", icon: Building2 },
-  { href: "tel:+491627111911", label: "Mobil anrufen", icon: Phone }
-];
 
 function getTypeIcon(name: string) {
   const lowerName = name.toLowerCase();
@@ -46,18 +38,39 @@ function getTypeIcon(name: string) {
   return CalendarCheck;
 }
 
-export default async function BookPage() {
+function getContactLinks(profile: BookingProfile) {
+  return [
+    profile.linkedin_url ? { href: profile.linkedin_url, label: "LinkedIn", icon: Linkedin } : null,
+    profile.contact_email ? { href: `mailto:${profile.contact_email}`, label: "E-Mail", icon: Mail } : null,
+    profile.website_url ? { href: profile.website_url, label: "Website", icon: Globe2 } : null,
+    profile.secondary_website_url ? { href: profile.secondary_website_url, label: "Weitere Website", icon: Building2 } : null,
+    profile.contact_phone ? { href: `tel:${profile.contact_phone.replace(/\s+/g, "")}`, label: "Mobil anrufen", icon: Phone } : null
+  ].filter(Boolean) as Array<{ href: string; label: string; icon: typeof Linkedin }>;
+}
+
+export default async function BookPage({ searchParams }: { searchParams?: Promise<{ profile?: string }> }) {
+  const requestedProfile = (await searchParams)?.profile;
+  const profile = await getBookingProfile(requestedProfile);
+  const profileQuery = profile.slug === defaultBookingProfile.slug ? "" : `?profile=${encodeURIComponent(profile.slug)}`;
+  const contactLinks = getContactLinks(profile);
   let types: BookingType[] = seedBookingTypes;
   const isConfigured = hasSupabaseConfig();
 
   if (isConfigured) {
     const supabase = createSupabaseAdmin();
-    const { data } = await supabase
+    let query = supabase
       .from("booking_types")
       .select("*")
       .eq("is_active", true)
-      .order("sort_order")
-      .returns<BookingType[]>();
+      .order("sort_order");
+
+    if (profile.id !== defaultBookingProfile.id) {
+      query = query.eq("profile_id", profile.id);
+    } else {
+      query = query.or(`profile_id.eq.${profile.id},profile_id.is.null`);
+    }
+
+    const { data } = await query.returns<BookingType[]>();
     types = data || [];
   }
 
@@ -75,40 +88,43 @@ export default async function BookPage() {
                 </span>
               </div>
               <h1 className="mt-4 max-w-3xl text-4xl font-semibold tracking-normal text-slate-950 md:text-5xl">
-                Termin mit BuiltSmart AI buchen
+                {profile.headline}
               </h1>
               <p className="mt-5 max-w-2xl text-base leading-7 text-slate-600">
-                Wählen Sie einen passenden 30-Minuten-Termin für ein Erstgespräch, eine KI-Demo oder eine projektbezogene Beratung.
+                {profile.subheadline}
               </p>
             </div>
-            <div className="rounded-lg bg-slate-50 p-5 text-center ring-1 ring-slate-200 lg:w-80">
-              <div className="mx-auto h-28 w-28 overflow-hidden rounded-full border-4 border-white bg-slate-100 shadow-sm ring-1 ring-slate-200">
-                <Image
-                  src="/bernhard-metzger.jpg"
-                  alt="Bernhard Metzger"
-                  width={160}
-                  height={160}
-                  className="h-full w-full object-cover object-[center_35%]"
-                  priority
-                />
+            {(profile.contact_name || contactLinks.length > 0) ? (
+              <div className="rounded-lg bg-slate-50 p-5 text-center ring-1 ring-slate-200 lg:w-80">
+                {profile.portrait_url ? (
+                  <div className="mx-auto h-28 w-28 overflow-hidden rounded-full border-4 border-white bg-slate-100 shadow-sm ring-1 ring-slate-200">
+                    <img
+                      src={profile.portrait_url}
+                      alt={profile.contact_name || profile.name}
+                      className="h-full w-full object-cover object-[center_35%]"
+                    />
+                  </div>
+                ) : null}
+                {profile.contact_name ? <p className="mt-4 text-base font-semibold text-slate-950">{profile.contact_name}</p> : null}
+                {contactLinks.length > 0 ? (
+                  <div className="mt-4 flex items-center justify-center gap-2">
+                    {contactLinks.map((item) => (
+                      <a
+                        key={item.label}
+                        href={item.href}
+                        aria-label={item.label}
+                        title={item.label}
+                        className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-slate-200 bg-white text-slate-600 transition hover:border-brand-500 hover:text-brand-600"
+                        target={item.href.startsWith("http") ? "_blank" : undefined}
+                        rel={item.href.startsWith("http") ? "noreferrer" : undefined}
+                      >
+                        <item.icon className="h-4 w-4" />
+                      </a>
+                    ))}
+                  </div>
+                ) : null}
               </div>
-              <p className="mt-4 text-base font-semibold text-slate-950">Bernhard Metzger</p>
-              <div className="mt-4 flex items-center justify-center gap-2">
-                {contactLinks.map((item) => (
-                  <a
-                    key={item.label}
-                    href={item.href}
-                    aria-label={item.label}
-                    title={item.label}
-                    className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-slate-200 bg-white text-slate-600 transition hover:border-brand-500 hover:text-brand-600"
-                    target={item.href.startsWith("http") ? "_blank" : undefined}
-                    rel={item.href.startsWith("http") ? "noreferrer" : undefined}
-                  >
-                    <item.icon className="h-4 w-4" />
-                  </a>
-                ))}
-              </div>
-            </div>
+            ) : null}
           </div>
           <div className="mt-8 border-t border-slate-100 pt-7">
             <div className="relative grid grid-cols-1 gap-x-8 gap-y-6 md:grid-cols-3">
@@ -157,7 +173,7 @@ export default async function BookPage() {
           return (
             <Link
               key={type.id}
-              href={`/book/${type.slug}`}
+              href={`/book/${type.slug}${profileQuery}`}
               className="group rounded-lg border border-slate-200 border-t-brand-500 bg-gradient-to-br from-white to-slate-50 p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-brand-500 hover:shadow-md"
             >
               <div className="flex h-full flex-col justify-between gap-6">

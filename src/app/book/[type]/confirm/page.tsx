@@ -3,6 +3,7 @@ import Link from "next/link";
 import { BookingForm } from "@/components/booking-form";
 import { hasSupabaseConfig } from "@/lib/config";
 import { buildSlotLabel } from "@/lib/date";
+import { defaultBookingProfile, getBookingProfile } from "@/lib/profiles";
 import { findSeedBookingType } from "@/lib/seed-data";
 import { createSupabaseAdmin } from "@/lib/supabase/admin";
 import { BookingType } from "@/lib/types";
@@ -14,16 +15,23 @@ export default async function ConfirmPage({
   searchParams
 }: {
   params: Promise<{ type: string }>;
-  searchParams: Promise<{ start?: string }>;
+  searchParams: Promise<{ start?: string; profile?: string }>;
 }) {
   const { type } = await params;
-  const { start } = await searchParams;
+  const { start, profile: profileSlug } = await searchParams;
+  const profile = await getBookingProfile(profileSlug);
   const isConfigured = hasSupabaseConfig();
   let bookingType: BookingType | null | undefined = findSeedBookingType(type);
 
   if (isConfigured) {
     const supabase = createSupabaseAdmin();
-    const { data } = await supabase.from("booking_types").select("*").eq("slug", type).single<BookingType>();
+    let query = supabase.from("booking_types").select("*").eq("slug", type).eq("is_active", true);
+
+    if (profile.id !== defaultBookingProfile.id) {
+      query = query.eq("profile_id", profile.id);
+    }
+
+    const { data } = await query.single<BookingType>();
     bookingType = data;
   }
 
@@ -44,7 +52,7 @@ export default async function ConfirmPage({
           <p className="mt-1 text-slate-700">{buildSlotLabel(startsAt, endsAt)}</p>
         </div>
         <Link
-          href={`/book/${type}`}
+          href={`/book/${type}${profileSlug ? `?profile=${encodeURIComponent(profileSlug)}` : ""}`}
           className="inline-flex min-h-10 shrink-0 items-center justify-center rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-brand-500 hover:text-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2"
         >
           Zurück zur Terminauswahl

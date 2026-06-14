@@ -3,14 +3,23 @@ import { DaySlotPicker } from "@/components/day-slot-picker";
 import { getAvailableSlots } from "@/lib/availability";
 import { hasSupabaseConfig } from "@/lib/config";
 import { htmlDateValue } from "@/lib/date";
+import { defaultBookingProfile, getBookingProfile } from "@/lib/profiles";
 import { demoSlots, findSeedBookingType } from "@/lib/seed-data";
 import { createSupabaseAdmin } from "@/lib/supabase/admin";
 import { BookingType } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
-export default async function SlotPage({ params }: { params: Promise<{ type: string }> }) {
+export default async function SlotPage({
+  params,
+  searchParams
+}: {
+  params: Promise<{ type: string }>;
+  searchParams?: Promise<{ profile?: string }>;
+}) {
   const { type } = await params;
+  const { profile: profileSlug } = (await searchParams) || {};
+  const profile = await getBookingProfile(profileSlug);
   const isConfigured = hasSupabaseConfig();
   let bookingType: BookingType | null | undefined = findSeedBookingType(type);
   const from = new Date();
@@ -20,7 +29,13 @@ export default async function SlotPage({ params }: { params: Promise<{ type: str
 
   if (isConfigured) {
     const supabase = createSupabaseAdmin();
-    const { data } = await supabase.from("booking_types").select("*").eq("slug", type).single<BookingType>();
+    let query = supabase.from("booking_types").select("*").eq("slug", type).eq("is_active", true);
+
+    if (profile.id !== defaultBookingProfile.id) {
+      query = query.eq("profile_id", profile.id);
+    }
+
+    const { data } = await query.single<BookingType>();
     bookingType = data;
   }
 
@@ -43,7 +58,7 @@ export default async function SlotPage({ params }: { params: Promise<{ type: str
         </div>
       ) : null}
       {slots.length > 0 ? (
-        <DaySlotPicker bookingTypeSlug={type} days={days} groupedSlots={grouped} />
+        <DaySlotPicker bookingTypeSlug={type} profileSlug={profileSlug} days={days} groupedSlots={grouped} />
       ) : (
         <p className="mt-8 rounded-lg border border-slate-200 bg-white p-5 text-slate-600">Aktuell sind keine freien Zeitfenster verfügbar.</p>
       )}

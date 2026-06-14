@@ -4,6 +4,7 @@ import { AdminDeleteBlockedTimeButton } from "@/components/admin-delete-blocked-
 import { AvailabilityGrid } from "@/components/availability-grid";
 import { requireAdmin } from "@/lib/admin";
 import { createSupabaseAdmin } from "@/lib/supabase/admin";
+import { BookingProfile } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
@@ -20,8 +21,9 @@ const weekdays = [
 export default async function AdminSettingsPage() {
   await requireAdmin();
   const supabase = createSupabaseAdmin();
-  const [{ data: types }, { data: rules }, { data: blockedTimes }] = await Promise.all([
+  const [{ data: types }, { data: profiles }, { data: rules }, { data: blockedTimes }] = await Promise.all([
     supabase.from("booking_types").select("*").order("sort_order"),
+    supabase.from("booking_profiles").select("*").order("name").returns<BookingProfile[]>(),
     supabase.from("availability_rules").select("*").order("weekday").order("start_time"),
     supabase.from("blocked_times").select("*").order("starts_at", { ascending: false }).limit(20)
   ]);
@@ -44,6 +46,7 @@ export default async function AdminSettingsPage() {
       buffer_before_minutes: Number(formData.get("buffer_before_minutes") || 0),
       buffer_after_minutes: Number(formData.get("buffer_after_minutes") || 0),
       sort_order: Number(formData.get("sort_order") || 0),
+      profile_id: String(formData.get("profile_id") || "") || null,
       is_active: formData.get("is_active") === "on"
     };
 
@@ -55,6 +58,7 @@ export default async function AdminSettingsPage() {
 
     revalidatePath("/admin/settings");
     revalidatePath("/book");
+    revalidatePath("/admin/profiles");
   }
 
   async function saveAvailabilityGrid(formData: FormData) {
@@ -204,13 +208,13 @@ export default async function AdminSettingsPage() {
         </div>
         <div className="grid gap-4 lg:grid-cols-2 2xl:grid-cols-3">
           {(types || []).map((type) => (
-            <BookingTypeForm key={type.id} action={saveBookingType} type={type} />
+            <BookingTypeForm key={type.id} action={saveBookingType} type={type} profiles={profiles || []} />
           ))}
         </div>
         <details className="rounded-lg border border-dashed border-slate-300 bg-white p-4 shadow-sm">
           <summary className="cursor-pointer text-sm font-semibold text-slate-800">Neue Terminart anlegen</summary>
           <div className="mt-4">
-            <BookingTypeForm action={saveBookingType} isNew />
+            <BookingTypeForm action={saveBookingType} isNew profiles={profiles || []} />
           </div>
         </details>
       </div>
@@ -252,12 +256,15 @@ export default async function AdminSettingsPage() {
 function BookingTypeForm({
   action,
   type,
+  profiles,
   isNew = false
 }: {
   action: (formData: FormData) => Promise<void>;
   isNew?: boolean;
+  profiles: BookingProfile[];
   type?: {
     id: string;
+    profile_id?: string | null;
     slug: string;
     name: string;
     description: string | null;
@@ -272,6 +279,20 @@ function BookingTypeForm({
     <form action={action} className={isNew ? "rounded-md border border-slate-200 bg-slate-50 p-4" : "rounded-lg border border-slate-200 bg-white p-4 shadow-sm"}>
       <input type="hidden" name="id" value={type?.id || ""} />
       <div className="grid gap-3 sm:grid-cols-2">
+        <label className="block sm:col-span-2">
+          <span className="text-sm font-medium text-slate-700">Profil</span>
+          <select
+            name="profile_id"
+            defaultValue={type?.profile_id || profiles[0]?.id || ""}
+            className="mt-2 w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+          >
+            {profiles.map((profile) => (
+              <option key={profile.id} value={profile.id}>
+                {profile.name}
+              </option>
+            ))}
+          </select>
+        </label>
         <div className="sm:col-span-2">
           <Field label="Name" name="name" defaultValue={type?.name || ""} required />
         </div>

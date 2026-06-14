@@ -2,6 +2,7 @@ import type { MeetingLocation } from "@/lib/meeting-location";
 
 export type BookingType = {
   id: string;
+  profile_id?: string | null;
   slug: string;
   name: string;
   description: string | null;
@@ -10,6 +11,23 @@ export type BookingType = {
   buffer_after_minutes: number;
   is_active: boolean;
   sort_order: number;
+};
+
+export type BookingProfile = {
+  id: string;
+  slug: string;
+  name: string;
+  headline: string;
+  subheadline: string;
+  contact_name: string | null;
+  contact_email: string | null;
+  contact_phone: string | null;
+  linkedin_url: string | null;
+  website_url: string | null;
+  secondary_website_url: string | null;
+  portrait_url: string | null;
+  primary_color: string;
+  is_active: boolean;
 };
 
 export type AvailabilityRule = {
