@@ -79,9 +79,9 @@ export default async function BookPage() {
           </div>
           <div className="mt-8 border-t border-slate-100 pt-7">
             <div className="relative grid grid-cols-1 gap-x-8 gap-y-6 md:grid-cols-3">
-              <div className="absolute left-[16.666%] right-[16.666%] top-7 hidden h-px bg-gradient-to-r from-brand-300 via-sky-300 to-emerald-300 md:block" />
+              <div className="absolute left-[16.666%] right-[16.666%] top-7 z-0 hidden h-0.5 bg-gradient-to-r from-brand-400 via-sky-400 to-emerald-400 md:block" />
               {workflowSteps.map((step, index) => (
-                <div key={step} className="relative flex flex-col items-center text-center">
+                <div key={step} className="relative z-10 flex flex-col items-center text-center">
                   <span className="relative z-10 inline-flex h-14 w-14 items-center justify-center rounded-full border border-slate-200 bg-white text-base font-bold text-brand-700 shadow-sm">
                     {String(index + 1).padStart(2, "0")}
                   </span>
