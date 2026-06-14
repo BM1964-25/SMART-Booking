@@ -43,7 +43,6 @@ function getContactLinks(profile: BookingProfile) {
     profile.linkedin_url ? { href: profile.linkedin_url, label: "LinkedIn", icon: Linkedin } : null,
     profile.contact_email ? { href: `mailto:${profile.contact_email}`, label: "E-Mail", icon: Mail } : null,
     profile.website_url ? { href: profile.website_url, label: "Website", icon: Globe2 } : null,
-    profile.secondary_website_url ? { href: profile.secondary_website_url, label: "Weitere Website", icon: Building2 } : null,
     profile.contact_phone ? { href: `tel:${profile.contact_phone.replace(/\s+/g, "")}`, label: "Mobil anrufen", icon: Phone } : null
   ].filter(Boolean) as Array<{ href: string; label: string; icon: typeof Linkedin }>;
 }
