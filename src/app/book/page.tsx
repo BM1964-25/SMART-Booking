@@ -17,6 +17,7 @@ import {
   Video,
   Youtube
 } from "lucide-react";
+import { XIcon, XingIcon } from "@/components/brand-icons";
 import { hasSupabaseConfig, missingSupabaseKeys } from "@/lib/config";
 import { defaultBookingProfile, getBookingProfile } from "@/lib/profiles";
 import { seedBookingTypes } from "@/lib/seed-data";
@@ -36,22 +37,6 @@ const highlights = [
 ];
 
 const workflowSteps = ["Terminart wählen", "Tag und Uhrzeit auswählen", "Daten bestätigen"];
-
-function XingIcon({ className }: { className?: string }) {
-  return (
-    <span aria-hidden className={`font-bold leading-none ${className || ""}`}>
-      X
-    </span>
-  );
-}
-
-function XIcon({ className }: { className?: string }) {
-  return (
-    <svg aria-hidden="true" viewBox="0 0 24 24" className={className} fill="currentColor">
-      <path d="M14.25 10.16 22.03 1h-1.84l-6.76 7.95L8.04 1H1.82l8.16 12.03L1.82 22h1.84l7.14-7.82L16.5 22h6.22l-8.47-11.84Zm-2.53 2.79-.83-1.2L4.32 2.4h2.84l5.31 7.55.83 1.2 6.89 9.8h-2.84l-5.63-8Z" />
-    </svg>
-  );
-}
 
 function getTypeIcon(name: string) {
   const lowerName = name.toLowerCase();

@@ -3,6 +3,7 @@ import Link from "next/link";
 import type { ComponentType } from "react";
 import { Facebook, Globe2, Instagram, Linkedin, Mail, Phone, UserRound, Youtube } from "lucide-react";
 import { AdminNav } from "@/components/admin-nav";
+import { XIcon, XingIcon } from "@/components/brand-icons";
 import { ProfileImageEditor } from "@/components/profile-image-editor";
 import { requireAdmin } from "@/lib/admin";
 import { getEnv } from "@/lib/env";
@@ -11,22 +12,6 @@ import { createSupabaseAdmin } from "@/lib/supabase/admin";
 import { BookingProfile } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
-
-function XingIcon({ className }: { className?: string }) {
-  return (
-    <span aria-hidden className={`font-bold leading-none ${className || ""}`}>
-      X
-    </span>
-  );
-}
-
-function XIcon({ className }: { className?: string }) {
-  return (
-    <svg aria-hidden="true" viewBox="0 0 24 24" className={className} fill="currentColor">
-      <path d="M14.25 10.16 22.03 1h-1.84l-6.76 7.95L8.04 1H1.82l8.16 12.03L1.82 22h1.84l7.14-7.82L16.5 22h6.22l-8.47-11.84Zm-2.53 2.79-.83-1.2L4.32 2.4h2.84l5.31 7.55.83 1.2 6.89 9.8h-2.84l-5.63-8Z" />
-    </svg>
-  );
-}
 
 export default async function AdminProfilesPage() {
   await requireAdmin();
@@ -244,13 +229,13 @@ function ProfileForm({
             <VisibleField label="Kontaktname" icon={UserRound} name="contact_name" visibilityName="show_contact_name" defaultValue={profile?.contact_name || ""} defaultChecked={profile?.show_contact_name ?? true} />
             <VisibleField label="Kontakt-E-Mail" icon={Mail} name="contact_email" visibilityName="show_contact_email" type="email" defaultValue={profile?.contact_email || ""} defaultChecked={profile?.show_contact_email ?? true} />
             <VisibleField label="Telefon" icon={Phone} name="contact_phone" visibilityName="show_contact_phone" defaultValue={profile?.contact_phone || ""} defaultChecked={profile?.show_contact_phone ?? true} />
+            <VisibleField label="Website URL" icon={Globe2} name="website_url" visibilityName="show_website" type="url" defaultValue={profile?.website_url || ""} defaultChecked={profile?.show_website ?? true} />
             <VisibleField label="LinkedIn URL" icon={Linkedin} name="linkedin_url" visibilityName="show_linkedin" type="url" defaultValue={profile?.linkedin_url || ""} defaultChecked={profile?.show_linkedin ?? true} />
             <VisibleField label="Xing URL" icon={XingIcon} name="xing_url" visibilityName="show_xing" type="url" defaultValue={profile?.xing_url || ""} defaultChecked={profile?.show_xing ?? true} />
             <VisibleField label="X / Twitter URL" icon={XIcon} name="x_url" visibilityName="show_x" type="url" defaultValue={profile?.x_url || ""} defaultChecked={profile?.show_x ?? true} />
             <VisibleField label="Instagram URL" icon={Instagram} name="instagram_url" visibilityName="show_instagram" type="url" defaultValue={profile?.instagram_url || ""} defaultChecked={profile?.show_instagram ?? true} />
             <VisibleField label="Facebook URL" icon={Facebook} name="facebook_url" visibilityName="show_facebook" type="url" defaultValue={profile?.facebook_url || ""} defaultChecked={profile?.show_facebook ?? true} />
             <VisibleField label="YouTube URL" icon={Youtube} name="youtube_url" visibilityName="show_youtube" type="url" defaultValue={profile?.youtube_url || ""} defaultChecked={profile?.show_youtube ?? true} />
-            <VisibleField label="Website URL" icon={Globe2} name="website_url" visibilityName="show_website" type="url" defaultValue={profile?.website_url || ""} defaultChecked={profile?.show_website ?? true} />
           </div>
         </fieldset>
         <ProfileImageEditor
