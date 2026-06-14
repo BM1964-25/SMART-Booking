@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { ArrowRight, Building2, CalendarCheck, MailCheck, SearchCheck, ShieldCheck, Sparkles, Video } from "lucide-react";
+import Image from "next/image";
+import { ArrowRight, Building2, CalendarCheck, Globe2, Linkedin, Mail, MailCheck, Phone, SearchCheck, ShieldCheck, Sparkles, Video } from "lucide-react";
 import { hasSupabaseConfig, missingSupabaseKeys } from "@/lib/config";
 import { seedBookingTypes } from "@/lib/seed-data";
 import { createSupabaseAdmin } from "@/lib/supabase/admin";
@@ -18,6 +19,14 @@ const highlights = [
 ];
 
 const workflowSteps = ["Terminart wählen", "Tag und Uhrzeit auswählen", "Daten bestätigen"];
+
+const contactLinks = [
+  { href: "https://www.linkedin.com/in/bernhard-metzger-8376539a", label: "LinkedIn", icon: Linkedin },
+  { href: "mailto:info@built-smart-hub.com", label: "E-Mail", icon: Mail },
+  { href: "https://www.builtsmart-ai.app", label: "BuiltSmart AI Website", icon: Globe2 },
+  { href: "https://www.built-smart-hub.com", label: "BuiltSmart Hub Website", icon: Building2 },
+  { href: "tel:+491627111911", label: "Mobil anrufen", icon: Phone }
+];
 
 function getTypeIcon(name: string) {
   const lowerName = name.toLowerCase();
@@ -72,9 +81,34 @@ export default async function BookPage() {
                 Wählen Sie einen passenden 30-Minuten-Termin für ein Erstgespräch, eine KI-Demo oder eine projektbezogene Beratung.
               </p>
             </div>
-            <div className="rounded-lg bg-slate-50 p-4 ring-1 ring-slate-200 lg:w-80">
-              <p className="text-sm font-semibold text-slate-950">Sicherer Ablauf</p>
-              <p className="mt-2 text-sm leading-6 text-slate-600">Die Verfügbarkeit wird live geprüft. Nach der Buchung erhalten alle Beteiligten eine Bestätigung.</p>
+            <div className="rounded-lg bg-slate-50 p-5 text-center ring-1 ring-slate-200 lg:w-80">
+              <div className="mx-auto h-28 w-28 overflow-hidden rounded-full border-4 border-white bg-slate-100 shadow-sm ring-1 ring-slate-200">
+                <Image
+                  src="/bernhard-metzger.jpg"
+                  alt="Bernhard Metzger"
+                  width={160}
+                  height={160}
+                  className="h-full w-full object-cover"
+                  priority
+                />
+              </div>
+              <p className="mt-4 text-base font-semibold text-slate-950">Bernhard Metzger</p>
+              <p className="mt-1 text-sm leading-6 text-slate-600">BuiltSmart AI · Beratung und KI-Demos</p>
+              <div className="mt-4 flex items-center justify-center gap-2">
+                {contactLinks.map((item) => (
+                  <a
+                    key={item.label}
+                    href={item.href}
+                    aria-label={item.label}
+                    title={item.label}
+                    className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-slate-200 bg-white text-slate-600 transition hover:border-brand-500 hover:text-brand-600"
+                    target={item.href.startsWith("http") ? "_blank" : undefined}
+                    rel={item.href.startsWith("http") ? "noreferrer" : undefined}
+                  >
+                    <item.icon className="h-4 w-4" />
+                  </a>
+                ))}
+              </div>
             </div>
           </div>
           <div className="mt-8 border-t border-slate-100 pt-7">
