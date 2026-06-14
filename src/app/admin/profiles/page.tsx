@@ -4,6 +4,7 @@ import type { ComponentType } from "react";
 import { Globe2, Mail, Phone, UserRound } from "lucide-react";
 import { AdminNav } from "@/components/admin-nav";
 import { FacebookIcon, InstagramIcon, LinkedInIcon, XIcon, XingIcon, YouTubeIcon } from "@/components/brand-icons";
+import { EmbedCodeOptions } from "@/components/embed-code-options";
 import { ProfileImageEditor } from "@/components/profile-image-editor";
 import { requireAdmin } from "@/lib/admin";
 import { getEnv } from "@/lib/env";
@@ -200,6 +201,7 @@ function ProfileForm({
           Aktiv
         </label>
       </div>
+      <EmbedCodeOptions publicUrl={publicUrl} />
 
       <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         <Field label="Profilname" name="name" defaultValue={profile?.name || ""} required />
