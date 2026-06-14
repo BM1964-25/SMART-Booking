@@ -59,7 +59,7 @@ export default async function AdminProfilesPage() {
       portrait_zoom: clampNumber(formData.get("portrait_zoom"), 1, 1.8, 1),
       show_portrait: formData.get("show_portrait") === "on",
       show_subheadline: formData.get("show_subheadline") === "on",
-      show_contact_links: formData.get("show_contact_links") === "on",
+      show_contact_links: true,
       show_contact_name: formData.get("show_contact_name") === "on",
       show_contact_email: formData.get("show_contact_email") === "on",
       show_contact_phone: formData.get("show_contact_phone") === "on",
@@ -130,7 +130,7 @@ export default async function AdminProfilesPage() {
       portrait_zoom: sourceProfile.portrait_zoom,
       show_portrait: sourceProfile.show_portrait,
       show_subheadline: sourceProfile.show_subheadline,
-      show_contact_links: sourceProfile.show_contact_links,
+      show_contact_links: true,
       show_contact_name: sourceProfile.show_contact_name,
       show_contact_email: sourceProfile.show_contact_email,
       show_contact_phone: sourceProfile.show_contact_phone,
@@ -228,12 +228,6 @@ function ProfileForm({
         </label>
         <fieldset className="rounded-md border border-slate-200 bg-slate-50 p-3 sm:col-span-2 lg:col-span-3">
           <legend className="px-1 text-sm font-semibold text-slate-800">Kontaktdaten und Links</legend>
-          <div className="mb-3 flex justify-end">
-            <label className="inline-flex items-center gap-2 text-sm font-medium text-slate-700">
-              <input name="show_contact_links" type="checkbox" defaultChecked={profile?.show_contact_links ?? true} className="h-4 w-4 rounded border-slate-300 text-brand-600" />
-              Kontakticons insgesamt anzeigen
-            </label>
-          </div>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             <VisibleField label="Kontaktname" icon={UserRound} name="contact_name" visibilityName="show_contact_name" defaultValue={profile?.contact_name || ""} defaultChecked={profile?.show_contact_name ?? true} />
             <VisibleField label="Kontakt-E-Mail" icon={Mail} name="contact_email" visibilityName="show_contact_email" type="email" defaultValue={profile?.contact_email || ""} defaultChecked={profile?.show_contact_email ?? true} />

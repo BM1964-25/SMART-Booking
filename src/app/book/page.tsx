@@ -87,10 +87,9 @@ export default async function BookPage({ searchParams }: { searchParams?: Promis
   const portraitZoom = clampNumber(profile.portrait_zoom, 1, 1.8, 1);
   const showPortrait = profile.show_portrait !== false;
   const showSubheadline = profile.show_subheadline !== false;
-  const showContactLinks = profile.show_contact_links !== false;
   const showContactName = profile.show_contact_name !== false;
   const profileQuery = profile.slug === defaultBookingProfile.slug ? "" : `?profile=${encodeURIComponent(profile.slug)}`;
-  const contactLinks = showContactLinks ? getContactLinks(profile) : [];
+  const contactLinks = getContactLinks(profile);
   let types: BookingType[] = seedBookingTypes;
   const isConfigured = hasSupabaseConfig();
 
