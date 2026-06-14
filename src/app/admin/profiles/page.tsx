@@ -7,11 +7,12 @@ import { FacebookIcon, InstagramIcon, LinkedInIcon, XIcon, XingIcon, YouTubeIcon
 import { ColorPalettePresets } from "@/components/color-palette-presets";
 import { EmbedCodeOptions } from "@/components/embed-code-options";
 import { ProfileImageEditor } from "@/components/profile-image-editor";
+import { ProfileTemplateControls } from "@/components/profile-template-controls";
 import { requireAdmin } from "@/lib/admin";
 import { getEnv } from "@/lib/env";
 import { defaultBookingProfile } from "@/lib/profiles";
 import { createSupabaseAdmin } from "@/lib/supabase/admin";
-import { BookingProfile } from "@/lib/types";
+import { BookingProfile, BookingProfileTemplate } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
@@ -19,6 +20,11 @@ export default async function AdminProfilesPage() {
   await requireAdmin();
   const supabase = createSupabaseAdmin();
   const { data: profiles } = await supabase.from("booking_profiles").select("*").order("created_at").returns<BookingProfile[]>();
+  const { data: profileTemplates } = await supabase
+    .from("booking_profile_templates")
+    .select("*")
+    .order("created_at", { ascending: false })
+    .returns<BookingProfileTemplate[]>();
   const siteUrl = getEnv().NEXT_PUBLIC_SITE_URL.replace(/\/$/, "");
 
   async function saveProfile(formData: FormData) {
@@ -146,6 +152,22 @@ export default async function AdminProfilesPage() {
     revalidatePath("/admin/settings");
   }
 
+  async function saveProfileTemplate(formData: FormData) {
+    "use server";
+
+    await requireAdmin();
+    const supabase = createSupabaseAdmin();
+    const profileName = String(formData.get("name") || "").trim() || "Profil";
+    const templateData = buildProfileTemplateData(formData);
+
+    await supabase.from("booking_profile_templates").insert({
+      name: `${profileName} Standardvorlage`,
+      template_data: templateData
+    });
+
+    revalidatePath("/admin/profiles");
+  }
+
   return (
     <section className="mx-auto max-w-6xl px-5 py-12">
       <h1 className="text-3xl font-semibold text-slate-950">Profile</h1>
@@ -157,14 +179,22 @@ export default async function AdminProfilesPage() {
 
       <div className="mt-8 grid gap-5">
         {(profiles || []).map((profile) => (
-          <ProfileForm key={profile.id} action={saveProfile} duplicateAction={duplicateProfile} profile={profile} siteUrl={siteUrl} />
+          <ProfileForm
+            key={profile.id}
+            action={saveProfile}
+            duplicateAction={duplicateProfile}
+            saveTemplateAction={saveProfileTemplate}
+            profile={profile}
+            savedTemplates={profileTemplates || []}
+            siteUrl={siteUrl}
+          />
         ))}
       </div>
 
       <details className="mt-8 rounded-lg border border-dashed border-slate-300 bg-white p-5 shadow-sm">
         <summary className="cursor-pointer text-sm font-semibold text-slate-800">Neues Profil anlegen</summary>
         <div className="mt-4">
-          <ProfileForm action={saveProfile} siteUrl={siteUrl} />
+          <ProfileForm action={saveProfile} saveTemplateAction={saveProfileTemplate} savedTemplates={profileTemplates || []} siteUrl={siteUrl} />
         </div>
       </details>
     </section>
@@ -174,12 +204,16 @@ export default async function AdminProfilesPage() {
 function ProfileForm({
   action,
   duplicateAction,
+  saveTemplateAction,
   profile,
+  savedTemplates,
   siteUrl
 }: {
   action: (formData: FormData) => Promise<void>;
   duplicateAction?: (formData: FormData) => Promise<void>;
+  saveTemplateAction: (formData: FormData) => Promise<void>;
   profile?: BookingProfile;
+  savedTemplates: BookingProfileTemplate[];
   siteUrl: string;
 }) {
   const slug = profile?.slug || "";
@@ -205,6 +239,7 @@ function ProfileForm({
       <EmbedCodeOptions publicUrl={publicUrl} />
 
       <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <ProfileTemplateControls savedTemplates={savedTemplates} saveAction={saveTemplateAction} />
         <Field label="Profilname" name="name" defaultValue={profile?.name || ""} required />
         <Field label="Slug für Link" name="slug" defaultValue={profile?.slug || ""} required />
         <div className="sm:col-span-2 lg:col-span-3">
@@ -375,6 +410,37 @@ function ColorField({
 function nullableString(value: FormDataEntryValue | null) {
   const text = String(value || "").trim();
   return text.length > 0 ? text : null;
+}
+
+function buildProfileTemplateData(formData: FormData) {
+  return {
+    headline: String(formData.get("headline") || "").trim(),
+    subheadline: String(formData.get("subheadline") || "").trim(),
+    contact_name: nullableString(formData.get("contact_name")),
+    contact_email: nullableString(formData.get("contact_email")),
+    contact_phone: nullableString(formData.get("contact_phone")),
+    linkedin_url: nullableString(formData.get("linkedin_url")),
+    xing_url: nullableString(formData.get("xing_url")),
+    x_url: nullableString(formData.get("x_url")),
+    instagram_url: nullableString(formData.get("instagram_url")),
+    facebook_url: nullableString(formData.get("facebook_url")),
+    youtube_url: nullableString(formData.get("youtube_url")),
+    website_url: nullableString(formData.get("website_url")),
+    primary_color: normalizeColor(String(formData.get("primary_color") || "#527DF6")),
+    profile_card_bg_color: normalizeColor(String(formData.get("profile_card_bg_color") || "#F8FAFC"), "#F8FAFC"),
+    booking_card_bg_color: normalizeColor(String(formData.get("booking_card_bg_color") || "#FFFFFF"), "#FFFFFF"),
+    show_subheadline: formData.get("show_subheadline") === "on",
+    show_contact_name: formData.get("show_contact_name") === "on",
+    show_contact_email: formData.get("show_contact_email") === "on",
+    show_contact_phone: formData.get("show_contact_phone") === "on",
+    show_linkedin: formData.get("show_linkedin") === "on",
+    show_xing: formData.get("show_xing") === "on",
+    show_x: formData.get("show_x") === "on",
+    show_instagram: formData.get("show_instagram") === "on",
+    show_facebook: formData.get("show_facebook") === "on",
+    show_youtube: formData.get("show_youtube") === "on",
+    show_website: formData.get("show_website") === "on"
+  };
 }
 
 function slugify(value: string) {

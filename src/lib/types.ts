@@ -53,6 +53,14 @@ export type BookingProfile = {
   is_active: boolean;
 };
 
+export type BookingProfileTemplate = {
+  id: string;
+  name: string;
+  template_data: Record<string, string | number | boolean | null>;
+  created_by: string | null;
+  created_at: string;
+};
+
 export type AvailabilityRule = {
   id: string;
   weekday: number;
