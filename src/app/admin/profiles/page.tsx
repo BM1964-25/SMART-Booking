@@ -1,6 +1,7 @@
 import { revalidatePath } from "next/cache";
 import Link from "next/link";
 import { AdminNav } from "@/components/admin-nav";
+import { ProfileImageEditor } from "@/components/profile-image-editor";
 import { requireAdmin } from "@/lib/admin";
 import { getEnv } from "@/lib/env";
 import { defaultBookingProfile } from "@/lib/profiles";
@@ -198,7 +199,13 @@ function ProfileForm({
           <Field label="Headline" name="headline" defaultValue={profile?.headline || "Termin buchen"} required />
         </div>
         <label className="block sm:col-span-2 lg:col-span-3">
-          <span className="text-sm font-medium text-slate-700">Subheadline</span>
+          <span className="flex items-center justify-between gap-3 text-sm font-medium text-slate-700">
+            Subheadline
+            <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500">
+              <input name="show_subheadline" type="checkbox" defaultChecked={profile?.show_subheadline ?? true} className="h-3.5 w-3.5 rounded border-slate-300 text-brand-600" />
+              Anzeigen
+            </span>
+          </span>
           <textarea
             name="subheadline"
             rows={3}
@@ -207,50 +214,33 @@ function ProfileForm({
             className="mt-2 w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
           />
         </label>
-        <VisibleField label="Kontaktname" name="contact_name" visibilityName="show_contact_name" defaultValue={profile?.contact_name || ""} defaultChecked={profile?.show_contact_name ?? true} />
-        <VisibleField label="Kontakt-E-Mail" name="contact_email" visibilityName="show_contact_email" type="email" defaultValue={profile?.contact_email || ""} defaultChecked={profile?.show_contact_email ?? true} />
-        <VisibleField label="Telefon" name="contact_phone" visibilityName="show_contact_phone" defaultValue={profile?.contact_phone || ""} defaultChecked={profile?.show_contact_phone ?? true} />
-        <VisibleField label="LinkedIn URL" name="linkedin_url" visibilityName="show_linkedin" type="url" defaultValue={profile?.linkedin_url || ""} defaultChecked={profile?.show_linkedin ?? true} />
-        <VisibleField label="Xing URL" name="xing_url" visibilityName="show_xing" type="url" defaultValue={profile?.xing_url || ""} defaultChecked={profile?.show_xing ?? true} />
-        <VisibleField label="Instagram URL" name="instagram_url" visibilityName="show_instagram" type="url" defaultValue={profile?.instagram_url || ""} defaultChecked={profile?.show_instagram ?? true} />
-        <VisibleField label="Facebook URL" name="facebook_url" visibilityName="show_facebook" type="url" defaultValue={profile?.facebook_url || ""} defaultChecked={profile?.show_facebook ?? true} />
-        <VisibleField label="YouTube URL" name="youtube_url" visibilityName="show_youtube" type="url" defaultValue={profile?.youtube_url || ""} defaultChecked={profile?.show_youtube ?? true} />
-        <VisibleField label="Website URL" name="website_url" visibilityName="show_website" type="url" defaultValue={profile?.website_url || ""} defaultChecked={profile?.show_website ?? true} />
-        <input type="hidden" name="portrait_url" value={profile?.portrait_url || ""} />
-        <div className="sm:col-span-2 lg:col-span-3">
-          <span className="text-sm font-medium text-slate-700">Profilbild</span>
-          <div className="mt-2 grid gap-3 rounded-md border border-slate-200 bg-slate-50 p-3 sm:grid-cols-[auto_1fr] sm:items-center">
-            {profile?.portrait_url ? (
-              <div className="h-16 w-16 overflow-hidden rounded-full bg-white ring-1 ring-slate-200">
-                <img
-                  src={profile.portrait_url}
-                  alt=""
-                  className="h-full w-full object-cover"
-                  style={{
-                    objectPosition: `${profile.portrait_position_x ?? 50}% ${profile.portrait_position_y ?? 35}%`,
-                    transform: `scale(${profile.portrait_zoom ?? 1})`
-                  }}
-                />
-              </div>
-            ) : (
-              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-white text-xs font-semibold text-slate-400 ring-1 ring-slate-200">Kein Bild</div>
-            )}
-            <div className="space-y-2">
-              <input
-                name="portrait_file"
-                type="file"
-                accept="image/png,image/jpeg,image/webp"
-                className="block w-full text-sm text-slate-600 file:mr-3 file:rounded-md file:border-0 file:bg-brand-50 file:px-3 file:py-2 file:text-sm file:font-semibold file:text-brand-700"
-              />
-              {profile?.portrait_url ? (
-                <label className="flex items-center gap-2 text-sm text-slate-700">
-                  <input name="remove_portrait" type="checkbox" className="h-4 w-4 rounded border-slate-300 text-brand-600" />
-                  Bild entfernen
-                </label>
-              ) : null}
-            </div>
+        <fieldset className="rounded-md border border-slate-200 bg-slate-50 p-3 sm:col-span-2 lg:col-span-3">
+          <legend className="px-1 text-sm font-semibold text-slate-800">Kontaktdaten und Links</legend>
+          <div className="mb-3 flex justify-end">
+            <label className="inline-flex items-center gap-2 text-sm font-medium text-slate-700">
+              <input name="show_contact_links" type="checkbox" defaultChecked={profile?.show_contact_links ?? true} className="h-4 w-4 rounded border-slate-300 text-brand-600" />
+              Kontakticons insgesamt anzeigen
+            </label>
           </div>
-        </div>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            <VisibleField label="Kontaktname" name="contact_name" visibilityName="show_contact_name" defaultValue={profile?.contact_name || ""} defaultChecked={profile?.show_contact_name ?? true} />
+            <VisibleField label="Kontakt-E-Mail" name="contact_email" visibilityName="show_contact_email" type="email" defaultValue={profile?.contact_email || ""} defaultChecked={profile?.show_contact_email ?? true} />
+            <VisibleField label="Telefon" name="contact_phone" visibilityName="show_contact_phone" defaultValue={profile?.contact_phone || ""} defaultChecked={profile?.show_contact_phone ?? true} />
+            <VisibleField label="LinkedIn URL" name="linkedin_url" visibilityName="show_linkedin" type="url" defaultValue={profile?.linkedin_url || ""} defaultChecked={profile?.show_linkedin ?? true} />
+            <VisibleField label="Xing URL" name="xing_url" visibilityName="show_xing" type="url" defaultValue={profile?.xing_url || ""} defaultChecked={profile?.show_xing ?? true} />
+            <VisibleField label="Instagram URL" name="instagram_url" visibilityName="show_instagram" type="url" defaultValue={profile?.instagram_url || ""} defaultChecked={profile?.show_instagram ?? true} />
+            <VisibleField label="Facebook URL" name="facebook_url" visibilityName="show_facebook" type="url" defaultValue={profile?.facebook_url || ""} defaultChecked={profile?.show_facebook ?? true} />
+            <VisibleField label="YouTube URL" name="youtube_url" visibilityName="show_youtube" type="url" defaultValue={profile?.youtube_url || ""} defaultChecked={profile?.show_youtube ?? true} />
+            <VisibleField label="Website URL" name="website_url" visibilityName="show_website" type="url" defaultValue={profile?.website_url || ""} defaultChecked={profile?.show_website ?? true} />
+          </div>
+        </fieldset>
+        <ProfileImageEditor
+          portraitUrl={profile?.portrait_url || ""}
+          positionX={profile?.portrait_position_x ?? 50}
+          positionY={profile?.portrait_position_y ?? 35}
+          zoom={profile?.portrait_zoom ?? 1}
+          showPortrait={profile?.show_portrait ?? true}
+        />
         <ColorField label="Primärfarbe" name="primary_color" defaultValue={profile?.primary_color || "#527DF6"} />
         <ColorField
           label="Profilkarten-Hintergrund"
@@ -258,22 +248,6 @@ function ProfileForm({
           defaultValue={profile?.profile_card_bg_color || "#F8FAFC"}
           description="Dezente Hintergrundfarbe für die Kontaktkarte."
         />
-        <fieldset className="sm:col-span-2 rounded-md border border-slate-200 bg-slate-50 p-3 lg:col-span-3">
-          <legend className="px-1 text-sm font-semibold text-slate-800">Bildausschnitt im runden Rahmen</legend>
-          <div className="mt-3 grid gap-3 sm:grid-cols-3">
-            <RangeField label="Horizontal" name="portrait_position_x" min={0} max={100} step={1} defaultValue={profile?.portrait_position_x ?? 50} suffix="%" />
-            <RangeField label="Vertikal" name="portrait_position_y" min={0} max={100} step={1} defaultValue={profile?.portrait_position_y ?? 35} suffix="%" />
-            <RangeField label="Zoom" name="portrait_zoom" min={1} max={1.8} step={0.05} defaultValue={profile?.portrait_zoom ?? 1} suffix="x" />
-          </div>
-        </fieldset>
-        <fieldset className="sm:col-span-2 rounded-md border border-slate-200 bg-slate-50 p-3 lg:col-span-3">
-          <legend className="px-1 text-sm font-semibold text-slate-800">Auf öffentlicher Buchungsseite anzeigen</legend>
-          <div className="mt-2 grid gap-2 sm:grid-cols-3">
-            <Toggle label="Profilbild" name="show_portrait" defaultChecked={profile?.show_portrait ?? true} />
-            <Toggle label="Subheadline" name="show_subheadline" defaultChecked={profile?.show_subheadline ?? true} />
-            <Toggle label="Kontakticons" name="show_contact_links" defaultChecked={profile?.show_contact_links ?? true} />
-          </div>
-        </fieldset>
       </div>
 
       <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -375,46 +349,6 @@ function ColorField({
         <input name={name} type="color" defaultValue={normalizeColor(defaultValue)} className="h-9 w-12 cursor-pointer rounded border border-slate-200 bg-white p-1" />
         <span className="text-sm text-slate-500">{description}</span>
       </div>
-    </label>
-  );
-}
-
-function RangeField({
-  label,
-  name,
-  min,
-  max,
-  step,
-  defaultValue,
-  suffix
-}: {
-  label: string;
-  name: string;
-  min: number;
-  max: number;
-  step: number;
-  defaultValue: number;
-  suffix: string;
-}) {
-  return (
-    <label className="block rounded-md bg-white px-3 py-2 ring-1 ring-slate-200">
-      <span className="flex items-center justify-between gap-3 text-sm font-medium text-slate-700">
-        {label}
-        <span className="text-xs font-semibold text-slate-500">
-          {defaultValue}
-          {suffix}
-        </span>
-      </span>
-      <input name={name} type="range" min={min} max={max} step={step} defaultValue={defaultValue} className="mt-2 w-full accent-brand-600" />
-    </label>
-  );
-}
-
-function Toggle({ label, name, defaultChecked }: { label: string; name: string; defaultChecked: boolean }) {
-  return (
-    <label className="flex items-center gap-2 rounded-md bg-white px-3 py-2 text-sm text-slate-700 ring-1 ring-slate-200">
-      <input name={name} type="checkbox" defaultChecked={defaultChecked} className="h-4 w-4 rounded border-slate-300 text-brand-600" />
-      {label}
     </label>
   );
 }
