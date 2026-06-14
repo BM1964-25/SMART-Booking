@@ -157,7 +157,7 @@ function ProfileForm({
   const publicUrl = `${siteUrl}${publicPath}`;
 
   return (
-    <form action={action} encType="multipart/form-data" className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+    <form action={action} className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
       <input type="hidden" name="id" value={profile?.id || ""} />
       {profile ? <input type="hidden" name="profileId" value={profile.id} /> : null}
       <div className="flex flex-col gap-3 border-b border-slate-100 pb-4 sm:flex-row sm:items-start sm:justify-between">
