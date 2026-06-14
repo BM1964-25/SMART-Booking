@@ -134,6 +134,7 @@ function ProfileForm({
   return (
     <form action={action} className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
       <input type="hidden" name="id" value={profile?.id || ""} />
+      {profile ? <input type="hidden" name="profileId" value={profile.id} /> : null}
       <div className="flex flex-col gap-3 border-b border-slate-100 pb-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <p className="text-lg font-semibold text-slate-950">{profile?.name || "Neues Profil"}</p>
@@ -177,8 +178,6 @@ function ProfileForm({
         {profile && duplicateAction ? (
           <button
             formAction={duplicateAction}
-            name="profileId"
-            value={profile.id}
             className="rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-brand-500 hover:text-brand-700"
             type="submit"
           >
