@@ -326,12 +326,12 @@ function VisibleField({
 }) {
   return (
     <label className="block">
-      <span className="flex items-center justify-between gap-3 text-sm font-medium text-slate-700">
-        <span className="inline-flex items-center gap-1.5">
+      <span className="flex items-center justify-between gap-3 pr-1 text-sm font-medium text-slate-700">
+        <span className="inline-flex min-w-0 items-center gap-1.5">
           {label}
-          <Icon className="h-4 w-4 text-slate-500" />
+          <Icon className="h-4 w-4 shrink-0 text-slate-500" />
         </span>
-        <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500">
+        <span className="inline-flex shrink-0 items-center gap-1.5 text-xs font-semibold text-slate-500">
           <input name={visibilityName} type="checkbox" defaultChecked={defaultChecked} className="h-3.5 w-3.5 rounded border-slate-300 text-brand-600" />
           Anzeigen
         </span>
