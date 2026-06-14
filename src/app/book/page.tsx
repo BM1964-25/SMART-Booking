@@ -4,20 +4,16 @@ import {
   ArrowRight,
   Building2,
   CalendarCheck,
-  Facebook,
   Globe2,
-  Instagram,
-  Linkedin,
   Mail,
   MailCheck,
   Phone,
   SearchCheck,
   ShieldCheck,
   Sparkles,
-  Video,
-  Youtube
+  Video
 } from "lucide-react";
-import { XIcon, XingIcon } from "@/components/brand-icons";
+import { FacebookIcon, InstagramIcon, LinkedInIcon, XIcon, XingIcon, YouTubeIcon } from "@/components/brand-icons";
 import { hasSupabaseConfig, missingSupabaseKeys } from "@/lib/config";
 import { defaultBookingProfile, getBookingProfile } from "@/lib/profiles";
 import { seedBookingTypes } from "@/lib/seed-data";
@@ -58,12 +54,12 @@ function getTypeIcon(name: string) {
 
 function getContactLinks(profile: BookingProfile) {
   return [
-    profile.show_linkedin !== false && profile.linkedin_url ? { href: profile.linkedin_url, label: "LinkedIn", icon: Linkedin } : null,
+    profile.show_linkedin !== false && profile.linkedin_url ? { href: profile.linkedin_url, label: "LinkedIn", icon: LinkedInIcon } : null,
     profile.show_xing !== false && profile.xing_url ? { href: profile.xing_url, label: "Xing", icon: XingIcon } : null,
     profile.show_x !== false && profile.x_url ? { href: profile.x_url, label: "X / Twitter", icon: XIcon } : null,
-    profile.show_instagram !== false && profile.instagram_url ? { href: profile.instagram_url, label: "Instagram", icon: Instagram } : null,
-    profile.show_facebook !== false && profile.facebook_url ? { href: profile.facebook_url, label: "Facebook", icon: Facebook } : null,
-    profile.show_youtube !== false && profile.youtube_url ? { href: profile.youtube_url, label: "YouTube", icon: Youtube } : null,
+    profile.show_instagram !== false && profile.instagram_url ? { href: profile.instagram_url, label: "Instagram", icon: InstagramIcon } : null,
+    profile.show_facebook !== false && profile.facebook_url ? { href: profile.facebook_url, label: "Facebook", icon: FacebookIcon } : null,
+    profile.show_youtube !== false && profile.youtube_url ? { href: profile.youtube_url, label: "YouTube", icon: YouTubeIcon } : null,
     profile.show_contact_email !== false && profile.contact_email ? { href: `mailto:${profile.contact_email}`, label: "E-Mail", icon: Mail } : null,
     profile.show_website !== false && profile.website_url ? { href: profile.website_url, label: "Website", icon: Globe2 } : null,
     profile.show_contact_phone !== false && profile.contact_phone ? { href: `tel:${profile.contact_phone.replace(/\s+/g, "")}`, label: "Mobil anrufen", icon: Phone } : null

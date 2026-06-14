@@ -1,9 +1,9 @@
 import { revalidatePath } from "next/cache";
 import Link from "next/link";
 import type { ComponentType } from "react";
-import { Facebook, Globe2, Instagram, Linkedin, Mail, Phone, UserRound, Youtube } from "lucide-react";
+import { Globe2, Mail, Phone, UserRound } from "lucide-react";
 import { AdminNav } from "@/components/admin-nav";
-import { XIcon, XingIcon } from "@/components/brand-icons";
+import { FacebookIcon, InstagramIcon, LinkedInIcon, XIcon, XingIcon, YouTubeIcon } from "@/components/brand-icons";
 import { ProfileImageEditor } from "@/components/profile-image-editor";
 import { requireAdmin } from "@/lib/admin";
 import { getEnv } from "@/lib/env";
@@ -230,12 +230,12 @@ function ProfileForm({
             <VisibleField label="Kontakt-E-Mail" icon={Mail} name="contact_email" visibilityName="show_contact_email" type="email" defaultValue={profile?.contact_email || ""} defaultChecked={profile?.show_contact_email ?? true} />
             <VisibleField label="Telefon" icon={Phone} name="contact_phone" visibilityName="show_contact_phone" defaultValue={profile?.contact_phone || ""} defaultChecked={profile?.show_contact_phone ?? true} />
             <VisibleField label="Website URL" icon={Globe2} name="website_url" visibilityName="show_website" type="url" defaultValue={profile?.website_url || ""} defaultChecked={profile?.show_website ?? true} />
-            <VisibleField label="LinkedIn URL" icon={Linkedin} name="linkedin_url" visibilityName="show_linkedin" type="url" defaultValue={profile?.linkedin_url || ""} defaultChecked={profile?.show_linkedin ?? true} />
+            <VisibleField label="LinkedIn URL" icon={LinkedInIcon} name="linkedin_url" visibilityName="show_linkedin" type="url" defaultValue={profile?.linkedin_url || ""} defaultChecked={profile?.show_linkedin ?? true} />
             <VisibleField label="Xing URL" icon={XingIcon} name="xing_url" visibilityName="show_xing" type="url" defaultValue={profile?.xing_url || ""} defaultChecked={profile?.show_xing ?? true} />
             <VisibleField label="X / Twitter URL" icon={XIcon} name="x_url" visibilityName="show_x" type="url" defaultValue={profile?.x_url || ""} defaultChecked={profile?.show_x ?? true} />
-            <VisibleField label="Instagram URL" icon={Instagram} name="instagram_url" visibilityName="show_instagram" type="url" defaultValue={profile?.instagram_url || ""} defaultChecked={profile?.show_instagram ?? true} />
-            <VisibleField label="Facebook URL" icon={Facebook} name="facebook_url" visibilityName="show_facebook" type="url" defaultValue={profile?.facebook_url || ""} defaultChecked={profile?.show_facebook ?? true} />
-            <VisibleField label="YouTube URL" icon={Youtube} name="youtube_url" visibilityName="show_youtube" type="url" defaultValue={profile?.youtube_url || ""} defaultChecked={profile?.show_youtube ?? true} />
+            <VisibleField label="Instagram URL" icon={InstagramIcon} name="instagram_url" visibilityName="show_instagram" type="url" defaultValue={profile?.instagram_url || ""} defaultChecked={profile?.show_instagram ?? true} />
+            <VisibleField label="Facebook URL" icon={FacebookIcon} name="facebook_url" visibilityName="show_facebook" type="url" defaultValue={profile?.facebook_url || ""} defaultChecked={profile?.show_facebook ?? true} />
+            <VisibleField label="YouTube URL" icon={YouTubeIcon} name="youtube_url" visibilityName="show_youtube" type="url" defaultValue={profile?.youtube_url || ""} defaultChecked={profile?.show_youtube ?? true} />
           </div>
         </fieldset>
         <ProfileImageEditor
