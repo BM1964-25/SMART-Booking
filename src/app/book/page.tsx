@@ -17,7 +17,7 @@ const highlights = [
   { icon: MailCheck, text: "Bestätigung per E-Mail" }
 ];
 
-const steps = ["Terminart wählen", "Tag und Uhrzeit auswählen", "Daten bestätigen"];
+const workflowSteps = ["Terminart", "Zeitfenster", "Kontaktdaten", "Bestätigung"];
 
 function getTypeIcon(name: string) {
   const lowerName = name.toLowerCase();
@@ -77,15 +77,18 @@ export default async function BookPage() {
               <p className="mt-2 text-sm leading-6 text-slate-600">Die Verfügbarkeit wird live geprüft. Nach der Buchung erhalten alle Beteiligten eine Bestätigung.</p>
             </div>
           </div>
-          <div className="mt-7 grid gap-3 border-t border-slate-100 pt-5 md:grid-cols-3">
-            {steps.map((step, index) => (
-              <div key={step} className="flex items-center gap-3 rounded-md bg-slate-50 px-3 py-3 ring-1 ring-slate-200">
-                <span className="inline-flex h-7 w-7 items-center justify-center rounded-md bg-brand-600 text-sm font-semibold text-white">
-                  {index + 1}
-                </span>
-                <span className="text-sm font-semibold text-slate-700">{step}</span>
-              </div>
-            ))}
+          <div className="mt-8 border-t border-slate-100 pt-7">
+            <div className="relative grid grid-cols-2 gap-x-8 gap-y-6 md:grid-cols-4">
+              <div className="absolute left-[12.5%] right-[12.5%] top-7 hidden h-px bg-gradient-to-r from-brand-300 via-sky-300 to-emerald-300 md:block" />
+              {workflowSteps.map((step, index) => (
+                <div key={step} className="relative flex flex-col items-center text-center">
+                  <span className="relative z-10 inline-flex h-14 w-14 items-center justify-center rounded-full border border-slate-200 bg-white text-base font-bold text-brand-700 shadow-sm">
+                    {String(index + 1).padStart(2, "0")}
+                  </span>
+                  <span className="mt-3 text-sm font-semibold text-slate-950">{step}</span>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>
