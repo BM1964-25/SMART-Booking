@@ -48,6 +48,15 @@ export default async function AdminProfilesPage() {
       show_portrait: formData.get("show_portrait") === "on",
       show_subheadline: formData.get("show_subheadline") === "on",
       show_contact_links: formData.get("show_contact_links") === "on",
+      show_contact_name: formData.get("show_contact_name") === "on",
+      show_contact_email: formData.get("show_contact_email") === "on",
+      show_contact_phone: formData.get("show_contact_phone") === "on",
+      show_linkedin: formData.get("show_linkedin") === "on",
+      show_xing: formData.get("show_xing") === "on",
+      show_instagram: formData.get("show_instagram") === "on",
+      show_facebook: formData.get("show_facebook") === "on",
+      show_youtube: formData.get("show_youtube") === "on",
+      show_website: formData.get("show_website") === "on",
       is_active: formData.get("is_active") === "on",
       updated_at: new Date().toISOString()
     };
@@ -109,6 +118,15 @@ export default async function AdminProfilesPage() {
       show_portrait: sourceProfile.show_portrait,
       show_subheadline: sourceProfile.show_subheadline,
       show_contact_links: sourceProfile.show_contact_links,
+      show_contact_name: sourceProfile.show_contact_name,
+      show_contact_email: sourceProfile.show_contact_email,
+      show_contact_phone: sourceProfile.show_contact_phone,
+      show_linkedin: sourceProfile.show_linkedin,
+      show_xing: sourceProfile.show_xing,
+      show_instagram: sourceProfile.show_instagram,
+      show_facebook: sourceProfile.show_facebook,
+      show_youtube: sourceProfile.show_youtube,
+      show_website: sourceProfile.show_website,
       is_active: false
     });
 
@@ -117,7 +135,7 @@ export default async function AdminProfilesPage() {
   }
 
   return (
-    <section className="mx-auto max-w-5xl px-5 py-12">
+    <section className="mx-auto max-w-6xl px-5 py-12">
       <h1 className="text-3xl font-semibold text-slate-950">Profile</h1>
       <p className="mt-3 max-w-3xl text-slate-600">
         Verwalten Sie Mandantenprofile für unterschiedliche Websites. Jedes Profil erhält einen eigenen öffentlichen Buchungslink mit eigener Headline,
@@ -173,13 +191,13 @@ function ProfileForm({
         </label>
       </div>
 
-      <div className="mt-4 grid gap-3 sm:grid-cols-2">
+      <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         <Field label="Profilname" name="name" defaultValue={profile?.name || ""} required />
         <Field label="Slug für Link" name="slug" defaultValue={profile?.slug || ""} required />
-        <div className="sm:col-span-2">
+        <div className="sm:col-span-2 lg:col-span-3">
           <Field label="Headline" name="headline" defaultValue={profile?.headline || "Termin buchen"} required />
         </div>
-        <label className="block sm:col-span-2">
+        <label className="block sm:col-span-2 lg:col-span-3">
           <span className="text-sm font-medium text-slate-700">Subheadline</span>
           <textarea
             name="subheadline"
@@ -189,17 +207,17 @@ function ProfileForm({
             className="mt-2 w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
           />
         </label>
-        <Field label="Kontaktname" name="contact_name" defaultValue={profile?.contact_name || ""} />
-        <Field label="Kontakt-E-Mail" name="contact_email" type="email" defaultValue={profile?.contact_email || ""} />
-        <Field label="Telefon" name="contact_phone" defaultValue={profile?.contact_phone || ""} />
-        <Field label="LinkedIn URL" name="linkedin_url" type="url" defaultValue={profile?.linkedin_url || ""} />
-        <Field label="Xing URL" name="xing_url" type="url" defaultValue={profile?.xing_url || ""} />
-        <Field label="Instagram URL" name="instagram_url" type="url" defaultValue={profile?.instagram_url || ""} />
-        <Field label="Facebook URL" name="facebook_url" type="url" defaultValue={profile?.facebook_url || ""} />
-        <Field label="YouTube URL" name="youtube_url" type="url" defaultValue={profile?.youtube_url || ""} />
-        <Field label="Website URL" name="website_url" type="url" defaultValue={profile?.website_url || ""} />
+        <VisibleField label="Kontaktname" name="contact_name" visibilityName="show_contact_name" defaultValue={profile?.contact_name || ""} defaultChecked={profile?.show_contact_name ?? true} />
+        <VisibleField label="Kontakt-E-Mail" name="contact_email" visibilityName="show_contact_email" type="email" defaultValue={profile?.contact_email || ""} defaultChecked={profile?.show_contact_email ?? true} />
+        <VisibleField label="Telefon" name="contact_phone" visibilityName="show_contact_phone" defaultValue={profile?.contact_phone || ""} defaultChecked={profile?.show_contact_phone ?? true} />
+        <VisibleField label="LinkedIn URL" name="linkedin_url" visibilityName="show_linkedin" type="url" defaultValue={profile?.linkedin_url || ""} defaultChecked={profile?.show_linkedin ?? true} />
+        <VisibleField label="Xing URL" name="xing_url" visibilityName="show_xing" type="url" defaultValue={profile?.xing_url || ""} defaultChecked={profile?.show_xing ?? true} />
+        <VisibleField label="Instagram URL" name="instagram_url" visibilityName="show_instagram" type="url" defaultValue={profile?.instagram_url || ""} defaultChecked={profile?.show_instagram ?? true} />
+        <VisibleField label="Facebook URL" name="facebook_url" visibilityName="show_facebook" type="url" defaultValue={profile?.facebook_url || ""} defaultChecked={profile?.show_facebook ?? true} />
+        <VisibleField label="YouTube URL" name="youtube_url" visibilityName="show_youtube" type="url" defaultValue={profile?.youtube_url || ""} defaultChecked={profile?.show_youtube ?? true} />
+        <VisibleField label="Website URL" name="website_url" visibilityName="show_website" type="url" defaultValue={profile?.website_url || ""} defaultChecked={profile?.show_website ?? true} />
         <input type="hidden" name="portrait_url" value={profile?.portrait_url || ""} />
-        <div className="sm:col-span-2">
+        <div className="sm:col-span-2 lg:col-span-3">
           <span className="text-sm font-medium text-slate-700">Profilbild</span>
           <div className="mt-2 grid gap-3 rounded-md border border-slate-200 bg-slate-50 p-3 sm:grid-cols-[auto_1fr] sm:items-center">
             {profile?.portrait_url ? (
@@ -240,7 +258,7 @@ function ProfileForm({
           defaultValue={profile?.profile_card_bg_color || "#F8FAFC"}
           description="Dezente Hintergrundfarbe für die Kontaktkarte."
         />
-        <fieldset className="sm:col-span-2 rounded-md border border-slate-200 bg-slate-50 p-3">
+        <fieldset className="sm:col-span-2 rounded-md border border-slate-200 bg-slate-50 p-3 lg:col-span-3">
           <legend className="px-1 text-sm font-semibold text-slate-800">Bildausschnitt im runden Rahmen</legend>
           <div className="mt-3 grid gap-3 sm:grid-cols-3">
             <RangeField label="Horizontal" name="portrait_position_x" min={0} max={100} step={1} defaultValue={profile?.portrait_position_x ?? 50} suffix="%" />
@@ -248,7 +266,7 @@ function ProfileForm({
             <RangeField label="Zoom" name="portrait_zoom" min={1} max={1.8} step={0.05} defaultValue={profile?.portrait_zoom ?? 1} suffix="x" />
           </div>
         </fieldset>
-        <fieldset className="sm:col-span-2 rounded-md border border-slate-200 bg-slate-50 p-3">
+        <fieldset className="sm:col-span-2 rounded-md border border-slate-200 bg-slate-50 p-3 lg:col-span-3">
           <legend className="px-1 text-sm font-semibold text-slate-800">Auf öffentlicher Buchungsseite anzeigen</legend>
           <div className="mt-2 grid gap-2 sm:grid-cols-3">
             <Toggle label="Profilbild" name="show_portrait" defaultChecked={profile?.show_portrait ?? true} />
@@ -299,6 +317,40 @@ function Field({
         type={type}
         defaultValue={defaultValue}
         required={required}
+        className="mt-2 w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+      />
+    </label>
+  );
+}
+
+function VisibleField({
+  label,
+  name,
+  visibilityName,
+  type = "text",
+  defaultValue = "",
+  defaultChecked
+}: {
+  label: string;
+  name: string;
+  visibilityName: string;
+  type?: string;
+  defaultValue?: string;
+  defaultChecked: boolean;
+}) {
+  return (
+    <label className="block">
+      <span className="flex items-center justify-between gap-3 text-sm font-medium text-slate-700">
+        {label}
+        <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500">
+          <input name={visibilityName} type="checkbox" defaultChecked={defaultChecked} className="h-3.5 w-3.5 rounded border-slate-300 text-brand-600" />
+          Anzeigen
+        </span>
+      </span>
+      <input
+        name={name}
+        type={type}
+        defaultValue={defaultValue}
         className="mt-2 w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
       />
     </label>

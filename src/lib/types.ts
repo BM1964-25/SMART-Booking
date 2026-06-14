@@ -38,6 +38,15 @@ export type BookingProfile = {
   show_portrait: boolean;
   show_subheadline: boolean;
   show_contact_links: boolean;
+  show_contact_name: boolean;
+  show_contact_email: boolean;
+  show_contact_phone: boolean;
+  show_linkedin: boolean;
+  show_xing: boolean;
+  show_instagram: boolean;
+  show_facebook: boolean;
+  show_youtube: boolean;
+  show_website: boolean;
   is_active: boolean;
 };
 

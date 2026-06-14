@@ -65,14 +65,14 @@ function getTypeIcon(name: string) {
 
 function getContactLinks(profile: BookingProfile) {
   return [
-    profile.linkedin_url ? { href: profile.linkedin_url, label: "LinkedIn", icon: Linkedin } : null,
-    profile.xing_url ? { href: profile.xing_url, label: "Xing", icon: XingIcon } : null,
-    profile.instagram_url ? { href: profile.instagram_url, label: "Instagram", icon: Instagram } : null,
-    profile.facebook_url ? { href: profile.facebook_url, label: "Facebook", icon: Facebook } : null,
-    profile.youtube_url ? { href: profile.youtube_url, label: "YouTube", icon: Youtube } : null,
-    profile.contact_email ? { href: `mailto:${profile.contact_email}`, label: "E-Mail", icon: Mail } : null,
-    profile.website_url ? { href: profile.website_url, label: "Website", icon: Globe2 } : null,
-    profile.contact_phone ? { href: `tel:${profile.contact_phone.replace(/\s+/g, "")}`, label: "Mobil anrufen", icon: Phone } : null
+    profile.show_linkedin !== false && profile.linkedin_url ? { href: profile.linkedin_url, label: "LinkedIn", icon: Linkedin } : null,
+    profile.show_xing !== false && profile.xing_url ? { href: profile.xing_url, label: "Xing", icon: XingIcon } : null,
+    profile.show_instagram !== false && profile.instagram_url ? { href: profile.instagram_url, label: "Instagram", icon: Instagram } : null,
+    profile.show_facebook !== false && profile.facebook_url ? { href: profile.facebook_url, label: "Facebook", icon: Facebook } : null,
+    profile.show_youtube !== false && profile.youtube_url ? { href: profile.youtube_url, label: "YouTube", icon: Youtube } : null,
+    profile.show_contact_email !== false && profile.contact_email ? { href: `mailto:${profile.contact_email}`, label: "E-Mail", icon: Mail } : null,
+    profile.show_website !== false && profile.website_url ? { href: profile.website_url, label: "Website", icon: Globe2 } : null,
+    profile.show_contact_phone !== false && profile.contact_phone ? { href: `tel:${profile.contact_phone.replace(/\s+/g, "")}`, label: "Mobil anrufen", icon: Phone } : null
   ].filter(Boolean) as Array<{ href: string; label: string; icon: ComponentType<{ className?: string }> }>;
 }
 
@@ -87,6 +87,7 @@ export default async function BookPage({ searchParams }: { searchParams?: Promis
   const showPortrait = profile.show_portrait !== false;
   const showSubheadline = profile.show_subheadline !== false;
   const showContactLinks = profile.show_contact_links !== false;
+  const showContactName = profile.show_contact_name !== false;
   const profileQuery = profile.slug === defaultBookingProfile.slug ? "" : `?profile=${encodeURIComponent(profile.slug)}`;
   const contactLinks = showContactLinks ? getContactLinks(profile) : [];
   let types: BookingType[] = seedBookingTypes;
@@ -130,7 +131,7 @@ export default async function BookPage({ searchParams }: { searchParams?: Promis
               </h1>
               {showSubheadline ? <p className="mt-5 max-w-2xl text-base leading-7 text-slate-600">{profile.subheadline}</p> : null}
             </div>
-            {profile.contact_name || (showPortrait && profile.portrait_url) || contactLinks.length > 0 ? (
+            {(showContactName && profile.contact_name) || (showPortrait && profile.portrait_url) || contactLinks.length > 0 ? (
               <div className="rounded-lg p-5 text-center ring-1 ring-slate-200 lg:w-80" style={{ backgroundColor: profileCardBgColor }}>
                 {showPortrait && profile.portrait_url ? (
                   <div className="mx-auto h-28 w-28 overflow-hidden rounded-full border-4 border-white bg-slate-100 shadow-sm ring-1 ring-slate-200">
@@ -145,7 +146,7 @@ export default async function BookPage({ searchParams }: { searchParams?: Promis
                     />
                   </div>
                 ) : null}
-                {profile.contact_name ? <p className="mt-4 text-base font-semibold text-slate-950">{profile.contact_name}</p> : null}
+                {showContactName && profile.contact_name ? <p className="mt-4 text-base font-semibold text-slate-950">{profile.contact_name}</p> : null}
                 {contactLinks.length > 0 ? (
                   <div className="mt-4 flex items-center justify-center gap-2">
                     {contactLinks.map((item) => (

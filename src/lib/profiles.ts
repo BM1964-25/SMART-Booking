@@ -27,6 +27,15 @@ export const defaultBookingProfile: BookingProfile = {
   show_portrait: true,
   show_subheadline: true,
   show_contact_links: true,
+  show_contact_name: true,
+  show_contact_email: true,
+  show_contact_phone: true,
+  show_linkedin: true,
+  show_xing: true,
+  show_instagram: true,
+  show_facebook: true,
+  show_youtube: true,
+  show_website: true,
   is_active: true
 };
 
