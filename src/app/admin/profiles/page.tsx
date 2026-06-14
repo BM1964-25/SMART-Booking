@@ -53,6 +53,44 @@ export default async function AdminProfilesPage() {
     revalidatePath("/book");
   }
 
+  async function duplicateProfile(formData: FormData) {
+    "use server";
+
+    await requireAdmin();
+    const profileId = String(formData.get("profileId") || "");
+
+    if (!profileId) {
+      return;
+    }
+
+    const supabase = createSupabaseAdmin();
+    const { data: sourceProfile } = await supabase.from("booking_profiles").select("*").eq("id", profileId).single<BookingProfile>();
+
+    if (!sourceProfile) {
+      return;
+    }
+
+    const nextSlug = await buildUniqueProfileSlug(sourceProfile.slug, supabase);
+    await supabase.from("booking_profiles").insert({
+      slug: nextSlug,
+      name: `${sourceProfile.name} Kopie`,
+      headline: sourceProfile.headline,
+      subheadline: sourceProfile.subheadline,
+      contact_name: sourceProfile.contact_name,
+      contact_email: sourceProfile.contact_email,
+      contact_phone: sourceProfile.contact_phone,
+      linkedin_url: sourceProfile.linkedin_url,
+      website_url: sourceProfile.website_url,
+      secondary_website_url: sourceProfile.secondary_website_url,
+      portrait_url: sourceProfile.portrait_url,
+      primary_color: sourceProfile.primary_color,
+      is_active: false
+    });
+
+    revalidatePath("/admin/profiles");
+    revalidatePath("/admin/settings");
+  }
+
   return (
     <section className="mx-auto max-w-6xl px-5 py-12">
       <h1 className="text-3xl font-semibold text-slate-950">Profile</h1>
@@ -64,7 +102,7 @@ export default async function AdminProfilesPage() {
 
       <div className="mt-8 grid gap-5 lg:grid-cols-2">
         {(profiles || []).map((profile) => (
-          <ProfileForm key={profile.id} action={saveProfile} profile={profile} siteUrl={siteUrl} />
+          <ProfileForm key={profile.id} action={saveProfile} duplicateAction={duplicateProfile} profile={profile} siteUrl={siteUrl} />
         ))}
       </div>
 
@@ -80,10 +118,12 @@ export default async function AdminProfilesPage() {
 
 function ProfileForm({
   action,
+  duplicateAction,
   profile,
   siteUrl
 }: {
   action: (formData: FormData) => Promise<void>;
+  duplicateAction?: (formData: FormData) => Promise<void>;
   profile?: BookingProfile;
   siteUrl: string;
 }) {
@@ -133,7 +173,20 @@ function ProfileForm({
         <Field label="Primärfarbe" name="primary_color" defaultValue={profile?.primary_color || "#527DF6"} />
       </div>
 
-      <div className="mt-4 flex justify-end">
+      <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        {profile && duplicateAction ? (
+          <button
+            formAction={duplicateAction}
+            name="profileId"
+            value={profile.id}
+            className="rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-brand-500 hover:text-brand-700"
+            type="submit"
+          >
+            Profil duplizieren
+          </button>
+        ) : (
+          <span />
+        )}
         <button className="rounded-md bg-brand-500 px-4 py-2 text-sm font-semibold text-white" type="submit">
           {profile ? "Profil speichern" : "Profil anlegen"}
         </button>
@@ -184,4 +237,19 @@ function slugify(value: string) {
     .replace(/ß/g, "ss")
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
+}
+
+async function buildUniqueProfileSlug(baseSlug: string, supabase: ReturnType<typeof createSupabaseAdmin>) {
+  const base = `${baseSlug}-kopie`;
+
+  for (let index = 1; index <= 50; index += 1) {
+    const candidate = index === 1 ? base : `${base}-${index}`;
+    const { data } = await supabase.from("booking_profiles").select("id").eq("slug", candidate).maybeSingle();
+
+    if (!data) {
+      return candidate;
+    }
+  }
+
+  return `${base}-${Date.now()}`;
 }
