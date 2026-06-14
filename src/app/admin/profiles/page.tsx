@@ -117,7 +117,7 @@ export default async function AdminProfilesPage() {
   }
 
   return (
-    <section className="mx-auto max-w-6xl px-5 py-12">
+    <section className="mx-auto max-w-5xl px-5 py-12">
       <h1 className="text-3xl font-semibold text-slate-950">Profile</h1>
       <p className="mt-3 max-w-3xl text-slate-600">
         Verwalten Sie Mandantenprofile für unterschiedliche Websites. Jedes Profil erhält einen eigenen öffentlichen Buchungslink mit eigener Headline,
@@ -125,7 +125,7 @@ export default async function AdminProfilesPage() {
       </p>
       <AdminNav />
 
-      <div className="mt-8 grid gap-5 lg:grid-cols-2">
+      <div className="mt-8 grid gap-5">
         {(profiles || []).map((profile) => (
           <ProfileForm key={profile.id} action={saveProfile} duplicateAction={duplicateProfile} profile={profile} siteUrl={siteUrl} />
         ))}
