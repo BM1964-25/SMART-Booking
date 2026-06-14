@@ -50,8 +50,12 @@ function getContactLinks(profile: BookingProfile) {
 export default async function BookPage({ searchParams }: { searchParams?: Promise<{ profile?: string }> }) {
   const requestedProfile = (await searchParams)?.profile;
   const profile = await getBookingProfile(requestedProfile);
+  const primaryColor = normalizeColor(profile.primary_color);
+  const showPortrait = profile.show_portrait !== false;
+  const showSubheadline = profile.show_subheadline !== false;
+  const showContactLinks = profile.show_contact_links !== false;
   const profileQuery = profile.slug === defaultBookingProfile.slug ? "" : `?profile=${encodeURIComponent(profile.slug)}`;
-  const contactLinks = getContactLinks(profile);
+  const contactLinks = showContactLinks ? getContactLinks(profile) : [];
   let types: BookingType[] = seedBookingTypes;
   const isConfigured = hasSupabaseConfig();
 
@@ -76,11 +80,13 @@ export default async function BookPage({ searchParams }: { searchParams?: Promis
   return (
     <section className="mx-auto max-w-6xl px-5 py-8 md:py-12">
       <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
-        <div className="border-t-4 border-brand-600 px-5 py-7 md:px-8 md:py-9">
+        <div className="border-t-4 px-5 py-7 md:px-8 md:py-9" style={{ borderTopColor: primaryColor }}>
           <div className="flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
             <div className="max-w-3xl">
               <div className="flex flex-wrap items-center gap-3">
-                <p className="text-sm font-semibold uppercase text-brand-600">SMART Booking</p>
+                <p className="text-sm font-semibold uppercase" style={{ color: primaryColor }}>
+                  SMART Booking
+                </p>
                 <span className="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
                   <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
                   Online buchbar
@@ -89,13 +95,11 @@ export default async function BookPage({ searchParams }: { searchParams?: Promis
               <h1 className="mt-4 max-w-3xl text-4xl font-semibold tracking-normal text-slate-950 md:text-5xl">
                 {profile.headline}
               </h1>
-              <p className="mt-5 max-w-2xl text-base leading-7 text-slate-600">
-                {profile.subheadline}
-              </p>
+              {showSubheadline ? <p className="mt-5 max-w-2xl text-base leading-7 text-slate-600">{profile.subheadline}</p> : null}
             </div>
-            {(profile.contact_name || contactLinks.length > 0) ? (
+            {profile.contact_name || (showPortrait && profile.portrait_url) || contactLinks.length > 0 ? (
               <div className="rounded-lg bg-slate-50 p-5 text-center ring-1 ring-slate-200 lg:w-80">
-                {profile.portrait_url ? (
+                {showPortrait && profile.portrait_url ? (
                   <div className="mx-auto h-28 w-28 overflow-hidden rounded-full border-4 border-white bg-slate-100 shadow-sm ring-1 ring-slate-200">
                     <img
                       src={profile.portrait_url}
@@ -128,9 +132,9 @@ export default async function BookPage({ searchParams }: { searchParams?: Promis
           <div className="mt-8 border-t border-slate-100 pt-7">
             <div className="relative grid grid-cols-1 gap-x-8 gap-y-6 md:grid-cols-3">
               <div className="absolute left-[16.666%] right-[16.666%] top-[1.75rem] z-0 hidden h-0.5 rounded-full bg-slate-300 md:block" />
-              {workflowSteps.map((step, index) => (
+                {workflowSteps.map((step, index) => (
                 <div key={step} className="relative z-10 flex flex-col items-center text-center">
-                  <span className="relative z-10 inline-flex h-14 w-14 items-center justify-center rounded-full border-2 border-slate-300 bg-white text-base font-bold text-brand-700 shadow-sm">
+                  <span className="relative z-10 inline-flex h-14 w-14 items-center justify-center rounded-full border-2 border-slate-300 bg-white text-base font-bold shadow-sm" style={{ color: primaryColor }}>
                     {String(index + 1).padStart(2, "0")}
                   </span>
                   <span className="mt-3 text-sm font-semibold text-slate-950">{step}</span>
@@ -173,12 +177,13 @@ export default async function BookPage({ searchParams }: { searchParams?: Promis
             <Link
               key={type.id}
               href={`/book/${type.slug}${profileQuery}`}
-              className="group rounded-lg border border-slate-200 border-t-brand-500 bg-gradient-to-br from-white to-slate-50 p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-brand-500 hover:shadow-md"
+              className="group rounded-lg border border-slate-200 bg-gradient-to-br from-white to-slate-50 p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+              style={{ borderTopColor: primaryColor }}
             >
               <div className="flex h-full flex-col justify-between gap-6">
                 <div>
                   <div className="flex items-start justify-between gap-4">
-                    <span className="inline-flex h-10 w-10 items-center justify-center rounded-md bg-brand-50 text-brand-600">
+                    <span className="inline-flex h-10 w-10 items-center justify-center rounded-md bg-brand-50" style={{ color: primaryColor }}>
                       <TypeIcon className="h-5 w-5" />
                     </span>
                     <span className="rounded-full bg-white px-2.5 py-1 text-xs font-semibold text-slate-600 ring-1 ring-slate-200">
@@ -189,7 +194,7 @@ export default async function BookPage({ searchParams }: { searchParams?: Promis
                   <p className="mt-3 text-sm leading-6 text-slate-600">{type.description}</p>
                 </div>
                 <div className="flex items-center justify-end border-t border-slate-100 pt-4">
-                  <span className="inline-flex items-center gap-2 rounded-md bg-brand-600 px-3 py-2 text-sm font-semibold text-white transition group-hover:bg-brand-700">
+                  <span className="inline-flex items-center gap-2 rounded-md px-3 py-2 text-sm font-semibold text-white transition" style={{ backgroundColor: primaryColor }}>
                     Termin wählen
                     <ArrowRight className="h-4 w-4" />
                   </span>
@@ -204,4 +209,9 @@ export default async function BookPage({ searchParams }: { searchParams?: Promis
       </p>
     </section>
   );
+}
+
+function normalizeColor(value: string | null | undefined) {
+  const color = String(value || "").trim();
+  return /^#[0-9a-fA-F]{6}$/.test(color) ? color : "#527DF6";
 }

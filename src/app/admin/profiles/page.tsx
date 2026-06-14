@@ -21,6 +21,9 @@ export default async function AdminProfilesPage() {
     await requireAdmin();
     const supabase = createSupabaseAdmin();
     const id = String(formData.get("id") || "");
+    const removePortrait = formData.get("remove_portrait") === "on";
+    const portraitFile = formData.get("portrait_file");
+    const uploadedPortraitUrl = await uploadProfilePortrait(portraitFile, id || crypto.randomUUID(), supabase);
     const payload = {
       slug: slugify(String(formData.get("slug") || "")),
       name: String(formData.get("name") || "").trim(),
@@ -31,9 +34,12 @@ export default async function AdminProfilesPage() {
       contact_phone: nullableString(formData.get("contact_phone")),
       linkedin_url: nullableString(formData.get("linkedin_url")),
       website_url: nullableString(formData.get("website_url")),
-      secondary_website_url: nullableString(formData.get("secondary_website_url")),
-      portrait_url: nullableString(formData.get("portrait_url")),
-      primary_color: String(formData.get("primary_color") || "#527DF6").trim(),
+      secondary_website_url: null,
+      portrait_url: removePortrait ? null : uploadedPortraitUrl || nullableString(formData.get("portrait_url")),
+      primary_color: normalizeColor(String(formData.get("primary_color") || "#527DF6")),
+      show_portrait: formData.get("show_portrait") === "on",
+      show_subheadline: formData.get("show_subheadline") === "on",
+      show_contact_links: formData.get("show_contact_links") === "on",
       is_active: formData.get("is_active") === "on",
       updated_at: new Date().toISOString()
     };
@@ -84,6 +90,9 @@ export default async function AdminProfilesPage() {
       secondary_website_url: sourceProfile.secondary_website_url,
       portrait_url: sourceProfile.portrait_url,
       primary_color: sourceProfile.primary_color,
+      show_portrait: sourceProfile.show_portrait,
+      show_subheadline: sourceProfile.show_subheadline,
+      show_contact_links: sourceProfile.show_contact_links,
       is_active: false
     });
 
@@ -132,7 +141,7 @@ function ProfileForm({
   const publicUrl = `${siteUrl}${publicPath}`;
 
   return (
-    <form action={action} className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+    <form action={action} encType="multipart/form-data" className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
       <input type="hidden" name="id" value={profile?.id || ""} />
       {profile ? <input type="hidden" name="profileId" value={profile.id} /> : null}
       <div className="flex flex-col gap-3 border-b border-slate-100 pb-4 sm:flex-row sm:items-start sm:justify-between">
@@ -169,9 +178,40 @@ function ProfileForm({
         <Field label="Telefon" name="contact_phone" defaultValue={profile?.contact_phone || ""} />
         <Field label="LinkedIn URL" name="linkedin_url" type="url" defaultValue={profile?.linkedin_url || ""} />
         <Field label="Website URL" name="website_url" type="url" defaultValue={profile?.website_url || ""} />
-        <Field label="Weitere Website URL" name="secondary_website_url" type="url" defaultValue={profile?.secondary_website_url || ""} />
-        <Field label="Portrait-Pfad" name="portrait_url" defaultValue={profile?.portrait_url || ""} />
-        <Field label="Primärfarbe" name="primary_color" defaultValue={profile?.primary_color || "#527DF6"} />
+        <input type="hidden" name="portrait_url" value={profile?.portrait_url || ""} />
+        <div className="sm:col-span-2">
+          <span className="text-sm font-medium text-slate-700">Profilbild</span>
+          <div className="mt-2 grid gap-3 rounded-md border border-slate-200 bg-slate-50 p-3 sm:grid-cols-[auto_1fr] sm:items-center">
+            {profile?.portrait_url ? (
+              <img src={profile.portrait_url} alt="" className="h-16 w-16 rounded-full object-cover ring-1 ring-slate-200" />
+            ) : (
+              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-white text-xs font-semibold text-slate-400 ring-1 ring-slate-200">Kein Bild</div>
+            )}
+            <div className="space-y-2">
+              <input
+                name="portrait_file"
+                type="file"
+                accept="image/png,image/jpeg,image/webp"
+                className="block w-full text-sm text-slate-600 file:mr-3 file:rounded-md file:border-0 file:bg-brand-50 file:px-3 file:py-2 file:text-sm file:font-semibold file:text-brand-700"
+              />
+              {profile?.portrait_url ? (
+                <label className="flex items-center gap-2 text-sm text-slate-700">
+                  <input name="remove_portrait" type="checkbox" className="h-4 w-4 rounded border-slate-300 text-brand-600" />
+                  Bild entfernen
+                </label>
+              ) : null}
+            </div>
+          </div>
+        </div>
+        <ColorField label="Primärfarbe" name="primary_color" defaultValue={profile?.primary_color || "#527DF6"} />
+        <fieldset className="sm:col-span-2 rounded-md border border-slate-200 bg-slate-50 p-3">
+          <legend className="px-1 text-sm font-semibold text-slate-800">Auf öffentlicher Buchungsseite anzeigen</legend>
+          <div className="mt-2 grid gap-2 sm:grid-cols-3">
+            <Toggle label="Profilbild" name="show_portrait" defaultChecked={profile?.show_portrait ?? true} />
+            <Toggle label="Subheadline" name="show_subheadline" defaultChecked={profile?.show_subheadline ?? true} />
+            <Toggle label="Kontakticons" name="show_contact_links" defaultChecked={profile?.show_contact_links ?? true} />
+          </div>
+        </fieldset>
       </div>
 
       <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -221,6 +261,27 @@ function Field({
   );
 }
 
+function ColorField({ label, name, defaultValue }: { label: string; name: string; defaultValue: string }) {
+  return (
+    <label className="block">
+      <span className="text-sm font-medium text-slate-700">{label}</span>
+      <div className="mt-2 flex items-center gap-3 rounded-md border border-slate-300 bg-white px-3 py-2">
+        <input name={name} type="color" defaultValue={normalizeColor(defaultValue)} className="h-9 w-12 cursor-pointer rounded border border-slate-200 bg-white p-1" />
+        <span className="text-sm text-slate-500">Akzentfarbe für Linien, Ziffern und Buchungsbuttons.</span>
+      </div>
+    </label>
+  );
+}
+
+function Toggle({ label, name, defaultChecked }: { label: string; name: string; defaultChecked: boolean }) {
+  return (
+    <label className="flex items-center gap-2 rounded-md bg-white px-3 py-2 text-sm text-slate-700 ring-1 ring-slate-200">
+      <input name={name} type="checkbox" defaultChecked={defaultChecked} className="h-4 w-4 rounded border-slate-300 text-brand-600" />
+      {label}
+    </label>
+  );
+}
+
 function nullableString(value: FormDataEntryValue | null) {
   const text = String(value || "").trim();
   return text.length > 0 ? text : null;
@@ -236,6 +297,37 @@ function slugify(value: string) {
     .replace(/ß/g, "ss")
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
+}
+
+function normalizeColor(value: string) {
+  const color = String(value || "").trim();
+  return /^#[0-9a-fA-F]{6}$/.test(color) ? color : "#527DF6";
+}
+
+async function uploadProfilePortrait(fileValue: FormDataEntryValue | null, profileId: string, supabase: ReturnType<typeof createSupabaseAdmin>) {
+  if (!(fileValue instanceof File) || fileValue.size === 0) {
+    return null;
+  }
+
+  const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
+
+  if (!allowedTypes.includes(fileValue.type) || fileValue.size > 3 * 1024 * 1024) {
+    return null;
+  }
+
+  const extension = fileValue.type === "image/png" ? "png" : fileValue.type === "image/webp" ? "webp" : "jpg";
+  const path = `${profileId}/${Date.now()}.${extension}`;
+  const { error } = await supabase.storage.from("booking-profile-images").upload(path, fileValue, {
+    contentType: fileValue.type,
+    upsert: true
+  });
+
+  if (error) {
+    return null;
+  }
+
+  const { data } = supabase.storage.from("booking-profile-images").getPublicUrl(path);
+  return data.publicUrl;
 }
 
 async function buildUniqueProfileSlug(baseSlug: string, supabase: ReturnType<typeof createSupabaseAdmin>) {

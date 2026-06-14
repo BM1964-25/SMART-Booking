@@ -27,6 +27,9 @@ export type BookingProfile = {
   secondary_website_url: string | null;
   portrait_url: string | null;
   primary_color: string;
+  show_portrait: boolean;
+  show_subheadline: boolean;
+  show_contact_links: boolean;
   is_active: boolean;
 };
 

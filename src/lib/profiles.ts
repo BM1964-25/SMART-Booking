@@ -16,6 +16,9 @@ export const defaultBookingProfile: BookingProfile = {
   secondary_website_url: "https://www.built-smart-hub.com",
   portrait_url: "/bernhard-metzger.jpg",
   primary_color: "#527DF6",
+  show_portrait: true,
+  show_subheadline: true,
+  show_contact_links: true,
   is_active: true
 };
 
