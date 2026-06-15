@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { HelpPanel } from "@/components/help-panel";
 
 export function SiteHeader() {
   return (
@@ -16,13 +17,14 @@ export function SiteHeader() {
           />
           <span>SMART Booking</span>
         </Link>
-        <nav className="flex items-center gap-5 text-sm text-slate-600">
+        <nav className="flex items-center gap-3 text-sm text-slate-600 sm:gap-5">
           <Link href="/book" className="hover:text-brand-600">
             Termin buchen
           </Link>
           <Link href="/admin" className="hover:text-brand-600">
             Admin
           </Link>
+          <HelpPanel />
         </nav>
       </div>
     </header>
