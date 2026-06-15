@@ -53,7 +53,7 @@ export function ProfileImageEditor({ portraitUrl, positionX, positionY, zoom, sh
           </label>
         </div>
         <div className="grid gap-3">
-          <div className="grid gap-3 lg:grid-cols-2 lg:items-start">
+          <div className="grid gap-3 lg:grid-cols-[11rem_minmax(0,1fr)] lg:items-start">
             <div className="flex flex-col items-start gap-2">
               <input
                 id={fileInputId}
@@ -80,13 +80,13 @@ export function ProfileImageEditor({ portraitUrl, positionX, positionY, zoom, sh
               <div className="flex w-full flex-wrap items-center gap-3">
                 <label
                   htmlFor={fileInputId}
-                  className="inline-flex cursor-pointer rounded-md bg-brand-50 px-3 py-2 text-sm font-semibold text-brand-700 transition hover:bg-brand-100"
+                  className="inline-flex w-44 cursor-pointer justify-center rounded-md bg-brand-50 px-3 py-2 text-sm font-semibold text-brand-700 transition hover:bg-brand-100"
                 >
                   Profilbild auswählen
                 </label>
               </div>
               {portraitUrl ? (
-                <label className="inline-flex items-center gap-2 rounded-md bg-white px-2 py-1.5 text-sm text-slate-700 ring-1 ring-slate-200">
+                <label className="inline-flex w-44 items-center justify-center gap-2 rounded-md bg-white px-2 py-1.5 text-sm text-slate-700 ring-1 ring-slate-200">
                   <input name="remove_portrait" type="checkbox" className="h-4 w-4 rounded border-slate-300 text-brand-600" />
                   Bild entfernen
                 </label>
