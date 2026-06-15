@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { useFormStatus } from "react-dom";
+import { SaveSubmitButton } from "@/components/save-submit-button";
 
 type AvailabilityRuleInput = {
   id: string;
@@ -161,13 +161,7 @@ export function AvailabilityGrid({ action, rules }: AvailabilityGridProps) {
 }
 
 function SubmitButton() {
-  const { pending } = useFormStatus();
-
-  return (
-    <button type="submit" disabled={pending} className="rounded-md bg-brand-500 px-4 py-2 text-sm font-semibold text-white disabled:bg-slate-300">
-      {pending ? "Wird gespeichert" : "Verfügbarkeit speichern"}
-    </button>
-  );
+  return <SaveSubmitButton idleLabel="Verfügbarkeit speichern" />;
 }
 
 function buildInitialSelection(rules: AvailabilityRuleInput[]) {

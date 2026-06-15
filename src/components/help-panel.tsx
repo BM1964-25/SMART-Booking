@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { HelpCircle, Search, X } from "lucide-react";
 
 type HelpSection = {
@@ -50,6 +51,22 @@ const helpSections: HelpSection[] = [
     ]
   },
   {
+    id: "profiles",
+    title: "Profile & Vorlagen",
+    body: [
+      "Profile steuern die öffentliche Buchungsseite: Texte, Profilansicht, Kontaktlinks, Rechtliches, Farben und Einbindung.",
+      "Im Bereich Profilvorlagen können Sie eine bestehende Konfiguration als eigene Vorlage speichern oder eine vorhandene Vorlage auf das aktuelle Profil anwenden."
+    ],
+    bullets: [
+      "Eigene Vorlage speichern: Im Profilbereich auf „Als eigene Vorlage speichern“ klicken. Die aktuelle Konfiguration wird als wiederverwendbare Vorlage abgelegt.",
+      "Vorlage laden: Eine Vorlagen-Karte anklicken. Die Werte der Vorlage werden sofort in das Formular übernommen.",
+      "Profilname und Slug bleiben beim Anwenden einer Vorlage unverändert, damit der öffentliche Link nicht versehentlich geändert wird.",
+      "Die Ablaufanzeige 01/02/03 kann im Profil unter „Profilansicht“ ein- oder ausgeschaltet werden.",
+      "Nach dem Anwenden einer Vorlage die Felder kontrollieren und bei Bedarf anpassen.",
+      "Erst mit „Profil speichern“ wird die geladene Vorlage wirklich in Supabase gespeichert und auf der öffentlichen Buchungsseite sichtbar."
+    ]
+  },
+  {
     id: "features",
     title: "Wichtige Funktionen",
     body: ["SMART Booking konzentriert sich auf eine klare Terminlogik und professionelle Verwaltung."],
@@ -68,6 +85,7 @@ const helpSections: HelpSection[] = [
     body: ["Ein üblicher Ablauf besteht aus Einrichtung, Prüfung und laufender Verwaltung."],
     bullets: [
       "Profil und Terminarten vorbereiten.",
+      "Bei Bedarf eine Profilvorlage anwenden und danach das Profil speichern.",
       "Verfügbarkeiten und blockierte Zeiten pflegen.",
       "Live-Buchungsseite testen.",
       "Buchungen in der Übersicht kontrollieren.",
@@ -113,7 +131,26 @@ const helpSections: HelpSection[] = [
 
 export function HelpPanel() {
   const [isOpen, setIsOpen] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
   const [query, setQuery] = useState("");
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!isOpen) {
+      return;
+    }
+
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.body.style.overflow = originalOverflow;
+    };
+  }, [isOpen]);
+
   const visibleSections = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
 
@@ -138,7 +175,8 @@ export function HelpPanel() {
         Hilfe
       </button>
 
-      {isOpen ? (
+      {isOpen && isMounted
+        ? createPortal(
         <div className="fixed inset-0 z-50">
           <button type="button" aria-label="Hilfe schließen" className="absolute inset-0 z-0 cursor-default bg-slate-950/35" onClick={() => setIsOpen(false)} />
           <aside className="absolute right-0 top-0 z-10 flex h-full w-full max-w-5xl flex-col bg-white shadow-2xl sm:w-[92vw] lg:w-[860px]">
@@ -209,8 +247,10 @@ export function HelpPanel() {
               </article>
             </div>
           </aside>
-        </div>
-      ) : null}
+        </div>,
+          document.body
+        )
+        : null}
     </>
   );
 }

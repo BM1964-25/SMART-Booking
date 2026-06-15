@@ -33,6 +33,7 @@ export const defaultBookingProfile: BookingProfile = {
   show_portrait: true,
   show_preheadline: true,
   show_subheadline: true,
+  show_workflow_steps: true,
   show_contact_links: true,
   show_contact_name: true,
   show_contact_email: true,

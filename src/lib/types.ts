@@ -44,6 +44,7 @@ export type BookingProfile = {
   show_portrait: boolean;
   show_preheadline: boolean;
   show_subheadline: boolean;
+  show_workflow_steps: boolean;
   show_contact_links: boolean;
   show_contact_name: boolean;
   show_contact_email: boolean;

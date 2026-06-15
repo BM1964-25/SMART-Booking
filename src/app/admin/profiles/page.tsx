@@ -1,5 +1,6 @@
 import { revalidatePath } from "next/cache";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import type { ComponentType } from "react";
 import { ExternalLink, Globe2, Mail, Phone, UserRound } from "lucide-react";
 import { AdminNav } from "@/components/admin-nav";
@@ -10,6 +11,8 @@ import { DeleteProfileButton } from "@/components/delete-profile-button";
 import { EmbedCodeOptions } from "@/components/embed-code-options";
 import { ProfileIdentityFields } from "@/components/profile-identity-fields";
 import { ProfileImageEditor } from "@/components/profile-image-editor";
+import { ProfileSaveButton } from "@/components/profile-save-button";
+import { ProfileSaveForm, ProfileSaveMessage, type ProfileSaveState } from "@/components/profile-save-form";
 import { ProfileTabs } from "@/components/profile-tabs";
 import { ProfileTemplateControls } from "@/components/profile-template-controls";
 import { requireAdmin } from "@/lib/admin";
@@ -24,8 +27,10 @@ const MAX_PROFILES = 4;
 const DEFAULT_PRIVACY_URL = "https://www.built-smart-hub.com/datenschutz";
 const DEFAULT_IMPRINT_URL = "https://www.built-smart-hub.com/impressum";
 
-export default async function AdminProfilesPage() {
+export default async function AdminProfilesPage({ searchParams }: { searchParams?: Promise<{ savedProfile?: string }> }) {
   await requireAdmin();
+  const resolvedSearchParams = await searchParams;
+  const savedProfileId = resolvedSearchParams?.savedProfile || "";
   const supabase = createSupabaseAdmin();
   const { data: profiles } = await supabase.from("booking_profiles").select("*").order("created_at").returns<BookingProfile[]>();
   const { data: profileTemplates } = await supabase
@@ -37,7 +42,7 @@ export default async function AdminProfilesPage() {
   const profileCount = (profiles || []).length;
   const canCreateMoreProfiles = profileCount < MAX_PROFILES;
 
-  async function saveProfile(formData: FormData) {
+  async function saveProfile(_state: ProfileSaveState, formData: FormData): Promise<ProfileSaveState> {
     "use server";
 
     await requireAdmin();
@@ -70,6 +75,7 @@ export default async function AdminProfilesPage() {
       profile_card_bg_color: normalizeColor(String(formData.get("profile_card_bg_color") || "#F8FAFC"), "#F8FAFC"),
       booking_card_bg_color: normalizeColor(String(formData.get("booking_card_bg_color") || "#FFFFFF"), "#FFFFFF"),
       profile_layout: normalizeProfileLayout(formData.get("profile_layout")),
+      show_workflow_steps: formData.get("show_workflow_steps") === "on",
       portrait_position_x: clampNumber(formData.get("portrait_position_x"), 0, 100, 50),
       portrait_position_y: clampNumber(formData.get("portrait_position_y"), 0, 100, 35),
       portrait_zoom: clampNumber(formData.get("portrait_zoom"), 1, 1.8, 1),
@@ -97,24 +103,61 @@ export default async function AdminProfilesPage() {
     };
 
     if (!payload.slug || !payload.name || !payload.headline || !payload.subheadline) {
-      return;
+      return { status: "error", message: "Bitte füllen Sie Profilname, Slug, Headline und Subheadline aus." };
     }
 
     if (id) {
-      await supabase.from("booking_profiles").update(payload).eq("id", id);
+      const { data, error } = await supabase.from("booking_profiles").update(payload).eq("id", id).select("id, profile_layout, show_workflow_steps").single<{
+        id: string;
+        profile_layout: string | null;
+        show_workflow_steps: boolean | null;
+      }>();
+
+      if (error) {
+        return { status: "error", message: error.message || "Profil konnte nicht gespeichert werden." };
+      }
+
+      if (data?.profile_layout !== payload.profile_layout || data.show_workflow_steps !== payload.show_workflow_steps) {
+        return { status: "error", message: "Profil wurde nicht vollständig gespeichert. Bitte erneut versuchen." };
+      }
     } else {
       const { count } = await supabase.from("booking_profiles").select("id", { count: "exact", head: true });
 
       if ((count || 0) >= MAX_PROFILES) {
-        return;
+        return { status: "error", message: `Es können maximal ${MAX_PROFILES} Profile angelegt werden.` };
       }
 
-      await supabase.from("booking_profiles").insert(payload);
+      const { data, error } = await supabase.from("booking_profiles").insert(payload).select("id, profile_layout, show_workflow_steps").single<{
+        id: string;
+        profile_layout: string | null;
+        show_workflow_steps: boolean | null;
+      }>();
+
+      if (error) {
+        return { status: "error", message: error.message || "Profil konnte nicht angelegt werden." };
+      }
+
+      if (!data?.id || data.profile_layout !== payload.profile_layout || data.show_workflow_steps !== payload.show_workflow_steps) {
+        return { status: "error", message: "Profil wurde nicht vollständig angelegt. Bitte erneut versuchen." };
+      }
+
+      revalidatePath("/admin/profiles");
+      revalidatePath("/admin/settings");
+      revalidatePath("/book");
+      if (payload.slug) {
+        revalidatePath(`/book/profile/${payload.slug}`);
+      }
+
+      redirect(`/admin/profiles?savedProfile=${encodeURIComponent(data.id)}`);
     }
 
     revalidatePath("/admin/profiles");
     revalidatePath("/admin/settings");
     revalidatePath("/book");
+    if (payload.slug) {
+      revalidatePath(`/book/profile/${payload.slug}`);
+    }
+    redirect(`/admin/profiles?savedProfile=${encodeURIComponent(id)}`);
   }
 
   async function duplicateProfile(formData: FormData) {
@@ -165,6 +208,7 @@ export default async function AdminProfilesPage() {
       profile_card_bg_color: sourceProfile.profile_card_bg_color,
       booking_card_bg_color: sourceProfile.booking_card_bg_color,
       profile_layout: sourceProfile.profile_layout || "split",
+      show_workflow_steps: sourceProfile.show_workflow_steps ?? true,
       portrait_position_x: sourceProfile.portrait_position_x,
       portrait_position_y: sourceProfile.portrait_position_y,
       portrait_zoom: sourceProfile.portrait_zoom,
@@ -294,6 +338,7 @@ export default async function AdminProfilesPage() {
             siteUrl={siteUrl}
             canCreateMoreProfiles={canCreateMoreProfiles}
             canDeleteProfile={profileCount > 1}
+            initialSaveState={savedProfileId === profile.id ? { status: "success", message: "Profil gespeichert." } : undefined}
           />
         ))}
         {canCreateMoreProfiles ? (
@@ -305,6 +350,7 @@ export default async function AdminProfilesPage() {
             siteUrl={siteUrl}
             canCreateMoreProfiles={canCreateMoreProfiles}
             canDeleteProfile={false}
+            initialSaveState={undefined}
           />
         ) : null}
       </ProfileTabs>
@@ -322,9 +368,10 @@ function ProfileForm({
   savedTemplates,
   siteUrl,
   canCreateMoreProfiles,
-  canDeleteProfile
+  canDeleteProfile,
+  initialSaveState
 }: {
-  action: (formData: FormData) => Promise<void>;
+  action: (_state: ProfileSaveState, formData: FormData) => Promise<ProfileSaveState>;
   duplicateAction?: (formData: FormData) => Promise<void>;
   deleteProfileAction?: (formData: FormData) => Promise<void>;
   saveTemplateAction: (formData: FormData) => Promise<void>;
@@ -334,6 +381,7 @@ function ProfileForm({
   siteUrl: string;
   canCreateMoreProfiles: boolean;
   canDeleteProfile: boolean;
+  initialSaveState?: ProfileSaveState;
 }) {
   const slug = profile?.slug || "";
   const publicPath = slug === defaultBookingProfile.slug || !slug ? "/book" : `/book/profile/${slug}`;
@@ -341,7 +389,7 @@ function ProfileForm({
   const publicUrl = `${siteUrl}${publicPath}`;
 
   return (
-    <form action={action} className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+    <ProfileSaveForm action={action} initialState={initialSaveState} className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
       <input type="hidden" name="id" value={profile?.id || ""} />
       {profile ? <input type="hidden" name="profileId" value={profile.id} /> : null}
       <div className="flex flex-col gap-3 border-b border-slate-100 pb-4 sm:flex-row sm:items-start sm:justify-between">
@@ -374,15 +422,8 @@ function ProfileForm({
           Aktiv
         </label>
       </div>
-      <EmbedCodeOptions publicUrl={publicUrl} />
 
       <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        <ProfileTemplateControls
-          savedTemplates={savedTemplates}
-          currentData={profile ? buildProfileTemplateDataFromProfile(profile) : null}
-          saveAction={saveTemplateAction}
-          deleteAction={deleteTemplateAction}
-        />
         <ProfileIdentityFields defaultName={profile?.name || ""} defaultSlug={profile?.slug || ""} />
         <label className="block sm:col-span-2 lg:col-span-3">
           <span className="flex items-center justify-between gap-3 text-sm font-medium text-slate-700">
@@ -402,6 +443,22 @@ function ProfileForm({
         <div className="sm:col-span-2 lg:col-span-3">
           <Field label="Headline" name="headline" defaultValue={profile?.headline || "Termin buchen"} required />
         </div>
+        <label className="block sm:col-span-2 lg:col-span-3">
+          <span className="flex items-center justify-between gap-3 text-sm font-medium text-slate-700">
+            Subheadline
+            <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500">
+              <input name="show_subheadline" type="checkbox" defaultChecked={profile?.show_subheadline ?? true} className="h-3.5 w-3.5 rounded border-slate-300 text-brand-600" />
+              Anzeigen
+            </span>
+          </span>
+          <textarea
+            name="subheadline"
+            rows={3}
+            defaultValue={profile?.subheadline || "Wählen Sie einen passenden Termin."}
+            required
+            className="mt-2 w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+          />
+        </label>
         <fieldset className="rounded-md border border-slate-200 bg-slate-50 p-3 sm:col-span-2 lg:col-span-3">
           <legend className="px-1 text-sm font-semibold text-slate-800">Profilansicht</legend>
           <p className="mt-1 text-xs leading-5 text-slate-500">
@@ -435,23 +492,19 @@ function ProfileForm({
               </span>
             </label>
           </div>
-        </fieldset>
-        <label className="block sm:col-span-2 lg:col-span-3">
-          <span className="flex items-center justify-between gap-3 text-sm font-medium text-slate-700">
-            Subheadline
-            <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500">
-              <input name="show_subheadline" type="checkbox" defaultChecked={profile?.show_subheadline ?? true} className="h-3.5 w-3.5 rounded border-slate-300 text-brand-600" />
-              Anzeigen
+          <label className="mt-3 flex cursor-pointer items-start justify-between gap-4 rounded-md border border-slate-200 bg-white p-3 text-sm text-slate-700">
+            <span>
+              <span className="block font-semibold text-slate-950">Ablaufanzeige anzeigen</span>
+              <span className="mt-1 block text-xs leading-5 text-slate-500">
+                Zeigt die 01/02/03-Leiste „Terminart wählen“, „Tag und Uhrzeit auswählen“, „Daten bestätigen“.
+              </span>
             </span>
-          </span>
-          <textarea
-            name="subheadline"
-            rows={3}
-            defaultValue={profile?.subheadline || "Wählen Sie einen passenden Termin."}
-            required
-            className="mt-2 w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
-          />
-        </label>
+            <span className="relative mt-0.5 inline-flex h-6 w-11 shrink-0 items-center rounded-full bg-slate-200 transition has-[:checked]:bg-brand-500">
+              <input name="show_workflow_steps" type="checkbox" defaultChecked={profile?.show_workflow_steps ?? true} className="peer sr-only" />
+              <span className="ml-1 h-4 w-4 rounded-full bg-white shadow transition peer-checked:translate-x-5" />
+            </span>
+          </label>
+        </fieldset>
         <fieldset className="rounded-md border border-slate-200 bg-slate-50 p-3 sm:col-span-2 lg:col-span-3">
           <legend className="px-1 text-sm font-semibold text-slate-800">Kontaktdaten und Links</legend>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -510,7 +563,14 @@ function ProfileForm({
           defaultValue={profile?.booking_card_bg_color || "#FFFFFF"}
           description="Hintergrundfarbe für die Terminart-Karten auf der Buchungsseite."
         />
+        <ProfileTemplateControls
+          savedTemplates={savedTemplates}
+          currentData={profile ? buildProfileTemplateDataFromProfile(profile) : null}
+          saveAction={saveTemplateAction}
+          deleteAction={deleteTemplateAction}
+        />
       </div>
+      <EmbedCodeOptions publicUrl={publicUrl} />
 
       <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
@@ -527,11 +587,12 @@ function ProfileForm({
           ) : null}
           {profile && deleteProfileAction && canDeleteProfile ? <DeleteProfileButton action={deleteProfileAction} profileName={profile.name} /> : null}
         </div>
-        <button className="rounded-md bg-brand-500 px-4 py-2 text-sm font-semibold text-white" type="submit">
-          {profile ? "Profil speichern" : "Profil anlegen"}
-        </button>
+        <div className="flex flex-col items-end gap-2">
+          <ProfileSaveButton isNewProfile={!profile} />
+          <ProfileSaveMessage />
+        </div>
       </div>
-    </form>
+    </ProfileSaveForm>
   );
 }
 
@@ -685,6 +746,7 @@ function buildProfileTemplateData(formData: FormData) {
     profile_card_bg_color: normalizeColor(String(formData.get("profile_card_bg_color") || "#F8FAFC"), "#F8FAFC"),
     booking_card_bg_color: normalizeColor(String(formData.get("booking_card_bg_color") || "#FFFFFF"), "#FFFFFF"),
     profile_layout: normalizeProfileLayout(formData.get("profile_layout")),
+    show_workflow_steps: formData.get("show_workflow_steps") === "on",
     show_preheadline: formData.get("show_preheadline") === "on",
     show_subheadline: formData.get("show_subheadline") === "on",
     show_contact_name: formData.get("show_contact_name") === "on",
@@ -726,6 +788,7 @@ function buildProfileTemplateDataFromProfile(profile: BookingProfile) {
     profile_card_bg_color: profile.profile_card_bg_color,
     booking_card_bg_color: profile.booking_card_bg_color,
     profile_layout: profile.profile_layout || "split",
+    show_workflow_steps: profile.show_workflow_steps ?? true,
     show_preheadline: profile.show_preheadline,
     show_subheadline: profile.show_subheadline,
     show_contact_name: profile.show_contact_name,

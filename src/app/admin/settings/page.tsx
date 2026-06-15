@@ -2,6 +2,7 @@ import { revalidatePath } from "next/cache";
 import { AdminNav } from "@/components/admin-nav";
 import { AdminDeleteBlockedTimeButton } from "@/components/admin-delete-blocked-time-button";
 import { AvailabilityGrid } from "@/components/availability-grid";
+import { SaveSubmitButton } from "@/components/save-submit-button";
 import { requireAdmin } from "@/lib/admin";
 import { getBookingTypeProfileAssignments, replaceBookingTypeProfileAssignments } from "@/lib/booking-type-profiles";
 import { createSupabaseAdmin } from "@/lib/supabase/admin";
@@ -192,9 +193,12 @@ export default async function AdminSettingsPage() {
           <CompactField label="Enddatum" name="end_date" type="date" required />
           <CompactField label="Endzeit" name="end_time" type="time" defaultValue="17:00" required />
           <div className="flex items-end">
-            <button className="h-10 whitespace-nowrap rounded-md bg-brand-500 px-4 text-sm font-semibold text-white" type="submit">
-              Zeit blockieren
-            </button>
+            <SaveSubmitButton
+              idleLabel="Zeit blockieren"
+              pendingLabel="Wird gespeichert"
+              savedLabel="Gespeichert"
+              className="h-10 whitespace-nowrap rounded-md bg-brand-500 px-4 text-sm font-semibold text-white transition hover:bg-brand-600 disabled:cursor-wait disabled:bg-slate-300"
+            />
           </div>
         </form>
         <h3 className="mt-4 text-sm font-semibold text-slate-950">Gespeicherte blockierte Zeiten</h3>
@@ -347,9 +351,7 @@ function BookingTypeForm({
           <input name="is_active" type="checkbox" defaultChecked={type?.is_active ?? false} className="h-4 w-4 rounded border-slate-300 text-brand-600" />
           Aktiv
         </label>
-        <button className="rounded-md bg-brand-500 px-4 py-2 text-sm font-semibold text-white" type="submit">
-          {type ? "Speichern" : "Terminart anlegen"}
-        </button>
+        <SaveSubmitButton idleLabel={type ? "Speichern" : "Terminart anlegen"} savedLabel={type ? "Gespeichert" : "Angelegt"} />
       </div>
     </form>
   );
