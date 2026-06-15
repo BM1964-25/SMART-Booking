@@ -30,7 +30,7 @@ export function ContactIconOrderEditor({ order }: { order: ContactIconKey[] }) {
       <p className="mt-1 text-xs leading-5 text-slate-500">
         Kontaktname bleibt separat. Sortiert werden nur Icons, die einen Wert haben und bei „Anzeigen“ aktiviert sind.
       </p>
-      <div className="mt-3 grid gap-2 md:grid-cols-2">
+      <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
         {items.map((item, index) => (
           <div key={item} className="flex items-center justify-between gap-3 rounded-md border border-slate-200 bg-slate-50 px-3 py-2">
             <div className="inline-flex min-w-0 items-center gap-3">
