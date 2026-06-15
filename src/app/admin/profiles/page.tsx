@@ -281,7 +281,7 @@ function ProfileForm({
           deleteAction={deleteTemplateAction}
         />
         <Field label="Profilname" name="name" defaultValue={profile?.name || ""} required />
-        <div className="grid gap-3 sm:col-span-2 lg:col-span-2 lg:grid-cols-2 lg:items-end">
+        <div className="grid gap-3 sm:col-span-2 lg:col-span-2 lg:grid-cols-2 lg:items-start">
           <Field label="Slug für Link" name="slug" defaultValue={profile?.slug || ""} required />
           <p className="rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-xs leading-5 text-slate-500 lg:min-h-[42px]">
             Der Slug ist der kurze Adressteil des Buchungslinks, z. B. <span className="font-semibold text-slate-700">builtsmart-ai</span>. Er sollte kurz,
