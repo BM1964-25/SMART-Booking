@@ -479,7 +479,7 @@ function ProfileForm({
           label="Profilkarten-Hintergrund"
           name="profile_card_bg_color"
           defaultValue={profile?.profile_card_bg_color || "#F8FAFC"}
-          description="Hintergrundfarbe der Profilfläche mit Portrait und Kontakticons."
+          description="Hintergrundfarbe der Profilfläche mit Profilbild und Kontakticons."
         />
         <ColorField
           label="Terminauswahlkarten"

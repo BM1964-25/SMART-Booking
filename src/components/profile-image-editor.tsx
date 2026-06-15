@@ -93,8 +93,8 @@ export function ProfileImageEditor({ portraitUrl, positionX, positionY, zoom, sh
               ) : null}
             </div>
             <p className="rounded-md bg-white px-3 py-2 text-xs leading-5 text-slate-500 ring-1 ring-slate-200">
-              Wählen Sie ein Portrait aus, passen Sie den runden Ausschnitt an und speichern Sie das Profil. „Bild entfernen“ löscht das aktuell gespeicherte Bild
-              erst nach dem Speichern.
+              Wählen Sie ein Profilbild aus, richten Sie den runden Ausschnitt mit den Reglern aus und speichern Sie das Profil. „Bild entfernen“ löscht das
+              gespeicherte Bild erst nach dem Speichern.
             </p>
           </div>
           <div className="grid gap-3 sm:grid-cols-3">
