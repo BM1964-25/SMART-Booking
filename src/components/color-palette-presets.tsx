@@ -45,7 +45,7 @@ export function ColorPalettePresets() {
       <p className="text-sm text-slate-600">
         Wählen Sie einen abgestimmten Vorschlag oder passen Sie die Farben darunter individuell an. Gespeichert wird erst mit „Profil speichern“.
       </p>
-      <div className="mt-3 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+      <div className="mt-3 grid gap-3">
         {palettes.map((palette) => (
           <button
             key={palette.name}
@@ -53,12 +53,16 @@ export function ColorPalettePresets() {
             onClick={() => applyPalette(palette)}
             className="rounded-md border border-slate-200 bg-white p-3 text-left transition hover:border-brand-300 hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
           >
-            <span className="text-sm font-semibold text-slate-950">{palette.name}</span>
-            <span className="mt-1 block text-xs leading-5 text-slate-500">{palette.description}</span>
-            <span className="mt-3 flex flex-wrap gap-1.5">
-              <ColorSwatch color={palette.primary} label="Primärfarbe" />
-              <ColorSwatch color={palette.profileCard} label="Profilkarte" />
-              <ColorSwatch color={palette.bookingCard} label="Terminkarten" />
+            <span className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+              <span>
+                <span className="text-sm font-semibold text-slate-950">{palette.name}</span>
+                <span className="mt-1 block text-xs leading-5 text-slate-500">{palette.description}</span>
+              </span>
+              <span className="flex flex-wrap gap-1.5 lg:justify-end">
+                <ColorSwatch color={palette.primary} label="Primärfarbe" />
+                <ColorSwatch color={palette.profileCard} label="Profilkarte" />
+                <ColorSwatch color={palette.bookingCard} label="Terminkarten" />
+              </span>
             </span>
           </button>
         ))}
