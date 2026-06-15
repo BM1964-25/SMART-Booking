@@ -16,6 +16,7 @@ import { createSupabaseAdmin } from "@/lib/supabase/admin";
 import { BookingProfile, BookingProfileTemplate } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
+const MAX_PROFILES = 4;
 
 export default async function AdminProfilesPage() {
   await requireAdmin();
@@ -27,6 +28,8 @@ export default async function AdminProfilesPage() {
     .order("created_at", { ascending: false })
     .returns<BookingProfileTemplate[]>();
   const siteUrl = getEnv().NEXT_PUBLIC_SITE_URL.replace(/\/$/, "");
+  const profileCount = (profiles || []).length;
+  const canCreateMoreProfiles = profileCount < MAX_PROFILES;
 
   async function saveProfile(formData: FormData) {
     "use server";
@@ -86,6 +89,12 @@ export default async function AdminProfilesPage() {
     if (id) {
       await supabase.from("booking_profiles").update(payload).eq("id", id);
     } else {
+      const { count } = await supabase.from("booking_profiles").select("id", { count: "exact", head: true });
+
+      if ((count || 0) >= MAX_PROFILES) {
+        return;
+      }
+
       await supabase.from("booking_profiles").insert(payload);
     }
 
@@ -105,6 +114,12 @@ export default async function AdminProfilesPage() {
     }
 
     const supabase = createSupabaseAdmin();
+    const { count } = await supabase.from("booking_profiles").select("id", { count: "exact", head: true });
+
+    if ((count || 0) >= MAX_PROFILES) {
+      return;
+    }
+
     const { data: sourceProfile } = await supabase.from("booking_profiles").select("*").eq("id", profileId).single<BookingProfile>();
 
     if (!sourceProfile) {
@@ -197,6 +212,11 @@ export default async function AdminProfilesPage() {
         Kontaktperson und Kontaktlinks.
       </p>
       <AdminNav />
+      {profileCount >= MAX_PROFILES ? (
+        <p className="mt-6 rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+          Es können maximal {MAX_PROFILES} Profile angelegt werden. Ein Profil entspricht einer eigenen öffentlichen Buchungsseite für eine Website oder Marke.
+        </p>
+      ) : null}
 
       <ProfileTabs
         profiles={[
@@ -207,7 +227,7 @@ export default async function AdminProfilesPage() {
             primaryColor: profile.primary_color,
             isActive: profile.is_active
           })),
-          { id: "new-profile", name: "Neues Profil anlegen", slug: "", isCreate: true }
+          ...(canCreateMoreProfiles ? [{ id: "new-profile", name: "Neues Profil anlegen", slug: "", isCreate: true }] : [])
         ]}
       >
         {(profiles || []).map((profile) => (
@@ -220,15 +240,19 @@ export default async function AdminProfilesPage() {
             profile={profile}
             savedTemplates={profileTemplates || []}
             siteUrl={siteUrl}
+            canCreateMoreProfiles={canCreateMoreProfiles}
           />
         ))}
-        <ProfileForm
-          action={saveProfile}
-          saveTemplateAction={saveProfileTemplate}
-          deleteTemplateAction={deleteProfileTemplate}
-          savedTemplates={profileTemplates || []}
-          siteUrl={siteUrl}
-        />
+        {canCreateMoreProfiles ? (
+          <ProfileForm
+            action={saveProfile}
+            saveTemplateAction={saveProfileTemplate}
+            deleteTemplateAction={deleteProfileTemplate}
+            savedTemplates={profileTemplates || []}
+            siteUrl={siteUrl}
+            canCreateMoreProfiles={canCreateMoreProfiles}
+          />
+        ) : null}
       </ProfileTabs>
     </section>
   );
@@ -241,7 +265,8 @@ function ProfileForm({
   deleteTemplateAction,
   profile,
   savedTemplates,
-  siteUrl
+  siteUrl,
+  canCreateMoreProfiles
 }: {
   action: (formData: FormData) => Promise<void>;
   duplicateAction?: (formData: FormData) => Promise<void>;
@@ -250,6 +275,7 @@ function ProfileForm({
   profile?: BookingProfile;
   savedTemplates: BookingProfileTemplate[];
   siteUrl: string;
+  canCreateMoreProfiles: boolean;
 }) {
   const slug = profile?.slug || "";
   const publicPath = slug === defaultBookingProfile.slug || !slug ? "/book" : `/book/profile/${slug}`;
@@ -347,7 +373,7 @@ function ProfileForm({
       </div>
 
       <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        {profile && duplicateAction ? (
+        {profile && duplicateAction && canCreateMoreProfiles ? (
           <button
             formAction={duplicateAction}
             className="rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-brand-500 hover:text-brand-700"
@@ -355,6 +381,8 @@ function ProfileForm({
           >
             Profil duplizieren
           </button>
+        ) : profile && duplicateAction ? (
+          <p className="text-sm text-slate-500">Duplizieren ist ab {MAX_PROFILES} Profilen nicht verfügbar.</p>
         ) : (
           <span />
         )}
