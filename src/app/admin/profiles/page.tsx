@@ -1,7 +1,7 @@
 import { revalidatePath } from "next/cache";
 import Link from "next/link";
 import type { ComponentType } from "react";
-import { Globe2, Mail, Phone, UserRound } from "lucide-react";
+import { ExternalLink, Globe2, Mail, Phone, UserRound } from "lucide-react";
 import { AdminNav } from "@/components/admin-nav";
 import { FacebookIcon, InstagramIcon, LinkedInIcon, SpotifyIcon, XIcon, XingIcon, YouTubeIcon } from "@/components/brand-icons";
 import { ColorPalettePresets } from "@/components/color-palette-presets";
@@ -292,9 +292,27 @@ function ProfileForm({
       <div className="flex flex-col gap-3 border-b border-slate-100 pb-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <p className="text-lg font-semibold text-slate-950">{profile?.name || "Neues Profil"}</p>
-          <Link href={publicPath} className="mt-1 inline-flex text-sm font-medium text-brand-600 hover:text-brand-700">
-            {publicUrl}
-          </Link>
+          <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-center">
+            <Link href={publicPath} className="inline-flex text-sm font-medium text-brand-600 hover:text-brand-700">
+              {publicUrl}
+            </Link>
+            {profile ? (
+              <Link
+                href={publicPath}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex w-fit items-center gap-2 rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm font-semibold text-slate-700 transition hover:border-brand-500 hover:text-brand-700"
+              >
+                Live-Vorschau öffnen
+                <ExternalLink className="h-3.5 w-3.5" />
+              </Link>
+            ) : (
+              <span className="text-sm text-slate-500">Live-Vorschau ist nach dem ersten Speichern verfügbar.</span>
+            )}
+          </div>
+          <p className="mt-2 text-xs leading-5 text-slate-500">
+            Die Live-Vorschau zeigt den zuletzt gespeicherten Stand. Änderungen werden erst nach „Profil speichern“ sichtbar.
+          </p>
         </div>
         <label className="flex items-center gap-2 text-sm text-slate-700">
           <input name="is_active" type="checkbox" defaultChecked={profile?.is_active ?? true} className="h-4 w-4 rounded border-slate-300 text-brand-600" />
