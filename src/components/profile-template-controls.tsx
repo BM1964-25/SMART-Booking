@@ -1,5 +1,7 @@
 "use client";
 
+import { useMemo, useState } from "react";
+
 type ProfileTemplateData = Record<string, string | number | boolean | null>;
 
 type ProfileTemplateOption = {
@@ -65,10 +67,12 @@ const standardTemplates: ProfileTemplateOption[] = [
 
 export function ProfileTemplateControls({
   savedTemplates,
+  currentData,
   saveAction,
   deleteAction
 }: {
   savedTemplates: { id: string; name: string; template_data: ProfileTemplateData }[];
+  currentData?: ProfileTemplateData | null;
   saveAction: (formData: FormData) => Promise<void>;
   deleteAction: (formData: FormData) => Promise<void>;
 }) {
@@ -84,6 +88,11 @@ export function ProfileTemplateControls({
   ];
   const templates = allTemplates.slice(0, 4);
   const hiddenTemplateCount = Math.max(0, allTemplates.length - templates.length);
+  const initialActiveTemplateKey = useMemo(
+    () => templates.find((template) => currentData && templateMatches(currentData, template.data))?.id || null,
+    [currentData, templates]
+  );
+  const [activeTemplateKey, setActiveTemplateKey] = useState<string | null>(initialActiveTemplateKey);
 
   return (
     <fieldset className="rounded-md border border-slate-200 bg-slate-50 p-3 sm:col-span-2 lg:col-span-3">
@@ -105,16 +114,31 @@ export function ProfileTemplateControls({
         {templates.map((template) => (
           <div
             key={`${template.kind}-${template.id}`}
-            className="flex min-h-36 flex-col rounded-md border border-slate-200 bg-white p-3 text-left transition hover:border-brand-300 hover:shadow-sm"
+            className={`flex min-h-36 flex-col rounded-md border bg-white p-3 text-left transition hover:border-brand-300 hover:shadow-sm ${
+              activeTemplateKey === template.id ? "border-brand-500 ring-1 ring-brand-500" : "border-slate-200"
+            }`}
           >
             <button
               type="button"
-              onClick={(event) => applyTemplate(event.currentTarget, template.data)}
+              onClick={(event) => {
+                applyTemplate(event.currentTarget, template.data);
+                setActiveTemplateKey(template.id);
+              }}
               className="flex flex-1 flex-col text-left focus:outline-none focus:ring-2 focus:ring-brand-500"
             >
               <span className="flex items-start justify-between gap-3">
                 <span className="text-sm font-semibold text-slate-950">{template.name}</span>
-                <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-500">{template.kind === "standard" ? "Standard" : "Gespeichert"}</span>
+                <span className="flex flex-wrap justify-end gap-1">
+                  {activeTemplateKey === template.id ? (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700">
+                      <CheckIcon />
+                      Aktiv
+                    </span>
+                  ) : null}
+                  <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-500">
+                    {template.kind === "standard" ? "Standard" : "Gespeichert"}
+                  </span>
+                </span>
               </span>
               <span className="mt-1 block text-xs leading-5 text-slate-500">{template.description}</span>
             </button>
@@ -139,6 +163,26 @@ export function ProfileTemplateControls({
         </p>
       ) : null}
     </fieldset>
+  );
+}
+
+function templateMatches(currentData: ProfileTemplateData, templateData: ProfileTemplateData) {
+  return Object.entries(templateData).every(([key, value]) => normalizeTemplateValue(currentData[key]) === normalizeTemplateValue(value));
+}
+
+function normalizeTemplateValue(value: ProfileTemplateData[string]) {
+  if (value == null) {
+    return "";
+  }
+
+  return String(value).trim();
+}
+
+function CheckIcon() {
+  return (
+    <svg aria-hidden="true" viewBox="0 0 16 16" className="h-3 w-3">
+      <path fill="currentColor" d="M6.4 11.3 2.9 7.8l1.2-1.2 2.3 2.3 5.5-5.5 1.2 1.2-6.7 6.7Z" />
+    </svg>
   );
 }
 

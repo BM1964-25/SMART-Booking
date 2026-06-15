@@ -268,7 +268,12 @@ function ProfileForm({
       <EmbedCodeOptions publicUrl={publicUrl} />
 
       <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        <ProfileTemplateControls savedTemplates={savedTemplates} saveAction={saveTemplateAction} deleteAction={deleteTemplateAction} />
+        <ProfileTemplateControls
+          savedTemplates={savedTemplates}
+          currentData={profile ? buildProfileTemplateDataFromProfile(profile) : null}
+          saveAction={saveTemplateAction}
+          deleteAction={deleteTemplateAction}
+        />
         <Field label="Profilname" name="name" defaultValue={profile?.name || ""} required />
         <div className="grid gap-3 sm:col-span-2 lg:col-span-2 lg:grid-cols-2 lg:items-end">
           <Field label="Slug für Link" name="slug" defaultValue={profile?.slug || ""} required />
@@ -478,6 +483,39 @@ function buildProfileTemplateData(formData: FormData) {
     show_youtube: formData.get("show_youtube") === "on",
     show_spotify: formData.get("show_spotify") === "on",
     show_website: formData.get("show_website") === "on"
+  };
+}
+
+function buildProfileTemplateDataFromProfile(profile: BookingProfile) {
+  return {
+    headline: profile.headline,
+    subheadline: profile.subheadline,
+    contact_name: profile.contact_name,
+    contact_email: profile.contact_email,
+    contact_phone: profile.contact_phone,
+    linkedin_url: profile.linkedin_url,
+    xing_url: profile.xing_url,
+    x_url: profile.x_url,
+    instagram_url: profile.instagram_url,
+    facebook_url: profile.facebook_url,
+    youtube_url: profile.youtube_url,
+    spotify_url: profile.spotify_url,
+    website_url: profile.website_url,
+    primary_color: profile.primary_color,
+    profile_card_bg_color: profile.profile_card_bg_color,
+    booking_card_bg_color: profile.booking_card_bg_color,
+    show_subheadline: profile.show_subheadline,
+    show_contact_name: profile.show_contact_name,
+    show_contact_email: profile.show_contact_email,
+    show_contact_phone: profile.show_contact_phone,
+    show_linkedin: profile.show_linkedin,
+    show_xing: profile.show_xing,
+    show_x: profile.show_x,
+    show_instagram: profile.show_instagram,
+    show_facebook: profile.show_facebook,
+    show_youtube: profile.show_youtube,
+    show_spotify: profile.show_spotify,
+    show_website: profile.show_website
   };
 }
 
