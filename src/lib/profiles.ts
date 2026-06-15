@@ -43,6 +43,8 @@ export const defaultBookingProfile: BookingProfile = {
   show_youtube: true,
   show_spotify: true,
   show_website: true,
+  show_legal_privacy: true,
+  show_legal_imprint: true,
   is_active: true
 };
 

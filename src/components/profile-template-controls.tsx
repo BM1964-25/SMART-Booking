@@ -37,7 +37,9 @@ const standardTemplates: ProfileTemplateOption[] = [
       show_instagram: false,
       show_facebook: false,
       show_youtube: false,
-      show_spotify: false
+      show_spotify: false,
+      show_legal_privacy: true,
+      show_legal_imprint: true
     }
   },
   {
@@ -64,7 +66,9 @@ const standardTemplates: ProfileTemplateOption[] = [
       show_instagram: false,
       show_facebook: false,
       show_youtube: false,
-      show_spotify: false
+      show_spotify: false,
+      show_legal_privacy: true,
+      show_legal_imprint: true
     }
   }
 ];

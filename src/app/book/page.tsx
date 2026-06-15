@@ -81,6 +81,10 @@ export default async function BookPage({ searchParams }: { searchParams?: Promis
   const showSubheadline = profile.show_subheadline !== false;
   const showContactName = profile.show_contact_name !== false;
   const preheadline = profile.preheadline || "SMART Booking";
+  const legalLinks = [
+    profile.show_legal_privacy !== false ? { href: "https://www.built-smart-hub.com/datenschutz", label: "Datenschutz" } : null,
+    profile.show_legal_imprint !== false ? { href: "https://www.built-smart-hub.com/impressum", label: "Impressum" } : null
+  ].filter(Boolean) as Array<{ href: string; label: string }>;
   const profileQuery = profile.slug === defaultBookingProfile.slug ? "" : `?profile=${encodeURIComponent(profile.slug)}`;
   const contactLinks = getContactLinks(profile);
   let types: BookingType[] = seedBookingTypes;
@@ -240,6 +244,19 @@ export default async function BookPage({ searchParams }: { searchParams?: Promis
       <p className="mt-6 rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm leading-6 text-slate-600">
         Nach der Buchung erhalten Sie automatisch eine Bestätigung per E-Mail. Der Termin wird im Kalender eingetragen und ist danach verbindlich reserviert.
       </p>
+      {legalLinks.length > 0 ? (
+        <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-slate-500">
+          <span className="font-medium text-slate-600">Rechtliches</span>
+          {legalLinks.map((link, index) => (
+            <span key={link.href} className="inline-flex items-center gap-3">
+              {index > 0 ? <span className="text-slate-300">|</span> : null}
+              <Link href={link.href} target="_blank" rel="noreferrer" className="hover:text-brand-600">
+                {link.label}
+              </Link>
+            </span>
+          ))}
+        </div>
+      ) : null}
     </section>
   );
 }

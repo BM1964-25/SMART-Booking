@@ -54,6 +54,8 @@ export type BookingProfile = {
   show_youtube: boolean;
   show_spotify: boolean;
   show_website: boolean;
+  show_legal_privacy: boolean;
+  show_legal_imprint: boolean;
   is_active: boolean;
 };
 

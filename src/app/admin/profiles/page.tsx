@@ -80,6 +80,8 @@ export default async function AdminProfilesPage() {
       show_youtube: formData.get("show_youtube") === "on",
       show_spotify: formData.get("show_spotify") === "on",
       show_website: formData.get("show_website") === "on",
+      show_legal_privacy: formData.get("show_legal_privacy") === "on",
+      show_legal_imprint: formData.get("show_legal_imprint") === "on",
       is_active: formData.get("is_active") === "on",
       updated_at: new Date().toISOString()
     };
@@ -169,6 +171,8 @@ export default async function AdminProfilesPage() {
       show_youtube: sourceProfile.show_youtube,
       show_spotify: sourceProfile.show_spotify,
       show_website: sourceProfile.show_website,
+      show_legal_privacy: sourceProfile.show_legal_privacy ?? true,
+      show_legal_imprint: sourceProfile.show_legal_imprint ?? true,
       is_active: false
     });
 
@@ -393,6 +397,22 @@ function ProfileForm({
           zoom={profile?.portrait_zoom ?? 1}
           showPortrait={profile?.show_portrait ?? true}
         />
+        <fieldset className="overflow-hidden rounded-md border border-slate-200 bg-white sm:col-span-2 lg:col-span-3">
+          <legend className="sr-only">Rechtliches</legend>
+          <div className="border-b border-slate-200 px-4 py-3">
+            <p className="text-sm font-semibold text-slate-950">Rechtliches</p>
+          </div>
+          <ToggleRow
+            label="Datenschutzerklärung für alle Benutzer und Teams anzeigen"
+            name="show_legal_privacy"
+            defaultChecked={profile?.show_legal_privacy ?? true}
+          />
+          <ToggleRow
+            label="Impressum für alle Benutzer und Teams anzeigen"
+            name="show_legal_imprint"
+            defaultChecked={profile?.show_legal_imprint ?? true}
+          />
+        </fieldset>
         <ColorPalettePresets />
         <ColorField label="Primärfarbe" name="primary_color" defaultValue={profile?.primary_color || "#527DF6"} />
         <ColorField
@@ -497,6 +517,18 @@ function VisibleField({
   );
 }
 
+function ToggleRow({ label, name, defaultChecked }: { label: string; name: string; defaultChecked: boolean }) {
+  return (
+    <label className="flex items-center justify-between gap-4 border-b border-slate-100 px-4 py-4 last:border-b-0">
+      <span className="text-sm text-slate-800">{label}</span>
+      <span className="relative inline-flex h-6 w-11 shrink-0 items-center rounded-full bg-slate-200 transition has-[:checked]:bg-brand-500">
+        <input name={name} type="checkbox" defaultChecked={defaultChecked} className="peer sr-only" />
+        <span className="ml-1 h-4 w-4 rounded-full bg-white shadow transition peer-checked:translate-x-5" />
+      </span>
+    </label>
+  );
+}
+
 function ColorField({
   label,
   name,
@@ -555,7 +587,9 @@ function buildProfileTemplateData(formData: FormData) {
     show_facebook: formData.get("show_facebook") === "on",
     show_youtube: formData.get("show_youtube") === "on",
     show_spotify: formData.get("show_spotify") === "on",
-    show_website: formData.get("show_website") === "on"
+    show_website: formData.get("show_website") === "on",
+    show_legal_privacy: formData.get("show_legal_privacy") === "on",
+    show_legal_imprint: formData.get("show_legal_imprint") === "on"
   };
 }
 
@@ -590,7 +624,9 @@ function buildProfileTemplateDataFromProfile(profile: BookingProfile) {
     show_facebook: profile.show_facebook,
     show_youtube: profile.show_youtube,
     show_spotify: profile.show_spotify,
-    show_website: profile.show_website
+    show_website: profile.show_website,
+    show_legal_privacy: profile.show_legal_privacy,
+    show_legal_imprint: profile.show_legal_imprint
   };
 }
 
