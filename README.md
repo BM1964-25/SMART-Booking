@@ -42,6 +42,46 @@ insert into admin_users (user_id, email, role)
 values ('AUTH_USER_UUID', 'bernhard@builtsmart-ai.app', 'owner');
 ```
 
+### Nachträgliche Supabase-Migrationen ausführen
+
+Migration-Dateien im Ordner `supabase/migrations` werden in der Supabase Cloud nicht automatisch ausgeführt, nur weil sie im GitHub-Projekt liegen. Wenn neue Felder in der App ergänzt wurden, müssen die passenden SQL-Dateien einmal im Supabase SQL Editor ausgeführt werden.
+
+So geht es:
+
+1. Supabase öffnen.
+2. Links auf **SQL Editor** gehen.
+3. **New query** anklicken.
+4. Inhalt der jeweiligen Datei aus `supabase/migrations` einfügen.
+5. **Run** klicken.
+6. Wenn **Success. No rows returned** erscheint, ist die Migration erledigt.
+
+Für die aktuellen Profil-Funktionen müssen diese Migrationen ausgeführt sein:
+
+- `017_profile_preheadline.sql`
+- `018_profile_legal_visibility.sql`
+- `019_profile_contact_icon_order.sql`
+
+Kompletter SQL-Block:
+
+```sql
+alter table booking_profiles
+  add column if not exists preheadline text default 'SMART Booking',
+  add column if not exists show_preheadline boolean not null default true;
+
+update booking_profiles
+set preheadline = coalesce(nullif(preheadline, ''), 'SMART Booking')
+where preheadline is null or preheadline = '';
+
+alter table booking_profiles
+  add column if not exists show_legal_privacy boolean not null default true,
+  add column if not exists show_legal_imprint boolean not null default true;
+
+alter table booking_profiles
+  add column if not exists contact_icon_order jsonb not null default '["email","phone","website","linkedin","xing","x","instagram","facebook","youtube","spotify"]'::jsonb;
+```
+
+Danach funktionieren im Adminbereich das Speichern der Pre-Headline, die Sichtbarkeit von Impressum/Datenschutz und die Reihenfolge der Kontakticons.
+
 ### Option B: Supabase lokal
 
 Voraussetzung: Docker Desktop läuft.
