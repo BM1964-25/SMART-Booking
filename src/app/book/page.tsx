@@ -15,6 +15,7 @@ import {
   Video
 } from "lucide-react";
 import { FacebookIcon, InstagramIcon, LinkedInIcon, SpotifyIcon, XIcon, XingIcon, YouTubeIcon } from "@/components/brand-icons";
+import { getBookingTypeIdsForProfile } from "@/lib/booking-type-profiles";
 import { hasSupabaseConfig, missingSupabaseKeys } from "@/lib/config";
 import { ContactIconKey, normalizeContactIconOrder } from "@/lib/contact-icon-order";
 import { defaultBookingProfile, getBookingProfile } from "@/lib/profiles";
@@ -108,20 +109,16 @@ export default async function BookPage({ searchParams }: { searchParams?: Promis
 
   if (isConfigured) {
     const supabase = createSupabaseAdmin();
-    let query = supabase
+    const { data } = await supabase
       .from("booking_types")
       .select("*")
       .eq("is_active", true)
-      .order("sort_order");
+      .order("sort_order")
+      .returns<BookingType[]>();
+    const profileTypeIds = await getBookingTypeIdsForProfile(profile.id);
+    const allTypes = data || [];
 
-    if (profile.id !== defaultBookingProfile.id) {
-      query = query.eq("profile_id", profile.id);
-    } else {
-      query = query.or(`profile_id.eq.${profile.id},profile_id.is.null`);
-    }
-
-    const { data } = await query.returns<BookingType[]>();
-    types = data || [];
+    types = profileTypeIds ? allTypes.filter((type) => profileTypeIds.has(type.id)) : allTypes;
   }
 
   return (

@@ -209,14 +209,7 @@ export default async function AdminProfilesPage() {
       return;
     }
 
-    await supabase
-      .from("booking_types")
-      .update({
-        is_active: false,
-        updated_at: new Date().toISOString()
-      })
-      .eq("profile_id", profileId);
-
+    await supabase.from("booking_type_profiles").delete().eq("profile_id", profileId);
     await supabase.from("booking_profiles").delete().eq("id", profileId);
 
     revalidatePath("/admin/profiles");

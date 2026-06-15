@@ -1,9 +1,10 @@
 import { addMinutes } from "date-fns";
 import Link from "next/link";
 import { BookingForm } from "@/components/booking-form";
+import { getBookingTypeIdsForProfile } from "@/lib/booking-type-profiles";
 import { hasSupabaseConfig } from "@/lib/config";
 import { buildSlotLabel } from "@/lib/date";
-import { defaultBookingProfile, getBookingProfile } from "@/lib/profiles";
+import { getBookingProfile } from "@/lib/profiles";
 import { findSeedBookingType } from "@/lib/seed-data";
 import { createSupabaseAdmin } from "@/lib/supabase/admin";
 import { BookingType } from "@/lib/types";
@@ -25,14 +26,9 @@ export default async function ConfirmPage({
 
   if (isConfigured) {
     const supabase = createSupabaseAdmin();
-    let query = supabase.from("booking_types").select("*").eq("slug", type).eq("is_active", true);
-
-    if (profile.id !== defaultBookingProfile.id) {
-      query = query.eq("profile_id", profile.id);
-    }
-
-    const { data } = await query.single<BookingType>();
-    bookingType = data;
+    const { data } = await supabase.from("booking_types").select("*").eq("slug", type).eq("is_active", true).single<BookingType>();
+    const profileTypeIds = await getBookingTypeIdsForProfile(profile.id);
+    bookingType = data && (!profileTypeIds || profileTypeIds.has(data.id)) ? data : null;
   }
 
   if (!bookingType || !start) {

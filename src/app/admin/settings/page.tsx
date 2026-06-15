@@ -3,6 +3,7 @@ import { AdminNav } from "@/components/admin-nav";
 import { AdminDeleteBlockedTimeButton } from "@/components/admin-delete-blocked-time-button";
 import { AvailabilityGrid } from "@/components/availability-grid";
 import { requireAdmin } from "@/lib/admin";
+import { getBookingTypeProfileAssignments, replaceBookingTypeProfileAssignments } from "@/lib/booking-type-profiles";
 import { createSupabaseAdmin } from "@/lib/supabase/admin";
 import { BookingProfile } from "@/lib/types";
 
@@ -21,12 +22,19 @@ const weekdays = [
 export default async function AdminSettingsPage() {
   await requireAdmin();
   const supabase = createSupabaseAdmin();
-  const [{ data: types }, { data: profiles }, { data: rules }, { data: blockedTimes }] = await Promise.all([
+  const [{ data: types }, { data: profiles }, { data: rules }, { data: blockedTimes }, typeProfileAssignments] = await Promise.all([
     supabase.from("booking_types").select("*").order("sort_order"),
     supabase.from("booking_profiles").select("*").order("name").returns<BookingProfile[]>(),
     supabase.from("availability_rules").select("*").order("weekday").order("start_time"),
-    supabase.from("blocked_times").select("*").order("starts_at", { ascending: false }).limit(20)
+    supabase.from("blocked_times").select("*").order("starts_at", { ascending: false }).limit(20),
+    getBookingTypeProfileAssignments()
   ]);
+  const profileIdsByType = new Map<string, string[]>();
+  for (const assignment of typeProfileAssignments) {
+    const ids = profileIdsByType.get(assignment.booking_type_id) || [];
+    ids.push(assignment.profile_id);
+    profileIdsByType.set(assignment.booking_type_id, ids);
+  }
   const rulesByWeekday = weekdays.map((day) => ({
     ...day,
     rules: (rules || []).filter((rule) => rule.weekday === day.value)
@@ -38,6 +46,7 @@ export default async function AdminSettingsPage() {
     await requireAdmin();
     const supabase = createSupabaseAdmin();
     const id = String(formData.get("id") || "");
+    const selectedProfileIds = formData.getAll("profile_ids").map((value) => String(value));
     const payload = {
       slug: String(formData.get("slug") || "").trim(),
       name: String(formData.get("name") || "").trim(),
@@ -46,14 +55,20 @@ export default async function AdminSettingsPage() {
       buffer_before_minutes: Number(formData.get("buffer_before_minutes") || 0),
       buffer_after_minutes: Number(formData.get("buffer_after_minutes") || 0),
       sort_order: Number(formData.get("sort_order") || 0),
-      profile_id: String(formData.get("profile_id") || "") || null,
+      profile_id: selectedProfileIds[0] || null,
       is_active: formData.get("is_active") === "on"
     };
+    let savedId = id;
 
     if (id) {
       await supabase.from("booking_types").update(payload).eq("id", id);
     } else {
-      await supabase.from("booking_types").insert(payload);
+      const { data } = await supabase.from("booking_types").insert(payload).select("id").single<{ id: string }>();
+      savedId = data?.id || "";
+    }
+
+    if (savedId) {
+      await replaceBookingTypeProfileAssignments(savedId, selectedProfileIds);
     }
 
     revalidatePath("/admin/settings");
@@ -208,13 +223,19 @@ export default async function AdminSettingsPage() {
         </div>
         <div className="grid gap-4 lg:grid-cols-2 2xl:grid-cols-3">
           {(types || []).map((type) => (
-            <BookingTypeForm key={type.id} action={saveBookingType} type={type} profiles={profiles || []} />
+            <BookingTypeForm
+              key={type.id}
+              action={saveBookingType}
+              type={type}
+              profiles={profiles || []}
+              assignedProfileIds={profileIdsByType.get(type.id) || (type.profile_id ? [type.profile_id] : [])}
+            />
           ))}
         </div>
         <details className="rounded-lg border border-dashed border-slate-300 bg-white p-4 shadow-sm">
           <summary className="cursor-pointer text-sm font-semibold text-slate-800">Neue Terminart anlegen</summary>
           <div className="mt-4">
-            <BookingTypeForm action={saveBookingType} isNew profiles={profiles || []} />
+            <BookingTypeForm action={saveBookingType} isNew profiles={profiles || []} assignedProfileIds={(profiles || []).map((profile) => profile.id)} />
           </div>
         </details>
       </div>
@@ -257,11 +278,13 @@ function BookingTypeForm({
   action,
   type,
   profiles,
+  assignedProfileIds,
   isNew = false
 }: {
   action: (formData: FormData) => Promise<void>;
   isNew?: boolean;
   profiles: BookingProfile[];
+  assignedProfileIds: string[];
   type?: {
     id: string;
     profile_id?: string | null;
@@ -279,20 +302,26 @@ function BookingTypeForm({
     <form action={action} className={isNew ? "rounded-md border border-slate-200 bg-slate-50 p-4" : "rounded-lg border border-slate-200 bg-white p-4 shadow-sm"}>
       <input type="hidden" name="id" value={type?.id || ""} />
       <div className="grid gap-3 sm:grid-cols-2">
-        <label className="block sm:col-span-2">
-          <span className="text-sm font-medium text-slate-700">Profil</span>
-          <select
-            name="profile_id"
-            defaultValue={type?.profile_id || profiles[0]?.id || ""}
-            className="mt-2 w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
-          >
+        <fieldset className="rounded-md border border-slate-200 bg-slate-50 p-3 sm:col-span-2">
+          <legend className="px-1 text-sm font-medium text-slate-700">In diesen Profilen anzeigen</legend>
+          <p className="mt-1 text-xs leading-5 text-slate-500">
+            Eine Terminart kann in mehreren Profilen sichtbar sein. Ohne Auswahl erscheint sie auf keiner öffentlichen Buchungsseite.
+          </p>
+          <div className="mt-3 grid gap-2 sm:grid-cols-2">
             {profiles.map((profile) => (
-              <option key={profile.id} value={profile.id}>
-                {profile.name}
-              </option>
+              <label key={profile.id} className="flex items-center gap-2 rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700">
+                <input
+                  name="profile_ids"
+                  value={profile.id}
+                  type="checkbox"
+                  defaultChecked={assignedProfileIds.includes(profile.id)}
+                  className="h-4 w-4 rounded border-slate-300 text-brand-600"
+                />
+                <span>{profile.name}</span>
+              </label>
             ))}
-          </select>
-        </label>
+          </div>
+        </fieldset>
         <div className="sm:col-span-2">
           <Field label="Name" name="name" defaultValue={type?.name || ""} required />
         </div>
