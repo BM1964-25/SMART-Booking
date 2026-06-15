@@ -200,7 +200,13 @@ export default async function AdminProfilesPage() {
 
       <ProfileTabs
         profiles={[
-          ...(profiles || []).map((profile) => ({ id: profile.id, name: profile.name, slug: profile.slug, isActive: profile.is_active })),
+          ...(profiles || []).map((profile) => ({
+            id: profile.id,
+            name: profile.name,
+            slug: profile.slug,
+            primaryColor: profile.primary_color,
+            isActive: profile.is_active
+          })),
           { id: "new-profile", name: "Neues Profil anlegen", slug: "", isCreate: true }
         ]}
       >
