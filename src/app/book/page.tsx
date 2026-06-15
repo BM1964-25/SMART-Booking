@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { ComponentType } from "react";
 import {
   ArrowRight,
+  ArrowLeft,
   Building2,
   CalendarCheck,
   Globe2,
@@ -78,8 +79,10 @@ function getContactLinks(profile: BookingProfile) {
   }>;
 }
 
-export default async function BookPage({ searchParams }: { searchParams?: Promise<{ profile?: string }> }) {
-  const requestedProfile = (await searchParams)?.profile;
+export default async function BookPage({ searchParams }: { searchParams?: Promise<{ profile?: string; preview?: string }> }) {
+  const resolvedSearchParams = await searchParams;
+  const requestedProfile = resolvedSearchParams?.profile;
+  const isAdminPreview = resolvedSearchParams?.preview === "admin";
   const profile = await getBookingProfile(requestedProfile);
   const primaryColor = normalizeColor(profile.primary_color);
   const profileCardBgColor = normalizeColor(profile.profile_card_bg_color, "#F8FAFC");
@@ -121,6 +124,17 @@ export default async function BookPage({ searchParams }: { searchParams?: Promis
 
   return (
     <section className="mx-auto max-w-6xl px-5 py-8 md:py-12">
+      {isAdminPreview ? (
+        <div className="mb-4 flex justify-end">
+          <Link
+            href="/admin/profiles"
+            className="inline-flex items-center gap-2 rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition hover:border-brand-500 hover:text-brand-700"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Zurück zum Adminbereich
+          </Link>
+        </div>
+      ) : null}
       <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
         <div className="border-t-4 px-5 py-7 md:px-8 md:py-9" style={{ borderTopColor: primaryColor }}>
           <div className="flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">

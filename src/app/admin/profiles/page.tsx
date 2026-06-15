@@ -291,6 +291,7 @@ function ProfileForm({
 }) {
   const slug = profile?.slug || "";
   const publicPath = slug === defaultBookingProfile.slug || !slug ? "/book" : `/book/profile/${slug}`;
+  const previewPath = `${publicPath}?preview=admin`;
   const publicUrl = `${siteUrl}${publicPath}`;
 
   return (
@@ -306,7 +307,7 @@ function ProfileForm({
             </Link>
             {profile ? (
               <Link
-                href={publicPath}
+                href={previewPath}
                 target="_blank"
                 rel="noreferrer"
                 className="inline-flex w-fit items-center gap-2 rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm font-semibold text-slate-700 transition hover:border-brand-500 hover:text-brand-700"
