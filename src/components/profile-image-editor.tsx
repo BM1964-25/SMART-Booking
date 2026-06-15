@@ -14,7 +14,6 @@ export function ProfileImageEditor({ portraitUrl, positionX, positionY, zoom, sh
   const fileInputId = useId();
   const [previewUrl, setPreviewUrl] = useState(portraitUrl || "");
   const [objectUrl, setObjectUrl] = useState<string | null>(null);
-  const [selectedFileName, setSelectedFileName] = useState("");
   const [currentX, setCurrentX] = useState(positionX);
   const [currentY, setCurrentY] = useState(positionY);
   const [currentZoom, setCurrentZoom] = useState(zoom);
@@ -66,11 +65,8 @@ export function ProfileImageEditor({ portraitUrl, positionX, positionY, zoom, sh
                   const file = event.target.files?.[0];
 
                   if (!file) {
-                    setSelectedFileName("");
                     return;
                   }
-
-                  setSelectedFileName(file.name);
 
                   if (objectUrl) {
                     URL.revokeObjectURL(objectUrl);
@@ -88,7 +84,6 @@ export function ProfileImageEditor({ portraitUrl, positionX, positionY, zoom, sh
                 >
                   Profilbild auswählen
                 </label>
-                <span className="min-w-0 truncate text-sm text-slate-600">{selectedFileName || "Kein neues Profilbild ausgewählt"}</span>
               </div>
               {portraitUrl ? (
                 <label className="inline-flex items-center gap-2 rounded-md bg-white px-2 py-1.5 text-sm text-slate-700 ring-1 ring-slate-200">
