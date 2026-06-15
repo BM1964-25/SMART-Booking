@@ -22,6 +22,13 @@ const palettes: PalettePreset[] = [
     primary: "#0F766E",
     profileCard: "#F0FDFA",
     bookingCard: "#FFFFFF"
+  },
+  {
+    name: "Executive Indigo",
+    description: "Etwas markanter, seriös und gut für hochwertige Beratungsprofile.",
+    primary: "#4338CA",
+    profileCard: "#EEF2FF",
+    bookingCard: "#FFFFFF"
   }
 ];
 
@@ -38,7 +45,7 @@ export function ColorPalettePresets() {
       <p className="text-sm text-slate-600">
         Wählen Sie einen abgestimmten Vorschlag oder passen Sie die Farben darunter individuell an. Gespeichert wird erst mit „Profil speichern“.
       </p>
-      <div className="mt-3 grid gap-3 md:grid-cols-2">
+      <div className="mt-3 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
         {palettes.map((palette) => (
           <button
             key={palette.name}
