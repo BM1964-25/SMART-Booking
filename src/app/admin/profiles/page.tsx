@@ -6,6 +6,7 @@ import { AdminNav } from "@/components/admin-nav";
 import { FacebookIcon, InstagramIcon, LinkedInIcon, SpotifyIcon, XIcon, XingIcon, YouTubeIcon } from "@/components/brand-icons";
 import { ContactIconOrderEditor } from "@/components/contact-icon-order-editor";
 import { ColorPalettePresets } from "@/components/color-palette-presets";
+import { DeleteProfileButton } from "@/components/delete-profile-button";
 import { EmbedCodeOptions } from "@/components/embed-code-options";
 import { ProfileImageEditor } from "@/components/profile-image-editor";
 import { ProfileTabs } from "@/components/profile-tabs";
@@ -190,6 +191,42 @@ export default async function AdminProfilesPage() {
     revalidatePath("/admin/settings");
   }
 
+  async function deleteProfile(formData: FormData) {
+    "use server";
+
+    await requireAdmin();
+    const profileId = String(formData.get("id") || "");
+    const profileSlug = slugify(String(formData.get("slug") || ""));
+
+    if (!profileId) {
+      return;
+    }
+
+    const supabase = createSupabaseAdmin();
+    const { count } = await supabase.from("booking_profiles").select("id", { count: "exact", head: true });
+
+    if ((count || 0) <= 1) {
+      return;
+    }
+
+    await supabase
+      .from("booking_types")
+      .update({
+        is_active: false,
+        updated_at: new Date().toISOString()
+      })
+      .eq("profile_id", profileId);
+
+    await supabase.from("booking_profiles").delete().eq("id", profileId);
+
+    revalidatePath("/admin/profiles");
+    revalidatePath("/admin/settings");
+    revalidatePath("/book");
+    if (profileSlug) {
+      revalidatePath(`/book/profile/${profileSlug}`);
+    }
+  }
+
   async function saveProfileTemplate(formData: FormData) {
     "use server";
 
@@ -253,12 +290,14 @@ export default async function AdminProfilesPage() {
             key={profile.id}
             action={saveProfile}
             duplicateAction={duplicateProfile}
+            deleteProfileAction={deleteProfile}
             saveTemplateAction={saveProfileTemplate}
             deleteTemplateAction={deleteProfileTemplate}
             profile={profile}
             savedTemplates={profileTemplates || []}
             siteUrl={siteUrl}
             canCreateMoreProfiles={canCreateMoreProfiles}
+            canDeleteProfile={profileCount > 1}
           />
         ))}
         {canCreateMoreProfiles ? (
@@ -269,6 +308,7 @@ export default async function AdminProfilesPage() {
             savedTemplates={profileTemplates || []}
             siteUrl={siteUrl}
             canCreateMoreProfiles={canCreateMoreProfiles}
+            canDeleteProfile={false}
           />
         ) : null}
       </ProfileTabs>
@@ -279,21 +319,25 @@ export default async function AdminProfilesPage() {
 function ProfileForm({
   action,
   duplicateAction,
+  deleteProfileAction,
   saveTemplateAction,
   deleteTemplateAction,
   profile,
   savedTemplates,
   siteUrl,
-  canCreateMoreProfiles
+  canCreateMoreProfiles,
+  canDeleteProfile
 }: {
   action: (formData: FormData) => Promise<void>;
   duplicateAction?: (formData: FormData) => Promise<void>;
+  deleteProfileAction?: (formData: FormData) => Promise<void>;
   saveTemplateAction: (formData: FormData) => Promise<void>;
   deleteTemplateAction: (formData: FormData) => Promise<void>;
   profile?: BookingProfile;
   savedTemplates: BookingProfileTemplate[];
   siteUrl: string;
   canCreateMoreProfiles: boolean;
+  canDeleteProfile: boolean;
 }) {
   const slug = profile?.slug || "";
   const publicPath = slug === defaultBookingProfile.slug || !slug ? "/book" : `/book/profile/${slug}`;
@@ -446,19 +490,20 @@ function ProfileForm({
       </div>
 
       <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        {profile && duplicateAction && canCreateMoreProfiles ? (
-          <button
-            formAction={duplicateAction}
-            className="rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-brand-500 hover:text-brand-700"
-            type="submit"
-          >
-            Profil duplizieren
-          </button>
-        ) : profile && duplicateAction ? (
-          <p className="text-sm text-slate-500">Duplizieren ist ab {MAX_PROFILES} Profilen nicht verfügbar.</p>
-        ) : (
-          <span />
-        )}
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+          {profile && duplicateAction && canCreateMoreProfiles ? (
+            <button
+              formAction={duplicateAction}
+              className="rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-brand-500 hover:text-brand-700"
+              type="submit"
+            >
+              Profil duplizieren
+            </button>
+          ) : profile && duplicateAction ? (
+            <p className="text-sm text-slate-500">Duplizieren ist ab {MAX_PROFILES} Profilen nicht verfügbar.</p>
+          ) : null}
+          {profile && deleteProfileAction && canDeleteProfile ? <DeleteProfileButton action={deleteProfileAction} profileName={profile.name} /> : null}
+        </div>
         <button className="rounded-md bg-brand-500 px-4 py-2 text-sm font-semibold text-white" type="submit">
           {profile ? "Profil speichern" : "Profil anlegen"}
         </button>
