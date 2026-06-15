@@ -9,6 +9,7 @@ type ProfileTemplateOption = {
   id: string;
   name: string;
   description: string;
+  details: string;
   data: ProfileTemplateData;
   kind: "standard" | "saved";
 };
@@ -17,7 +18,8 @@ const standardTemplates: ProfileTemplateOption[] = [
   {
     id: "standard-consulting",
     name: "Beratung Professional",
-    description: "Klarer Standard für Beratung, Erstgespräche und Dienstleistungsprofile.",
+    description: "Strukturierte Standardvorlage für Beratung, Erstgespräche und Dienstleistungsprofile.",
+    details: "Übernimmt Texte, sichtbare Kontaktfelder, Icon-Reihenfolge, Rechtliches und Farben.",
     kind: "standard",
     data: {
       preheadline: "Terminplanung",
@@ -49,7 +51,8 @@ const standardTemplates: ProfileTemplateOption[] = [
   {
     id: "standard-compact",
     name: "Kompakt Premium",
-    description: "Reduzierte Darstellung mit ruhiger Farbwirkung und weniger Kontaktkanälen.",
+    description: "Reduzierte Vorlage mit ruhiger Darstellung, weniger Kontaktkanälen und hochwertiger Farbwirkung.",
+    details: "Übernimmt Texte, reduzierte Kontaktanzeige, Icon-Reihenfolge, Rechtliches und Farben.",
     kind: "standard",
     data: {
       preheadline: "Online buchbar",
@@ -96,7 +99,8 @@ export function ProfileTemplateControls({
     ...savedTemplates.map((template) => ({
       id: template.id,
       name: template.name,
-      description: "Eigene gespeicherte Vorlage aus einem bestehenden Profil.",
+      description: "Eigene Vorlage, die aus einem bereits eingerichteten Profil gespeichert wurde.",
+      details: "Übernimmt die gespeicherten Profiltexte, Sichtbarkeiten, Kontakticons, Rechtliches und Farben.",
       kind: "saved" as const,
       data: template.template_data
     }))
@@ -114,7 +118,8 @@ export function ProfileTemplateControls({
       <legend className="px-1 text-sm font-semibold text-slate-800">Profilvorlagen</legend>
       <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
         <p className="max-w-2xl text-sm leading-6 text-slate-600">
-          Nutzen Sie eine Standardvorlage oder speichern Sie das aktuelle Profil als eigene Vorlage. Profilname und Slug bleiben beim Übernehmen unverändert.
+          Profilvorlagen füllen ein Profil mit einer bewährten Grundkonfiguration. Übernommen werden Texte, Sichtbarkeiten, Kontakticons, Rechtliches und
+          Farbwerte einschließlich Primärfarbe, Profilkarten-Hintergrund und Terminauswahlkarten. Profilname und Slug bleiben beim Übernehmen unverändert.
         </p>
         <button
           formAction={saveAction}
@@ -122,9 +127,12 @@ export function ProfileTemplateControls({
           type="submit"
           className="inline-flex justify-center rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition hover:border-brand-500 hover:text-brand-700"
         >
-          Als Standardvorlage speichern
+          Als eigene Vorlage speichern
         </button>
       </div>
+      <p className="mt-2 text-xs leading-5 text-slate-500">
+        Angezeigt werden maximal vier Vorlagen: zwei feste Standardvorlagen und bis zu zwei eigene gespeicherte Vorlagen.
+      </p>
       <div className="mt-3 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
         {templates.map((template) => (
           <div
@@ -155,7 +163,13 @@ export function ProfileTemplateControls({
                   </span>
                 </span>
               </span>
-              <span className="mt-1 block text-xs leading-5 text-slate-500">{template.description}</span>
+              <span className="mt-2 block text-xs leading-5 text-slate-500">{template.description}</span>
+              <span className="mt-2 block text-xs leading-5 text-slate-500">{template.details}</span>
+              <span className="mt-3 flex flex-wrap items-center gap-2 text-[11px] font-semibold text-slate-500">
+                <TemplateColorDot color={String(template.data.primary_color || "#527DF6")} label="Primärfarbe" />
+                <TemplateColorDot color={String(template.data.profile_card_bg_color || "#F8FAFC")} label="Profilkarte" />
+                <TemplateColorDot color={String(template.data.booking_card_bg_color || "#FFFFFF")} label="Terminkarten" />
+              </span>
             </button>
             {template.kind === "saved" ? (
               <button
@@ -195,6 +209,15 @@ function normalizeTemplateValue(value: ProfileTemplateData[string]) {
   }
 
   return String(value).trim();
+}
+
+function TemplateColorDot({ color, label }: { color: string; label: string }) {
+  return (
+    <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-50 px-2 py-1 ring-1 ring-slate-200">
+      <span className="h-2.5 w-2.5 rounded-full ring-1 ring-slate-200" style={{ backgroundColor: color }} />
+      {label}
+    </span>
+  );
 }
 
 function CheckIcon() {
