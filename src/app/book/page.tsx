@@ -13,7 +13,7 @@ import {
   Sparkles,
   Video
 } from "lucide-react";
-import { FacebookIcon, InstagramIcon, LinkedInIcon, XIcon, XingIcon, YouTubeIcon } from "@/components/brand-icons";
+import { FacebookIcon, InstagramIcon, LinkedInIcon, SpotifyIcon, XIcon, XingIcon, YouTubeIcon } from "@/components/brand-icons";
 import { hasSupabaseConfig, missingSupabaseKeys } from "@/lib/config";
 import { defaultBookingProfile, getBookingProfile } from "@/lib/profiles";
 import { seedBookingTypes } from "@/lib/seed-data";
@@ -60,6 +60,7 @@ function getContactLinks(profile: BookingProfile) {
     profile.show_instagram !== false && profile.instagram_url ? { href: profile.instagram_url, label: "Instagram", icon: InstagramIcon } : null,
     profile.show_facebook !== false && profile.facebook_url ? { href: profile.facebook_url, label: "Facebook", icon: FacebookIcon } : null,
     profile.show_youtube !== false && profile.youtube_url ? { href: profile.youtube_url, label: "YouTube", icon: YouTubeIcon } : null,
+    profile.show_spotify !== false && profile.spotify_url ? { href: profile.spotify_url, label: "Spotify", icon: SpotifyIcon } : null,
     profile.show_contact_email !== false && profile.contact_email ? { href: `mailto:${profile.contact_email}`, label: "E-Mail", icon: Mail } : null,
     profile.show_website !== false && profile.website_url ? { href: profile.website_url, label: "Website", icon: Globe2 } : null,
     profile.show_contact_phone !== false && profile.contact_phone ? { href: `tel:${profile.contact_phone.replace(/\s+/g, "")}`, label: "Mobil anrufen", icon: Phone } : null

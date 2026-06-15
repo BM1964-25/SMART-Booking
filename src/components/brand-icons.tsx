@@ -45,3 +45,11 @@ export function YouTubeIcon({ className }: { className?: string }) {
     </svg>
   );
 }
+
+export function SpotifyIcon({ className }: { className?: string }) {
+  return (
+    <svg aria-hidden="true" viewBox="0 0 24 24" className={className} fill="currentColor">
+      <path d="M12 0a12 12 0 1 0 0 24 12 12 0 0 0 0-24Zm5.51 17.3a.75.75 0 0 1-1.03.25c-2.84-1.73-6.41-2.12-10.62-1.16a.76.76 0 0 1-.34-1.48c4.62-1.06 8.57-.61 11.74 1.33.35.22.47.69.25 1.05Zm1.47-3.27a.95.95 0 0 1-1.31.31c-3.25-2-8.19-2.58-12.02-1.41a.95.95 0 1 1-.55-1.82c4.38-1.33 9.84-.68 13.57 1.61.45.28.59.86.31 1.31Zm.13-3.41C15.22 8.31 8.78 8.09 5.08 9.21a1.14 1.14 0 1 1-.66-2.18c4.25-1.29 11.36-1.04 16.03 1.73a1.14 1.14 0 1 1-1.17 1.96l-.17-.1Z" />
+    </svg>
+  );
+}

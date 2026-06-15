@@ -17,6 +17,7 @@ export const defaultBookingProfile: BookingProfile = {
   instagram_url: null,
   facebook_url: null,
   youtube_url: null,
+  spotify_url: null,
   website_url: "https://www.builtsmart-ai.app",
   secondary_website_url: "https://www.built-smart-hub.com",
   portrait_url: "/bernhard-metzger.jpg",
@@ -38,6 +39,7 @@ export const defaultBookingProfile: BookingProfile = {
   show_instagram: true,
   show_facebook: true,
   show_youtube: true,
+  show_spotify: true,
   show_website: true,
   is_active: true
 };

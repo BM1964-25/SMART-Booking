@@ -3,7 +3,7 @@ import Link from "next/link";
 import type { ComponentType } from "react";
 import { Globe2, Mail, Phone, UserRound } from "lucide-react";
 import { AdminNav } from "@/components/admin-nav";
-import { FacebookIcon, InstagramIcon, LinkedInIcon, XIcon, XingIcon, YouTubeIcon } from "@/components/brand-icons";
+import { FacebookIcon, InstagramIcon, LinkedInIcon, SpotifyIcon, XIcon, XingIcon, YouTubeIcon } from "@/components/brand-icons";
 import { ColorPalettePresets } from "@/components/color-palette-presets";
 import { EmbedCodeOptions } from "@/components/embed-code-options";
 import { ProfileImageEditor } from "@/components/profile-image-editor";
@@ -51,6 +51,7 @@ export default async function AdminProfilesPage() {
       instagram_url: nullableString(formData.get("instagram_url")),
       facebook_url: nullableString(formData.get("facebook_url")),
       youtube_url: nullableString(formData.get("youtube_url")),
+      spotify_url: nullableString(formData.get("spotify_url")),
       website_url: nullableString(formData.get("website_url")),
       secondary_website_url: null,
       portrait_url: removePortrait ? null : uploadedPortraitUrl || nullableString(formData.get("portrait_url")),
@@ -72,6 +73,7 @@ export default async function AdminProfilesPage() {
       show_instagram: formData.get("show_instagram") === "on",
       show_facebook: formData.get("show_facebook") === "on",
       show_youtube: formData.get("show_youtube") === "on",
+      show_spotify: formData.get("show_spotify") === "on",
       show_website: formData.get("show_website") === "on",
       is_active: formData.get("is_active") === "on",
       updated_at: new Date().toISOString()
@@ -124,6 +126,7 @@ export default async function AdminProfilesPage() {
       instagram_url: sourceProfile.instagram_url,
       facebook_url: sourceProfile.facebook_url,
       youtube_url: sourceProfile.youtube_url,
+      spotify_url: sourceProfile.spotify_url,
       website_url: sourceProfile.website_url,
       secondary_website_url: sourceProfile.secondary_website_url,
       portrait_url: sourceProfile.portrait_url,
@@ -145,6 +148,7 @@ export default async function AdminProfilesPage() {
       show_instagram: sourceProfile.show_instagram,
       show_facebook: sourceProfile.show_facebook,
       show_youtube: sourceProfile.show_youtube,
+      show_spotify: sourceProfile.show_spotify,
       show_website: sourceProfile.show_website,
       is_active: false
     });
@@ -275,6 +279,7 @@ function ProfileForm({
             <VisibleField label="Instagram URL" icon={InstagramIcon} name="instagram_url" visibilityName="show_instagram" type="url" defaultValue={profile?.instagram_url || ""} defaultChecked={profile?.show_instagram ?? true} />
             <VisibleField label="Facebook URL" icon={FacebookIcon} name="facebook_url" visibilityName="show_facebook" type="url" defaultValue={profile?.facebook_url || ""} defaultChecked={profile?.show_facebook ?? true} />
             <VisibleField label="YouTube URL" icon={YouTubeIcon} name="youtube_url" visibilityName="show_youtube" type="url" defaultValue={profile?.youtube_url || ""} defaultChecked={profile?.show_youtube ?? true} />
+            <VisibleField label="Spotify URL" icon={SpotifyIcon} name="spotify_url" visibilityName="show_spotify" type="url" defaultValue={profile?.spotify_url || ""} defaultChecked={profile?.show_spotify ?? true} />
           </div>
         </fieldset>
         <ProfileImageEditor
@@ -426,6 +431,7 @@ function buildProfileTemplateData(formData: FormData) {
     instagram_url: nullableString(formData.get("instagram_url")),
     facebook_url: nullableString(formData.get("facebook_url")),
     youtube_url: nullableString(formData.get("youtube_url")),
+    spotify_url: nullableString(formData.get("spotify_url")),
     website_url: nullableString(formData.get("website_url")),
     primary_color: normalizeColor(String(formData.get("primary_color") || "#527DF6")),
     profile_card_bg_color: normalizeColor(String(formData.get("profile_card_bg_color") || "#F8FAFC"), "#F8FAFC"),
@@ -440,6 +446,7 @@ function buildProfileTemplateData(formData: FormData) {
     show_instagram: formData.get("show_instagram") === "on",
     show_facebook: formData.get("show_facebook") === "on",
     show_youtube: formData.get("show_youtube") === "on",
+    show_spotify: formData.get("show_spotify") === "on",
     show_website: formData.get("show_website") === "on"
   };
 }

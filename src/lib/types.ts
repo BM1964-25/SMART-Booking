@@ -28,6 +28,7 @@ export type BookingProfile = {
   instagram_url: string | null;
   facebook_url: string | null;
   youtube_url: string | null;
+  spotify_url: string | null;
   website_url: string | null;
   secondary_website_url: string | null;
   portrait_url: string | null;
@@ -49,6 +50,7 @@ export type BookingProfile = {
   show_instagram: boolean;
   show_facebook: boolean;
   show_youtube: boolean;
+  show_spotify: boolean;
   show_website: boolean;
   is_active: boolean;
 };
