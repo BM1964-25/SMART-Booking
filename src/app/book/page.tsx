@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { FacebookIcon, InstagramIcon, LinkedInIcon, SpotifyIcon, XIcon, XingIcon, YouTubeIcon } from "@/components/brand-icons";
 import { hasSupabaseConfig, missingSupabaseKeys } from "@/lib/config";
+import { ContactIconKey, normalizeContactIconOrder } from "@/lib/contact-icon-order";
 import { defaultBookingProfile, getBookingProfile } from "@/lib/profiles";
 import { seedBookingTypes } from "@/lib/seed-data";
 import { createSupabaseAdmin } from "@/lib/supabase/admin";
@@ -53,18 +54,28 @@ function getTypeIcon(name: string) {
 }
 
 function getContactLinks(profile: BookingProfile) {
-  return [
-    profile.show_linkedin !== false && profile.linkedin_url ? { href: profile.linkedin_url, label: "LinkedIn", icon: LinkedInIcon } : null,
-    profile.show_xing !== false && profile.xing_url ? { href: profile.xing_url, label: "Xing", icon: XingIcon } : null,
-    profile.show_x !== false && profile.x_url ? { href: profile.x_url, label: "X / Twitter", icon: XIcon } : null,
-    profile.show_instagram !== false && profile.instagram_url ? { href: profile.instagram_url, label: "Instagram", icon: InstagramIcon } : null,
-    profile.show_facebook !== false && profile.facebook_url ? { href: profile.facebook_url, label: "Facebook", icon: FacebookIcon } : null,
-    profile.show_youtube !== false && profile.youtube_url ? { href: profile.youtube_url, label: "YouTube", icon: YouTubeIcon } : null,
-    profile.show_spotify !== false && profile.spotify_url ? { href: profile.spotify_url, label: "Spotify", icon: SpotifyIcon } : null,
-    profile.show_contact_email !== false && profile.contact_email ? { href: `mailto:${profile.contact_email}`, label: "E-Mail", icon: Mail } : null,
-    profile.show_website !== false && profile.website_url ? { href: profile.website_url, label: "Website", icon: Globe2 } : null,
-    profile.show_contact_phone !== false && profile.contact_phone ? { href: `tel:${profile.contact_phone.replace(/\s+/g, "")}`, label: "Mobil anrufen", icon: Phone } : null
-  ].filter(Boolean) as Array<{ href: string; label: string; icon: ComponentType<{ className?: string }> }>;
+  if (profile.show_contact_links === false) {
+    return [];
+  }
+
+  const links: Partial<Record<ContactIconKey, { href: string; label: string; icon: ComponentType<{ className?: string }> }>> = {
+    email: profile.show_contact_email !== false && profile.contact_email ? { href: `mailto:${profile.contact_email}`, label: "E-Mail", icon: Mail } : undefined,
+    phone: profile.show_contact_phone !== false && profile.contact_phone ? { href: `tel:${profile.contact_phone.replace(/\s+/g, "")}`, label: "Mobil anrufen", icon: Phone } : undefined,
+    website: profile.show_website !== false && profile.website_url ? { href: profile.website_url, label: "Website", icon: Globe2 } : undefined,
+    linkedin: profile.show_linkedin !== false && profile.linkedin_url ? { href: profile.linkedin_url, label: "LinkedIn", icon: LinkedInIcon } : undefined,
+    xing: profile.show_xing !== false && profile.xing_url ? { href: profile.xing_url, label: "Xing", icon: XingIcon } : undefined,
+    x: profile.show_x !== false && profile.x_url ? { href: profile.x_url, label: "X / Twitter", icon: XIcon } : undefined,
+    instagram: profile.show_instagram !== false && profile.instagram_url ? { href: profile.instagram_url, label: "Instagram", icon: InstagramIcon } : undefined,
+    facebook: profile.show_facebook !== false && profile.facebook_url ? { href: profile.facebook_url, label: "Facebook", icon: FacebookIcon } : undefined,
+    youtube: profile.show_youtube !== false && profile.youtube_url ? { href: profile.youtube_url, label: "YouTube", icon: YouTubeIcon } : undefined,
+    spotify: profile.show_spotify !== false && profile.spotify_url ? { href: profile.spotify_url, label: "Spotify", icon: SpotifyIcon } : undefined
+  };
+
+  return normalizeContactIconOrder(profile.contact_icon_order).map((key) => links[key]).filter(Boolean) as Array<{
+    href: string;
+    label: string;
+    icon: ComponentType<{ className?: string }>;
+  }>;
 }
 
 export default async function BookPage({ searchParams }: { searchParams?: Promise<{ profile?: string }> }) {

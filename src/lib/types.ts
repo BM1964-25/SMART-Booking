@@ -32,6 +32,7 @@ export type BookingProfile = {
   spotify_url: string | null;
   website_url: string | null;
   secondary_website_url: string | null;
+  contact_icon_order: string[] | null;
   portrait_url: string | null;
   primary_color: string;
   profile_card_bg_color: string;
@@ -62,7 +63,7 @@ export type BookingProfile = {
 export type BookingProfileTemplate = {
   id: string;
   name: string;
-  template_data: Record<string, string | number | boolean | null>;
+  template_data: Record<string, string | number | boolean | string[] | null>;
   created_by: string | null;
   created_at: string;
 };

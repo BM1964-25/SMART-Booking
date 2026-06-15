@@ -4,12 +4,14 @@ import type { ComponentType } from "react";
 import { ExternalLink, Globe2, Mail, Phone, UserRound } from "lucide-react";
 import { AdminNav } from "@/components/admin-nav";
 import { FacebookIcon, InstagramIcon, LinkedInIcon, SpotifyIcon, XIcon, XingIcon, YouTubeIcon } from "@/components/brand-icons";
+import { ContactIconOrderEditor } from "@/components/contact-icon-order-editor";
 import { ColorPalettePresets } from "@/components/color-palette-presets";
 import { EmbedCodeOptions } from "@/components/embed-code-options";
 import { ProfileImageEditor } from "@/components/profile-image-editor";
 import { ProfileTabs } from "@/components/profile-tabs";
 import { ProfileTemplateControls } from "@/components/profile-template-controls";
 import { requireAdmin } from "@/lib/admin";
+import { normalizeContactIconOrder } from "@/lib/contact-icon-order";
 import { getEnv } from "@/lib/env";
 import { defaultBookingProfile } from "@/lib/profiles";
 import { createSupabaseAdmin } from "@/lib/supabase/admin";
@@ -58,6 +60,7 @@ export default async function AdminProfilesPage() {
       spotify_url: nullableString(formData.get("spotify_url")),
       website_url: nullableString(formData.get("website_url")),
       secondary_website_url: null,
+      contact_icon_order: normalizeContactIconOrder(formData.get("contact_icon_order")),
       portrait_url: removePortrait ? null : uploadedPortraitUrl || nullableString(formData.get("portrait_url")),
       primary_color: normalizeColor(String(formData.get("primary_color") || "#527DF6")),
       profile_card_bg_color: normalizeColor(String(formData.get("profile_card_bg_color") || "#F8FAFC"), "#F8FAFC"),
@@ -149,6 +152,7 @@ export default async function AdminProfilesPage() {
       spotify_url: sourceProfile.spotify_url,
       website_url: sourceProfile.website_url,
       secondary_website_url: sourceProfile.secondary_website_url,
+      contact_icon_order: normalizeContactIconOrder(sourceProfile.contact_icon_order),
       portrait_url: sourceProfile.portrait_url,
       primary_color: sourceProfile.primary_color,
       profile_card_bg_color: sourceProfile.profile_card_bg_color,
@@ -390,6 +394,7 @@ function ProfileForm({
             <VisibleField label="Spotify URL" icon={SpotifyIcon} name="spotify_url" visibilityName="show_spotify" type="url" defaultValue={profile?.spotify_url || ""} defaultChecked={profile?.show_spotify ?? true} />
           </div>
         </fieldset>
+        <ContactIconOrderEditor order={normalizeContactIconOrder(profile?.contact_icon_order)} />
         <ProfileImageEditor
           portraitUrl={profile?.portrait_url || ""}
           positionX={profile?.portrait_position_x ?? 50}
@@ -572,6 +577,7 @@ function buildProfileTemplateData(formData: FormData) {
     youtube_url: nullableString(formData.get("youtube_url")),
     spotify_url: nullableString(formData.get("spotify_url")),
     website_url: nullableString(formData.get("website_url")),
+    contact_icon_order: normalizeContactIconOrder(formData.get("contact_icon_order")),
     primary_color: normalizeColor(String(formData.get("primary_color") || "#527DF6")),
     profile_card_bg_color: normalizeColor(String(formData.get("profile_card_bg_color") || "#F8FAFC"), "#F8FAFC"),
     booking_card_bg_color: normalizeColor(String(formData.get("booking_card_bg_color") || "#FFFFFF"), "#FFFFFF"),
@@ -609,6 +615,7 @@ function buildProfileTemplateDataFromProfile(profile: BookingProfile) {
     youtube_url: profile.youtube_url,
     spotify_url: profile.spotify_url,
     website_url: profile.website_url,
+    contact_icon_order: normalizeContactIconOrder(profile.contact_icon_order),
     primary_color: profile.primary_color,
     profile_card_bg_color: profile.profile_card_bg_color,
     booking_card_bg_color: profile.booking_card_bg_color,

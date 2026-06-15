@@ -1,8 +1,9 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { defaultContactIconOrder } from "@/lib/contact-icon-order";
 
-type ProfileTemplateData = Record<string, string | number | boolean | null>;
+type ProfileTemplateData = Record<string, string | number | boolean | string[] | null>;
 
 type ProfileTemplateOption = {
   id: string;
@@ -38,6 +39,7 @@ const standardTemplates: ProfileTemplateOption[] = [
       show_facebook: false,
       show_youtube: false,
       show_spotify: false,
+      contact_icon_order: [...defaultContactIconOrder],
       show_legal_privacy: true,
       show_legal_imprint: true
     }
@@ -67,6 +69,7 @@ const standardTemplates: ProfileTemplateOption[] = [
       show_facebook: false,
       show_youtube: false,
       show_spotify: false,
+      contact_icon_order: ["email", "website", "linkedin", "phone", "xing", "x", "instagram", "facebook", "youtube", "spotify"],
       show_legal_privacy: true,
       show_legal_imprint: true
     }
@@ -183,6 +186,10 @@ function normalizeTemplateValue(value: ProfileTemplateData[string]) {
     return "";
   }
 
+  if (Array.isArray(value)) {
+    return JSON.stringify(value);
+  }
+
   return String(value).trim();
 }
 
@@ -225,7 +232,7 @@ function applyTemplate(button: HTMLButtonElement, data: ProfileTemplateData) {
     }
 
     if (field instanceof HTMLInputElement || field instanceof HTMLTextAreaElement) {
-      field.value = value == null ? "" : String(value);
+      field.value = value == null ? "" : Array.isArray(value) ? JSON.stringify(value) : String(value);
       field.dispatchEvent(new Event("input", { bubbles: true }));
       field.dispatchEvent(new Event("change", { bubbles: true }));
     }

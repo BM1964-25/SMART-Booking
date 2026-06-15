@@ -21,6 +21,7 @@ export const defaultBookingProfile: BookingProfile = {
   spotify_url: null,
   website_url: "https://www.builtsmart-ai.app",
   secondary_website_url: "https://www.built-smart-hub.com",
+  contact_icon_order: ["email", "phone", "website", "linkedin", "xing", "x", "instagram", "facebook", "youtube", "spotify"],
   portrait_url: "/bernhard-metzger.jpg",
   primary_color: "#527DF6",
   profile_card_bg_color: "#F8FAFC",
