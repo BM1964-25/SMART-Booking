@@ -253,7 +253,6 @@ export default async function BookPage({ searchParams }: { searchParams?: Promis
       </p>
       {legalLinks.length > 0 ? (
         <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-slate-500">
-          <span className="font-medium text-slate-600">Rechtliches</span>
           {legalLinks.map((link, index) => (
             <span key={link.href} className="inline-flex items-center gap-3">
               {index > 0 ? <span className="text-slate-300">|</span> : null}
