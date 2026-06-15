@@ -69,6 +69,7 @@ export default async function AdminProfilesPage() {
       primary_color: normalizeColor(String(formData.get("primary_color") || "#527DF6")),
       profile_card_bg_color: normalizeColor(String(formData.get("profile_card_bg_color") || "#F8FAFC"), "#F8FAFC"),
       booking_card_bg_color: normalizeColor(String(formData.get("booking_card_bg_color") || "#FFFFFF"), "#FFFFFF"),
+      profile_layout: normalizeProfileLayout(formData.get("profile_layout")),
       portrait_position_x: clampNumber(formData.get("portrait_position_x"), 0, 100, 50),
       portrait_position_y: clampNumber(formData.get("portrait_position_y"), 0, 100, 35),
       portrait_zoom: clampNumber(formData.get("portrait_zoom"), 1, 1.8, 1),
@@ -163,6 +164,7 @@ export default async function AdminProfilesPage() {
       primary_color: sourceProfile.primary_color,
       profile_card_bg_color: sourceProfile.profile_card_bg_color,
       booking_card_bg_color: sourceProfile.booking_card_bg_color,
+      profile_layout: sourceProfile.profile_layout || "split",
       portrait_position_x: sourceProfile.portrait_position_x,
       portrait_position_y: sourceProfile.portrait_position_y,
       portrait_zoom: sourceProfile.portrait_zoom,
@@ -400,6 +402,40 @@ function ProfileForm({
         <div className="sm:col-span-2 lg:col-span-3">
           <Field label="Headline" name="headline" defaultValue={profile?.headline || "Termin buchen"} required />
         </div>
+        <fieldset className="rounded-md border border-slate-200 bg-slate-50 p-3 sm:col-span-2 lg:col-span-3">
+          <legend className="px-1 text-sm font-semibold text-slate-800">Profilansicht</legend>
+          <p className="mt-1 text-xs leading-5 text-slate-500">
+            Wählen Sie, wie der obere Bereich der öffentlichen Buchungsseite dargestellt wird.
+          </p>
+          <div className="mt-3 grid gap-3 md:grid-cols-2">
+            <label className="flex cursor-pointer gap-3 rounded-md border border-slate-200 bg-white p-3 text-sm text-slate-700 has-[:checked]:border-brand-500 has-[:checked]:ring-1 has-[:checked]:ring-brand-500">
+              <input
+                name="profile_layout"
+                type="radio"
+                value="split"
+                defaultChecked={(profile?.profile_layout || "split") !== "centered"}
+                className="mt-1 h-4 w-4 border-slate-300 text-brand-600"
+              />
+              <span>
+                <span className="block font-semibold text-slate-950">Klassisch geteilt</span>
+                <span className="mt-1 block text-xs leading-5 text-slate-500">Text links, Profilkarte rechts. Gut für sachliche Beratungsseiten.</span>
+              </span>
+            </label>
+            <label className="flex cursor-pointer gap-3 rounded-md border border-slate-200 bg-white p-3 text-sm text-slate-700 has-[:checked]:border-brand-500 has-[:checked]:ring-1 has-[:checked]:ring-brand-500">
+              <input
+                name="profile_layout"
+                type="radio"
+                value="centered"
+                defaultChecked={profile?.profile_layout === "centered"}
+                className="mt-1 h-4 w-4 border-slate-300 text-brand-600"
+              />
+              <span>
+                <span className="block font-semibold text-slate-950">Zentriert</span>
+                <span className="mt-1 block text-xs leading-5 text-slate-500">Headline, Profilkarte und Kontakticons stehen mittig und ruhiger im Fokus.</span>
+              </span>
+            </label>
+          </div>
+        </fieldset>
         <label className="block sm:col-span-2 lg:col-span-3">
           <span className="flex items-center justify-between gap-3 text-sm font-medium text-slate-700">
             Subheadline
@@ -648,6 +684,7 @@ function buildProfileTemplateData(formData: FormData) {
     primary_color: normalizeColor(String(formData.get("primary_color") || "#527DF6")),
     profile_card_bg_color: normalizeColor(String(formData.get("profile_card_bg_color") || "#F8FAFC"), "#F8FAFC"),
     booking_card_bg_color: normalizeColor(String(formData.get("booking_card_bg_color") || "#FFFFFF"), "#FFFFFF"),
+    profile_layout: normalizeProfileLayout(formData.get("profile_layout")),
     show_preheadline: formData.get("show_preheadline") === "on",
     show_subheadline: formData.get("show_subheadline") === "on",
     show_contact_name: formData.get("show_contact_name") === "on",
@@ -688,6 +725,7 @@ function buildProfileTemplateDataFromProfile(profile: BookingProfile) {
     primary_color: profile.primary_color,
     profile_card_bg_color: profile.profile_card_bg_color,
     booking_card_bg_color: profile.booking_card_bg_color,
+    profile_layout: profile.profile_layout || "split",
     show_preheadline: profile.show_preheadline,
     show_subheadline: profile.show_subheadline,
     show_contact_name: profile.show_contact_name,
@@ -723,6 +761,10 @@ function slugify(value: string) {
 function normalizeColor(value: string, fallback = "#527DF6") {
   const color = String(value || "").trim();
   return /^#[0-9a-fA-F]{6}$/.test(color) ? color : fallback;
+}
+
+function normalizeProfileLayout(value: FormDataEntryValue | string | null | undefined) {
+  return String(value || "") === "centered" ? "centered" : "split";
 }
 
 function clampNumber(value: FormDataEntryValue | null, min: number, max: number, fallback: number) {

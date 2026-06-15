@@ -37,6 +37,7 @@ export type BookingProfile = {
   primary_color: string;
   profile_card_bg_color: string;
   booking_card_bg_color: string;
+  profile_layout: "split" | "centered" | string | null;
   portrait_position_x: number;
   portrait_position_y: number;
   portrait_zoom: number;

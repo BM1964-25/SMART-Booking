@@ -98,12 +98,14 @@ export default async function BookPage({ searchParams }: { searchParams?: Promis
   const showSubheadline = profile.show_subheadline !== false;
   const showContactName = profile.show_contact_name !== false;
   const preheadline = profile.preheadline || "SMART Booking";
+  const isCenteredLayout = profile.profile_layout === "centered";
   const legalLinks = [
     profile.show_legal_privacy !== false ? { href: profile.legal_privacy_url || defaultPrivacyUrl, label: "Datenschutz" } : null,
     profile.show_legal_imprint !== false ? { href: profile.legal_imprint_url || defaultImprintUrl, label: "Impressum" } : null
   ].filter(Boolean) as Array<{ href: string; label: string }>;
   const profileQuery = profile.slug === defaultBookingProfile.slug ? "" : `?profile=${encodeURIComponent(profile.slug)}`;
   const contactLinks = getContactLinks(profile);
+  const hasContactCard = (showContactName && profile.contact_name) || (showPortrait && profile.portrait_url) || contactLinks.length > 0;
   let types: BookingType[] = seedBookingTypes;
   const isConfigured = hasSupabaseConfig();
 
@@ -136,22 +138,29 @@ export default async function BookPage({ searchParams }: { searchParams?: Promis
       ) : null}
       <div className="overflow-hidden rounded-lg border border-slate-200 bg-white shadow-sm">
         <div className="border-t-4 px-5 py-7 md:px-8 md:py-9" style={{ borderTopColor: primaryColor }}>
-          <div className="flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
-            <div className="max-w-3xl">
-              <div className="flex flex-wrap items-center gap-3">
+          <div className={isCenteredLayout ? "flex flex-col items-center gap-7 text-center" : "flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between"}>
+            <div className={isCenteredLayout ? "mx-auto max-w-4xl" : "max-w-3xl"}>
+              <div className={isCenteredLayout ? "flex flex-wrap items-center justify-center gap-3" : "flex flex-wrap items-center gap-3"}>
                 {showPreheadline && preheadline ? (
                   <p className="text-sm font-semibold uppercase" style={{ color: primaryColor }}>
                     {preheadline}
                   </p>
                 ) : null}
               </div>
-              <h1 className="mt-4 max-w-3xl text-4xl font-semibold tracking-normal text-slate-950 md:text-5xl">
+              <h1 className={isCenteredLayout ? "mx-auto mt-4 max-w-4xl text-4xl font-semibold tracking-normal text-slate-950 md:text-5xl" : "mt-4 max-w-3xl text-4xl font-semibold tracking-normal text-slate-950 md:text-5xl"}>
                 {profile.headline}
               </h1>
-              {showSubheadline ? <p className="mt-5 max-w-2xl text-base leading-7 text-slate-600">{profile.subheadline}</p> : null}
+              {showSubheadline ? (
+                <p className={isCenteredLayout ? "mx-auto mt-5 max-w-3xl text-base leading-7 text-slate-600" : "mt-5 max-w-2xl text-base leading-7 text-slate-600"}>
+                  {profile.subheadline}
+                </p>
+              ) : null}
             </div>
-            {(showContactName && profile.contact_name) || (showPortrait && profile.portrait_url) || contactLinks.length > 0 ? (
-              <div className="rounded-lg p-5 text-center ring-1 ring-slate-200 lg:w-80" style={{ backgroundColor: profileCardBgColor }}>
+            {hasContactCard ? (
+              <div
+                className={isCenteredLayout ? "w-full max-w-2xl rounded-lg p-5 text-center ring-1 ring-slate-200" : "rounded-lg p-5 text-center ring-1 ring-slate-200 lg:w-80"}
+                style={{ backgroundColor: profileCardBgColor }}
+              >
                 {showPortrait && profile.portrait_url ? (
                   <div className="mx-auto h-28 w-28 overflow-hidden rounded-full border-4 border-white bg-slate-100 shadow-sm ring-1 ring-slate-200">
                     <img

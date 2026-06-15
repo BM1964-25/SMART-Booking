@@ -26,6 +26,7 @@ export const defaultBookingProfile: BookingProfile = {
   primary_color: "#527DF6",
   profile_card_bg_color: "#F8FAFC",
   booking_card_bg_color: "#FFFFFF",
+  profile_layout: "split",
   portrait_position_x: 50,
   portrait_position_y: 35,
   portrait_zoom: 1,
