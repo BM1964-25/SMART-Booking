@@ -43,6 +43,7 @@ export default async function AdminProfilesPage() {
     const payload = {
       slug: slugify(String(formData.get("slug") || "")),
       name: String(formData.get("name") || "").trim(),
+      preheadline: nullableString(formData.get("preheadline")),
       headline: String(formData.get("headline") || "").trim(),
       subheadline: String(formData.get("subheadline") || "").trim(),
       contact_name: nullableString(formData.get("contact_name")),
@@ -65,6 +66,7 @@ export default async function AdminProfilesPage() {
       portrait_position_y: clampNumber(formData.get("portrait_position_y"), 0, 100, 35),
       portrait_zoom: clampNumber(formData.get("portrait_zoom"), 1, 1.8, 1),
       show_portrait: formData.get("show_portrait") === "on",
+      show_preheadline: formData.get("show_preheadline") === "on",
       show_subheadline: formData.get("show_subheadline") === "on",
       show_contact_links: true,
       show_contact_name: formData.get("show_contact_name") === "on",
@@ -130,6 +132,7 @@ export default async function AdminProfilesPage() {
     await supabase.from("booking_profiles").insert({
       slug: nextSlug,
       name: `${sourceProfile.name} Kopie`,
+      preheadline: sourceProfile.preheadline || "SMART Booking",
       headline: sourceProfile.headline,
       subheadline: sourceProfile.subheadline,
       contact_name: sourceProfile.contact_name,
@@ -152,6 +155,7 @@ export default async function AdminProfilesPage() {
       portrait_position_y: sourceProfile.portrait_position_y,
       portrait_zoom: sourceProfile.portrait_zoom,
       show_portrait: sourceProfile.show_portrait,
+      show_preheadline: sourceProfile.show_preheadline ?? true,
       show_subheadline: sourceProfile.show_subheadline,
       show_contact_links: true,
       show_contact_name: sourceProfile.show_contact_name,
@@ -314,6 +318,21 @@ function ProfileForm({
             eindeutig und ohne Leerzeichen sein. Verwenden Sie Kleinbuchstaben, Zahlen und Bindestriche.
           </p>
         </div>
+        <label className="block sm:col-span-2 lg:col-span-3">
+          <span className="flex items-center justify-between gap-3 text-sm font-medium text-slate-700">
+            Pre-Headline
+            <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500">
+              <input name="show_preheadline" type="checkbox" defaultChecked={profile?.show_preheadline ?? true} className="h-3.5 w-3.5 rounded border-slate-300 text-brand-600" />
+              Anzeigen
+            </span>
+          </span>
+          <input
+            name="preheadline"
+            type="text"
+            defaultValue={profile?.preheadline || "SMART Booking"}
+            className="mt-2 w-full rounded-md border border-slate-300 px-3 py-2 text-sm font-semibold uppercase tracking-wide focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+          />
+        </label>
         <div className="sm:col-span-2 lg:col-span-3">
           <Field label="Headline" name="headline" defaultValue={profile?.headline || "Termin buchen"} required />
         </div>
@@ -489,6 +508,7 @@ function nullableString(value: FormDataEntryValue | null) {
 
 function buildProfileTemplateData(formData: FormData) {
   return {
+    preheadline: nullableString(formData.get("preheadline")),
     headline: String(formData.get("headline") || "").trim(),
     subheadline: String(formData.get("subheadline") || "").trim(),
     contact_name: nullableString(formData.get("contact_name")),
@@ -505,6 +525,7 @@ function buildProfileTemplateData(formData: FormData) {
     primary_color: normalizeColor(String(formData.get("primary_color") || "#527DF6")),
     profile_card_bg_color: normalizeColor(String(formData.get("profile_card_bg_color") || "#F8FAFC"), "#F8FAFC"),
     booking_card_bg_color: normalizeColor(String(formData.get("booking_card_bg_color") || "#FFFFFF"), "#FFFFFF"),
+    show_preheadline: formData.get("show_preheadline") === "on",
     show_subheadline: formData.get("show_subheadline") === "on",
     show_contact_name: formData.get("show_contact_name") === "on",
     show_contact_email: formData.get("show_contact_email") === "on",
@@ -522,6 +543,7 @@ function buildProfileTemplateData(formData: FormData) {
 
 function buildProfileTemplateDataFromProfile(profile: BookingProfile) {
   return {
+    preheadline: profile.preheadline,
     headline: profile.headline,
     subheadline: profile.subheadline,
     contact_name: profile.contact_name,
@@ -538,6 +560,7 @@ function buildProfileTemplateDataFromProfile(profile: BookingProfile) {
     primary_color: profile.primary_color,
     profile_card_bg_color: profile.profile_card_bg_color,
     booking_card_bg_color: profile.booking_card_bg_color,
+    show_preheadline: profile.show_preheadline,
     show_subheadline: profile.show_subheadline,
     show_contact_name: profile.show_contact_name,
     show_contact_email: profile.show_contact_email,

@@ -17,6 +17,7 @@ export type BookingProfile = {
   id: string;
   slug: string;
   name: string;
+  preheadline: string | null;
   headline: string;
   subheadline: string;
   contact_name: string | null;
@@ -39,6 +40,7 @@ export type BookingProfile = {
   portrait_position_y: number;
   portrait_zoom: number;
   show_portrait: boolean;
+  show_preheadline: boolean;
   show_subheadline: boolean;
   show_contact_links: boolean;
   show_contact_name: boolean;

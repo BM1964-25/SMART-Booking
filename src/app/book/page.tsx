@@ -77,8 +77,10 @@ export default async function BookPage({ searchParams }: { searchParams?: Promis
   const portraitPositionY = clampNumber(profile.portrait_position_y, 0, 100, 35);
   const portraitZoom = clampNumber(profile.portrait_zoom, 1, 1.8, 1);
   const showPortrait = profile.show_portrait !== false;
+  const showPreheadline = profile.show_preheadline !== false;
   const showSubheadline = profile.show_subheadline !== false;
   const showContactName = profile.show_contact_name !== false;
+  const preheadline = profile.preheadline || "SMART Booking";
   const profileQuery = profile.slug === defaultBookingProfile.slug ? "" : `?profile=${encodeURIComponent(profile.slug)}`;
   const contactLinks = getContactLinks(profile);
   let types: BookingType[] = seedBookingTypes;
@@ -109,9 +111,11 @@ export default async function BookPage({ searchParams }: { searchParams?: Promis
           <div className="flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
             <div className="max-w-3xl">
               <div className="flex flex-wrap items-center gap-3">
-                <p className="text-sm font-semibold uppercase" style={{ color: primaryColor }}>
-                  SMART Booking
-                </p>
+                {showPreheadline && preheadline ? (
+                  <p className="text-sm font-semibold uppercase" style={{ color: primaryColor }}>
+                    {preheadline}
+                  </p>
+                ) : null}
                 <span className="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
                   <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
                   Online buchbar
