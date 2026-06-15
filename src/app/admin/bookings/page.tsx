@@ -121,11 +121,7 @@ export default async function AdminBookingsPage() {
                 <td className="px-4 py-3">
                   <p>{booking.company}</p>
                   <p className="text-slate-500">{getMeetingLocationLabel(booking.meeting_location)}</p>
-                  {booking.meeting_url ? (
-                    <a href={booking.meeting_url} target="_blank" rel="noreferrer" className="mt-1 inline-flex text-xs font-semibold text-brand-600 hover:text-brand-700">
-                      Meeting-Link öffnen
-                    </a>
-                  ) : null}
+                  <MeetingDetails meetingLocation={booking.meeting_location} meetingUrl={booking.meeting_url} phone={booking.phone} />
                 </td>
                 <td className="px-4 py-3">
                   <StatusBadge status={booking.status} />
@@ -152,4 +148,46 @@ function StatusBadge({ status }: { status: string }) {
   }
 
   return <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600">Storniert</span>;
+}
+
+function MeetingDetails({ meetingLocation, meetingUrl, phone }: { meetingLocation: string; meetingUrl: string | null; phone: string | null }) {
+  if (meetingLocation === "zoom") {
+    return meetingUrl ? (
+      <a
+        href={meetingUrl}
+        target="_blank"
+        rel="noreferrer"
+        className="mt-1 block max-w-xs break-all text-xs font-semibold text-brand-600 hover:text-brand-700"
+      >
+        {meetingUrl}
+      </a>
+    ) : (
+      <p className="mt-1 text-xs text-slate-400">Kein Zoom-Link gespeichert</p>
+    );
+  }
+
+  if (meetingLocation === "phone") {
+    return phone ? (
+      <a href={`tel:${phone.replace(/\s+/g, "")}`} className="mt-1 inline-flex text-xs font-semibold text-brand-600 hover:text-brand-700">
+        {phone}
+      </a>
+    ) : (
+      <p className="mt-1 text-xs text-slate-400">Keine Telefonnummer gespeichert</p>
+    );
+  }
+
+  if (meetingUrl) {
+    return (
+      <a
+        href={meetingUrl}
+        target="_blank"
+        rel="noreferrer"
+        className="mt-1 block max-w-xs break-all text-xs font-semibold text-brand-600 hover:text-brand-700"
+      >
+        {meetingUrl}
+      </a>
+    );
+  }
+
+  return null;
 }
