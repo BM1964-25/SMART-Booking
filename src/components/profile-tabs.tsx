@@ -6,7 +6,8 @@ type ProfileTab = {
   id: string;
   name: string;
   slug: string;
-  isActive: boolean;
+  isActive?: boolean;
+  isCreate?: boolean;
 };
 
 export function ProfileTabs({ profiles, children }: { profiles: ProfileTab[]; children: ReactNode }) {
@@ -20,7 +21,7 @@ export function ProfileTabs({ profiles, children }: { profiles: ProfileTab[]; ch
   if (profiles.length === 0) {
     return (
       <div className="mt-8 rounded-lg border border-slate-200 bg-white p-5 text-sm text-slate-600 shadow-sm">
-        Noch kein Profil angelegt. Öffnen Sie unten „Neues Profil anlegen“, um das erste Profil zu erstellen.
+        Noch kein Profil angelegt. Nutzen Sie den Tab „Neues Profil anlegen“, um das erste Profil zu erstellen.
       </div>
     );
   }
@@ -42,8 +43,11 @@ export function ProfileTabs({ profiles, children }: { profiles: ProfileTab[]; ch
                   : "border-transparent bg-transparent text-slate-600 hover:bg-white hover:text-slate-950"
               }`}
             >
+              {profile.isCreate ? <span className="text-base leading-none">+</span> : null}
               <span>{profile.name}</span>
-              <span className={`h-2 w-2 rounded-full ${profile.isActive ? "bg-emerald-500" : "bg-slate-300"}`} aria-label={profile.isActive ? "Aktiv" : "Inaktiv"} />
+              {!profile.isCreate ? (
+                <span className={`h-2 w-2 rounded-full ${profile.isActive ? "bg-emerald-500" : "bg-slate-300"}`} aria-label={profile.isActive ? "Aktiv" : "Inaktiv"} />
+              ) : null}
             </button>
           );
         })}

@@ -182,7 +182,12 @@ export default async function AdminProfilesPage() {
       </p>
       <AdminNav />
 
-      <ProfileTabs profiles={(profiles || []).map((profile) => ({ id: profile.id, name: profile.name, slug: profile.slug, isActive: profile.is_active }))}>
+      <ProfileTabs
+        profiles={[
+          ...(profiles || []).map((profile) => ({ id: profile.id, name: profile.name, slug: profile.slug, isActive: profile.is_active })),
+          { id: "new-profile", name: "Neues Profil anlegen", slug: "", isCreate: true }
+        ]}
+      >
         {(profiles || []).map((profile) => (
           <ProfileForm
             key={profile.id}
@@ -194,14 +199,8 @@ export default async function AdminProfilesPage() {
             siteUrl={siteUrl}
           />
         ))}
+        <ProfileForm action={saveProfile} saveTemplateAction={saveProfileTemplate} savedTemplates={profileTemplates || []} siteUrl={siteUrl} />
       </ProfileTabs>
-
-      <details className="mt-8 rounded-lg border border-dashed border-slate-300 bg-white p-5 shadow-sm">
-        <summary className="cursor-pointer text-sm font-semibold text-slate-800">Neues Profil anlegen</summary>
-        <div className="mt-4">
-          <ProfileForm action={saveProfile} saveTemplateAction={saveProfileTemplate} savedTemplates={profileTemplates || []} siteUrl={siteUrl} />
-        </div>
-      </details>
     </section>
   );
 }
