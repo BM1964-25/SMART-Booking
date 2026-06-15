@@ -35,6 +35,8 @@ const highlights = [
 ];
 
 const workflowSteps = ["Terminart wählen", "Tag und Uhrzeit auswählen", "Daten bestätigen"];
+const defaultPrivacyUrl = "https://www.built-smart-hub.com/datenschutz";
+const defaultImprintUrl = "https://www.built-smart-hub.com/impressum";
 
 function getTypeIcon(name: string) {
   const lowerName = name.toLowerCase();
@@ -96,8 +98,8 @@ export default async function BookPage({ searchParams }: { searchParams?: Promis
   const showContactName = profile.show_contact_name !== false;
   const preheadline = profile.preheadline || "SMART Booking";
   const legalLinks = [
-    profile.show_legal_privacy !== false ? { href: "https://www.built-smart-hub.com/datenschutz", label: "Datenschutz" } : null,
-    profile.show_legal_imprint !== false ? { href: "https://www.built-smart-hub.com/impressum", label: "Impressum" } : null
+    profile.show_legal_privacy !== false ? { href: profile.legal_privacy_url || defaultPrivacyUrl, label: "Datenschutz" } : null,
+    profile.show_legal_imprint !== false ? { href: profile.legal_imprint_url || defaultImprintUrl, label: "Impressum" } : null
   ].filter(Boolean) as Array<{ href: string; label: string }>;
   const profileQuery = profile.slug === defaultBookingProfile.slug ? "" : `?profile=${encodeURIComponent(profile.slug)}`;
   const contactLinks = getContactLinks(profile);

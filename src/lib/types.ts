@@ -57,6 +57,8 @@ export type BookingProfile = {
   show_website: boolean;
   show_legal_privacy: boolean;
   show_legal_imprint: boolean;
+  legal_privacy_url: string | null;
+  legal_imprint_url: string | null;
   is_active: boolean;
 };
 

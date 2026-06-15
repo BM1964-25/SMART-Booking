@@ -46,6 +46,8 @@ export const defaultBookingProfile: BookingProfile = {
   show_website: true,
   show_legal_privacy: true,
   show_legal_imprint: true,
+  legal_privacy_url: "https://www.built-smart-hub.com/datenschutz",
+  legal_imprint_url: "https://www.built-smart-hub.com/impressum",
   is_active: true
 };
 

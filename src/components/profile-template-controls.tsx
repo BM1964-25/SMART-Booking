@@ -41,7 +41,9 @@ const standardTemplates: ProfileTemplateOption[] = [
       show_spotify: false,
       contact_icon_order: [...defaultContactIconOrder],
       show_legal_privacy: true,
-      show_legal_imprint: true
+      show_legal_imprint: true,
+      legal_privacy_url: "https://www.built-smart-hub.com/datenschutz",
+      legal_imprint_url: "https://www.built-smart-hub.com/impressum"
     }
   },
   {
@@ -71,7 +73,9 @@ const standardTemplates: ProfileTemplateOption[] = [
       show_spotify: false,
       contact_icon_order: ["email", "website", "linkedin", "phone", "xing", "x", "instagram", "facebook", "youtube", "spotify"],
       show_legal_privacy: true,
-      show_legal_imprint: true
+      show_legal_imprint: true,
+      legal_privacy_url: "https://www.built-smart-hub.com/datenschutz",
+      legal_imprint_url: "https://www.built-smart-hub.com/impressum"
     }
   }
 ];

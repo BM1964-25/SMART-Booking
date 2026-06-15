@@ -19,6 +19,8 @@ import { BookingProfile, BookingProfileTemplate } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 const MAX_PROFILES = 4;
+const DEFAULT_PRIVACY_URL = "https://www.built-smart-hub.com/datenschutz";
+const DEFAULT_IMPRINT_URL = "https://www.built-smart-hub.com/impressum";
 
 export default async function AdminProfilesPage() {
   await requireAdmin();
@@ -85,6 +87,8 @@ export default async function AdminProfilesPage() {
       show_website: formData.get("show_website") === "on",
       show_legal_privacy: formData.get("show_legal_privacy") === "on",
       show_legal_imprint: formData.get("show_legal_imprint") === "on",
+      legal_privacy_url: nullableString(formData.get("legal_privacy_url")) || DEFAULT_PRIVACY_URL,
+      legal_imprint_url: nullableString(formData.get("legal_imprint_url")) || DEFAULT_IMPRINT_URL,
       is_active: formData.get("is_active") === "on",
       updated_at: new Date().toISOString()
     };
@@ -177,6 +181,8 @@ export default async function AdminProfilesPage() {
       show_website: sourceProfile.show_website,
       show_legal_privacy: sourceProfile.show_legal_privacy ?? true,
       show_legal_imprint: sourceProfile.show_legal_imprint ?? true,
+      legal_privacy_url: sourceProfile.legal_privacy_url || DEFAULT_PRIVACY_URL,
+      legal_imprint_url: sourceProfile.legal_imprint_url || DEFAULT_IMPRINT_URL,
       is_active: false
     });
 
@@ -408,14 +414,18 @@ function ProfileForm({
           <div className="border-b border-slate-200 px-4 py-3">
             <p className="text-sm font-semibold text-slate-950">Rechtliches</p>
           </div>
-          <ToggleRow
-            label="Datenschutzerklärung für alle Benutzer und Teams anzeigen"
+          <LegalLinkField
+            label="Datenschutzerklärung anzeigen"
             name="show_legal_privacy"
+            urlName="legal_privacy_url"
+            defaultUrl={profile?.legal_privacy_url || DEFAULT_PRIVACY_URL}
             defaultChecked={profile?.show_legal_privacy ?? true}
           />
-          <ToggleRow
-            label="Impressum für alle Benutzer und Teams anzeigen"
+          <LegalLinkField
+            label="Impressum anzeigen"
             name="show_legal_imprint"
+            urlName="legal_imprint_url"
+            defaultUrl={profile?.legal_imprint_url || DEFAULT_IMPRINT_URL}
             defaultChecked={profile?.show_legal_imprint ?? true}
           />
         </fieldset>
@@ -523,15 +533,39 @@ function VisibleField({
   );
 }
 
-function ToggleRow({ label, name, defaultChecked }: { label: string; name: string; defaultChecked: boolean }) {
+function LegalLinkField({
+  label,
+  name,
+  urlName,
+  defaultUrl,
+  defaultChecked
+}: {
+  label: string;
+  name: string;
+  urlName: string;
+  defaultUrl: string;
+  defaultChecked: boolean;
+}) {
   return (
-    <label className="flex items-center justify-between gap-4 border-b border-slate-100 px-4 py-4 last:border-b-0">
-      <span className="text-sm text-slate-800">{label}</span>
-      <span className="relative inline-flex h-6 w-11 shrink-0 items-center rounded-full bg-slate-200 transition has-[:checked]:bg-brand-500">
-        <input name={name} type="checkbox" defaultChecked={defaultChecked} className="peer sr-only" />
-        <span className="ml-1 h-4 w-4 rounded-full bg-white shadow transition peer-checked:translate-x-5" />
-      </span>
-    </label>
+    <div className="grid gap-3 border-b border-slate-100 px-4 py-4 last:border-b-0 md:grid-cols-[minmax(220px,0.8fr)_minmax(260px,1.2fr)] md:items-center">
+      <label className="flex items-center justify-between gap-4">
+        <span className="text-sm font-medium text-slate-800">{label}</span>
+        <span className="relative inline-flex h-6 w-11 shrink-0 items-center rounded-full bg-slate-200 transition has-[:checked]:bg-brand-500">
+          <input name={name} type="checkbox" defaultChecked={defaultChecked} className="peer sr-only" />
+          <span className="ml-1 h-4 w-4 rounded-full bg-white shadow transition peer-checked:translate-x-5" />
+        </span>
+      </label>
+      <label className="block">
+        <span className="sr-only">{label} URL</span>
+        <input
+          name={urlName}
+          type="url"
+          defaultValue={defaultUrl}
+          placeholder="https://..."
+          className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+        />
+      </label>
+    </div>
   );
 }
 
@@ -596,7 +630,9 @@ function buildProfileTemplateData(formData: FormData) {
     show_spotify: formData.get("show_spotify") === "on",
     show_website: formData.get("show_website") === "on",
     show_legal_privacy: formData.get("show_legal_privacy") === "on",
-    show_legal_imprint: formData.get("show_legal_imprint") === "on"
+    show_legal_imprint: formData.get("show_legal_imprint") === "on",
+    legal_privacy_url: nullableString(formData.get("legal_privacy_url")) || DEFAULT_PRIVACY_URL,
+    legal_imprint_url: nullableString(formData.get("legal_imprint_url")) || DEFAULT_IMPRINT_URL
   };
 }
 
@@ -634,7 +670,9 @@ function buildProfileTemplateDataFromProfile(profile: BookingProfile) {
     show_spotify: profile.show_spotify,
     show_website: profile.show_website,
     show_legal_privacy: profile.show_legal_privacy,
-    show_legal_imprint: profile.show_legal_imprint
+    show_legal_imprint: profile.show_legal_imprint,
+    legal_privacy_url: profile.legal_privacy_url || DEFAULT_PRIVACY_URL,
+    legal_imprint_url: profile.legal_imprint_url || DEFAULT_IMPRINT_URL
   };
 }
 
