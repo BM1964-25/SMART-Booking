@@ -120,10 +120,6 @@ export default async function BookPage({ searchParams }: { searchParams?: Promis
                     {preheadline}
                   </p>
                 ) : null}
-                <span className="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
-                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                  Online buchbar
-                </span>
               </div>
               <h1 className="mt-4 max-w-3xl text-4xl font-semibold tracking-normal text-slate-950 md:text-5xl">
                 {profile.headline}

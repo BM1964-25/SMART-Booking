@@ -23,13 +23,9 @@ const helpSections: HelpSection[] = [
     id: "access",
     title: "Einrichtung & Zugang",
     body: [
-      "SMART Booking selbst ist ohne KI nutzbar. Für Terminbuchung, Kalenderabgleich, E-Mail-Versand, Profile und Admin-Verwaltung ist kein Anthropic API-Key erforderlich.",
-      "Lizenzschlüssel und API-Key erfüllen unterschiedliche Aufgaben: Der Lizenzschlüssel aktiviert die Nutzung dieser App. Er bestätigt, dass Sie berechtigt sind, die Software zu verwenden. Der API-Key verbindet eine App mit Ihrem Anthropic-Konto. Er ist erforderlich, damit KI-Funktionen ausgeführt werden können. Auch bei einer bezahlten App-Lizenz wird ein eigener API-Key benötigt, weil die Nutzung der KI-Modelle technisch und abrechnungstechnisch getrennt über Anthropic erfolgt.",
-      "Lizenzschlüssel aktivieren: Falls eine App einen Lizenzbereich enthält, geben Sie den Lizenzschlüssel dort ein, bevor Sie produktiv arbeiten. Der Lizenzschlüssel schaltet die App-Nutzung frei, ersetzt aber keinen API-Key.",
-      "API-Key erstellen: Öffnen Sie die Anthropic Console, erstellen Sie ein Konto oder loggen Sie sich ein, öffnen Sie den Bereich API Keys, erstellen Sie einen neuen API-Key, kopieren Sie ihn und tragen Sie ihn in der jeweiligen App ein. Der API-Key wird häufig nur einmal vollständig angezeigt und sollte sicher gespeichert werden.",
-      "Warum ein API-Key erforderlich sein kann: KI-Funktionen laufen über die Anthropic API. Der API-Key verbindet die App mit dem persönlichen Anthropic-Konto des Nutzers. Anfragen werden dadurch dem eigenen Anthropic-Konto zugeordnet. Ohne API-Key können KI-Funktionen nicht ausgeführt werden.",
-      "Warum auch bei bezahltem App-Abo ein API-Key nötig sein kann: App-Lizenz und KI-Nutzung sind getrennt. Die App-Lizenz bezahlt die Software. Die Anthropic API-Nutzung wird separat über das Anthropic-Konto verarbeitet beziehungsweise abgerechnet.",
-      "Warum Anthropic verwendet wird: Claude-Modelle sind stark bei strukturiertem Arbeiten, Textanalyse, Zusammenfassungen und professionellen Workflows. Claude eignet sich gut für längere Dokumente, komplexe Eingaben und nachvollziehbare Ausgaben. Anthropic legt Wert auf Sicherheit, Zuverlässigkeit und verantwortungsvolle KI-Nutzung."
+      "Der Adminbereich wird über Supabase Auth geschützt. Melden Sie sich mit dem angelegten Admin-Benutzer an.",
+      "Für produktive Buchungen müssen Supabase, Apple CalDAV, SMTP-Mailversand und optional Zoom eingerichtet sein.",
+      "Zugangsdaten und Schlüssel gehören in die Vercel Environment Variables oder in geschützte serverseitige Konfigurationen. Sie werden nicht im Frontend angezeigt."
     ]
   },
   {
@@ -42,7 +38,7 @@ const helpSections: HelpSection[] = [
       "Brevo SMTP oder einen anderen Mailversand konfigurieren.",
       "Terminarten und Verfügbarkeiten kontrollieren.",
       "Öffentliche Buchungsseite öffnen und eine Testbuchung durchführen.",
-      "Falls eine andere App KI-Funktionen nutzt: Lizenzschlüssel aktivieren und API-Key eintragen."
+      "Kalendereintrag und E-Mail-Benachrichtigung kontrollieren."
     ]
   },
   {
@@ -63,7 +59,7 @@ const helpSections: HelpSection[] = [
       "30-Minuten-Zeitfenster und Verfügbarkeit auf Basis von Regeln, Blockzeiten, Supabase-Buchungen und Apple Kalender.",
       "Zoom-Link-Erstellung, wenn Zoom eingerichtet und als Terminort gewählt ist.",
       "Bestätigungs- und Benachrichtigungs-E-Mails über SMTP.",
-      "Optionale KI-Aufgaben: Für SMART Booking aktuell nicht erforderlich. In anderen Apps können KI-Aufgaben wie Textanalyse, Zusammenfassung, Strukturierung oder Vorschlagsgenerierung unterstützt werden."
+      "Stornierung mit nachvollziehbarer Historie und optionaler Kundenbenachrichtigung."
     ]
   },
   {
@@ -110,7 +106,7 @@ const helpSections: HelpSection[] = [
     title: "Version & Hinweise",
     body: [
       "Diese Hilfe beschreibt die aktuelle SMART-Booking-Version mit Supabase, Apple CalDAV, Brevo SMTP, Profilen und Zoom-Integration.",
-      "Die App ist ohne KI nutzbar. KI-Hinweise sind als einheitliche Grundlage für weitere BuiltSmart-Apps enthalten."
+      "Änderungen im Adminbereich werden auf der öffentlichen Buchungsseite sichtbar, nachdem das jeweilige Profil oder die jeweilige Einstellung gespeichert wurde."
     ]
   }
 ];
@@ -150,7 +146,6 @@ export function HelpPanel() {
               <div>
                 <p className="text-xs font-semibold uppercase tracking-wide text-brand-600">SMART Booking Hilfe</p>
                 <h2 className="mt-1 text-xl font-semibold text-slate-950">Bedienungsanleitung</h2>
-                <p className="mt-2 inline-flex rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">Ohne KI nutzbar</p>
               </div>
               <button type="button" onClick={() => setIsOpen(false)} className="rounded-md border border-slate-200 p-2 text-slate-500 transition hover:text-slate-950">
                 <X className="h-5 w-5" />
