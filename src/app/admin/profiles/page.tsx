@@ -7,6 +7,7 @@ import { FacebookIcon, InstagramIcon, LinkedInIcon, XIcon, XingIcon, YouTubeIcon
 import { ColorPalettePresets } from "@/components/color-palette-presets";
 import { EmbedCodeOptions } from "@/components/embed-code-options";
 import { ProfileImageEditor } from "@/components/profile-image-editor";
+import { ProfileTabs } from "@/components/profile-tabs";
 import { ProfileTemplateControls } from "@/components/profile-template-controls";
 import { requireAdmin } from "@/lib/admin";
 import { getEnv } from "@/lib/env";
@@ -177,7 +178,7 @@ export default async function AdminProfilesPage() {
       </p>
       <AdminNav />
 
-      <div className="mt-8 grid gap-5">
+      <ProfileTabs profiles={(profiles || []).map((profile) => ({ id: profile.id, name: profile.name, slug: profile.slug, isActive: profile.is_active }))}>
         {(profiles || []).map((profile) => (
           <ProfileForm
             key={profile.id}
@@ -189,7 +190,7 @@ export default async function AdminProfilesPage() {
             siteUrl={siteUrl}
           />
         ))}
-      </div>
+      </ProfileTabs>
 
       <details className="mt-8 rounded-lg border border-dashed border-slate-300 bg-white p-5 shadow-sm">
         <summary className="cursor-pointer text-sm font-semibold text-slate-800">Neues Profil anlegen</summary>
