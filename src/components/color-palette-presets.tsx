@@ -1,5 +1,8 @@
 "use client";
 
+import type { CSSProperties } from "react";
+import { useState } from "react";
+
 type PalettePreset = {
   name: string;
   description: string;
@@ -33,10 +36,13 @@ const palettes: PalettePreset[] = [
 ];
 
 export function ColorPalettePresets() {
+  const [selectedPalette, setSelectedPalette] = useState<string | null>(null);
+
   function applyPalette(palette: PalettePreset) {
     setColorInput("primary_color", palette.primary);
     setColorInput("profile_card_bg_color", palette.profileCard);
     setColorInput("booking_card_bg_color", palette.bookingCard);
+    setSelectedPalette(palette.name);
   }
 
   return (
@@ -46,26 +52,43 @@ export function ColorPalettePresets() {
         Wählen Sie einen abgestimmten Vorschlag oder passen Sie die Farben darunter individuell an. Gespeichert wird erst mit „Profil speichern“.
       </p>
       <div className="mt-3 grid gap-3">
-        {palettes.map((palette) => (
-          <button
-            key={palette.name}
-            type="button"
-            onClick={() => applyPalette(palette)}
-            className="rounded-md border border-slate-200 bg-white p-3 text-left transition hover:border-brand-300 hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
-          >
-            <span className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-              <span>
-                <span className="text-sm font-semibold text-slate-950">{palette.name}</span>
-                <span className="mt-1 block text-xs leading-5 text-slate-500">{palette.description}</span>
+        {palettes.map((palette) => {
+          const isSelected = selectedPalette === palette.name;
+
+          return (
+            <button
+              key={palette.name}
+              type="button"
+              onClick={() => applyPalette(palette)}
+              className="group relative overflow-hidden rounded-md border bg-white p-3 text-left transition hover:shadow-sm focus:outline-none focus:ring-2"
+              style={{
+                borderColor: isSelected ? palette.primary : "#E2E8F0",
+                boxShadow: isSelected ? `0 0 0 1px ${palette.primary}` : undefined,
+                "--tw-ring-color": palette.primary
+              } as CSSProperties & Record<"--tw-ring-color", string>}
+            >
+              <span aria-hidden="true" className="absolute inset-y-0 left-0 w-1.5" style={{ backgroundColor: palette.primary }} />
+              <span className="flex flex-col gap-3 pl-3 lg:flex-row lg:items-center lg:justify-between">
+                <span className="min-w-0">
+                  <span className="flex flex-wrap items-center gap-2">
+                    <span className="text-sm font-semibold text-slate-950">{palette.name}</span>
+                    {isSelected ? (
+                      <span className="inline-flex rounded-full px-2 py-0.5 text-[11px] font-semibold text-white" style={{ backgroundColor: palette.primary }}>
+                        Ausgewählt
+                      </span>
+                    ) : null}
+                  </span>
+                  <span className="mt-1 block text-xs leading-5 text-slate-500">{palette.description}</span>
+                </span>
+                <span className="flex flex-wrap gap-1.5 lg:justify-end">
+                  <ColorSwatch color={palette.primary} label="Primärfarbe" />
+                  <ColorSwatch color={palette.profileCard} label="Profilkarte" />
+                  <ColorSwatch color={palette.bookingCard} label="Terminkarten" />
+                </span>
               </span>
-              <span className="flex flex-wrap gap-1.5 lg:justify-end">
-                <ColorSwatch color={palette.primary} label="Primärfarbe" />
-                <ColorSwatch color={palette.profileCard} label="Profilkarte" />
-                <ColorSwatch color={palette.bookingCard} label="Terminkarten" />
-              </span>
-            </span>
-          </button>
-        ))}
+            </button>
+          );
+        })}
       </div>
     </fieldset>
   );
