@@ -65,12 +65,14 @@ const standardTemplates: ProfileTemplateOption[] = [
 
 export function ProfileTemplateControls({
   savedTemplates,
-  saveAction
+  saveAction,
+  deleteAction
 }: {
   savedTemplates: { id: string; name: string; template_data: ProfileTemplateData }[];
   saveAction: (formData: FormData) => Promise<void>;
+  deleteAction: (formData: FormData) => Promise<void>;
 }) {
-  const templates = [
+  const allTemplates = [
     ...standardTemplates,
     ...savedTemplates.map((template) => ({
       id: template.id,
@@ -80,6 +82,8 @@ export function ProfileTemplateControls({
       data: template.template_data
     }))
   ];
+  const templates = allTemplates.slice(0, 4);
+  const hiddenTemplateCount = Math.max(0, allTemplates.length - templates.length);
 
   return (
     <fieldset className="rounded-md border border-slate-200 bg-slate-50 p-3 sm:col-span-2 lg:col-span-3">
@@ -99,20 +103,41 @@ export function ProfileTemplateControls({
       </div>
       <div className="mt-3 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
         {templates.map((template) => (
-          <button
+          <div
             key={`${template.kind}-${template.id}`}
-            type="button"
-            onClick={(event) => applyTemplate(event.currentTarget, template.data)}
-            className="rounded-md border border-slate-200 bg-white p-3 text-left transition hover:border-brand-300 hover:shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
+            className="flex min-h-36 flex-col rounded-md border border-slate-200 bg-white p-3 text-left transition hover:border-brand-300 hover:shadow-sm"
           >
-            <span className="flex items-start justify-between gap-3">
-              <span className="text-sm font-semibold text-slate-950">{template.name}</span>
-              <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-500">{template.kind === "standard" ? "Standard" : "Gespeichert"}</span>
-            </span>
-            <span className="mt-1 block text-xs leading-5 text-slate-500">{template.description}</span>
-          </button>
+            <button
+              type="button"
+              onClick={(event) => applyTemplate(event.currentTarget, template.data)}
+              className="flex flex-1 flex-col text-left focus:outline-none focus:ring-2 focus:ring-brand-500"
+            >
+              <span className="flex items-start justify-between gap-3">
+                <span className="text-sm font-semibold text-slate-950">{template.name}</span>
+                <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-500">{template.kind === "standard" ? "Standard" : "Gespeichert"}</span>
+              </span>
+              <span className="mt-1 block text-xs leading-5 text-slate-500">{template.description}</span>
+            </button>
+            {template.kind === "saved" ? (
+              <button
+                formAction={deleteAction}
+                formNoValidate
+                name="template_id"
+                value={template.id}
+                type="submit"
+                className="mt-3 inline-flex w-fit rounded-md border border-red-200 px-2.5 py-1.5 text-xs font-semibold text-red-600 transition hover:bg-red-50"
+              >
+                Löschen
+              </button>
+            ) : null}
+          </div>
         ))}
       </div>
+      {hiddenTemplateCount > 0 ? (
+        <p className="mt-3 text-xs text-slate-500">
+          {hiddenTemplateCount} weitere Vorlage{hiddenTemplateCount === 1 ? "" : "n"} ist ausgeblendet. Es werden maximal vier Vorlagen angezeigt.
+        </p>
+      ) : null}
     </fieldset>
   );
 }

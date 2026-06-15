@@ -173,6 +173,22 @@ export default async function AdminProfilesPage() {
     revalidatePath("/admin/profiles");
   }
 
+  async function deleteProfileTemplate(formData: FormData) {
+    "use server";
+
+    await requireAdmin();
+    const templateId = String(formData.get("template_id") || "");
+
+    if (!templateId) {
+      return;
+    }
+
+    const supabase = createSupabaseAdmin();
+    await supabase.from("booking_profile_templates").delete().eq("id", templateId);
+
+    revalidatePath("/admin/profiles");
+  }
+
   return (
     <section className="mx-auto max-w-6xl px-5 py-12">
       <h1 className="text-3xl font-semibold text-slate-950">Profile</h1>
@@ -194,12 +210,19 @@ export default async function AdminProfilesPage() {
             action={saveProfile}
             duplicateAction={duplicateProfile}
             saveTemplateAction={saveProfileTemplate}
+            deleteTemplateAction={deleteProfileTemplate}
             profile={profile}
             savedTemplates={profileTemplates || []}
             siteUrl={siteUrl}
           />
         ))}
-        <ProfileForm action={saveProfile} saveTemplateAction={saveProfileTemplate} savedTemplates={profileTemplates || []} siteUrl={siteUrl} />
+        <ProfileForm
+          action={saveProfile}
+          saveTemplateAction={saveProfileTemplate}
+          deleteTemplateAction={deleteProfileTemplate}
+          savedTemplates={profileTemplates || []}
+          siteUrl={siteUrl}
+        />
       </ProfileTabs>
     </section>
   );
@@ -209,6 +232,7 @@ function ProfileForm({
   action,
   duplicateAction,
   saveTemplateAction,
+  deleteTemplateAction,
   profile,
   savedTemplates,
   siteUrl
@@ -216,6 +240,7 @@ function ProfileForm({
   action: (formData: FormData) => Promise<void>;
   duplicateAction?: (formData: FormData) => Promise<void>;
   saveTemplateAction: (formData: FormData) => Promise<void>;
+  deleteTemplateAction: (formData: FormData) => Promise<void>;
   profile?: BookingProfile;
   savedTemplates: BookingProfileTemplate[];
   siteUrl: string;
@@ -243,7 +268,7 @@ function ProfileForm({
       <EmbedCodeOptions publicUrl={publicUrl} />
 
       <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        <ProfileTemplateControls savedTemplates={savedTemplates} saveAction={saveTemplateAction} />
+        <ProfileTemplateControls savedTemplates={savedTemplates} saveAction={saveTemplateAction} deleteAction={deleteTemplateAction} />
         <Field label="Profilname" name="name" defaultValue={profile?.name || ""} required />
         <Field label="Slug für Link" name="slug" defaultValue={profile?.slug || ""} required />
         <div className="sm:col-span-2 lg:col-span-3">
