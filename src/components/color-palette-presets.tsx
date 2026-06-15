@@ -55,7 +55,7 @@ export function ColorPalettePresets() {
           >
             <span className="text-sm font-semibold text-slate-950">{palette.name}</span>
             <span className="mt-1 block text-xs leading-5 text-slate-500">{palette.description}</span>
-            <span className="mt-3 flex gap-2">
+            <span className="mt-3 flex flex-wrap gap-1.5">
               <ColorSwatch color={palette.primary} label="Primärfarbe" />
               <ColorSwatch color={palette.profileCard} label="Profilkarte" />
               <ColorSwatch color={palette.bookingCard} label="Terminkarten" />
@@ -69,8 +69,8 @@ export function ColorPalettePresets() {
 
 function ColorSwatch({ color, label }: { color: string; label: string }) {
   return (
-    <span className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-2 py-1 text-xs font-medium text-slate-600">
-      <span className="h-4 w-4 rounded-full border border-slate-200" style={{ backgroundColor: color }} />
+    <span className="inline-flex min-w-0 items-center gap-1.5 rounded-full border border-slate-200 bg-white px-2 py-1 text-xs font-medium text-slate-600">
+      <span className="h-3.5 w-3.5 shrink-0 rounded-full border border-slate-200" style={{ backgroundColor: color }} />
       {label}
     </span>
   );
