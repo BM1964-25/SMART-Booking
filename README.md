@@ -125,6 +125,8 @@ MAIL_FROM=SMART Booking <termine@builtsmart-ai.app>
 
 In Brevo muss die Absenderdomain oder Absenderadresse freigegeben sein. Danach die Variablen in Vercel eintragen und ein neues Deployment starten.
 
+Für eine gute Zustellbarkeit sollte die Absenderdomain in Brevo vollständig authentifiziert sein: SPF, DKIM und DMARC müssen im DNS gesetzt sein. Die App versendet transaktionale Mails immer mit festem Absender, sinnvoller Antwortadresse und Text-Alternative zur HTML-Mail; dadurch sinkt das Spam-Risiko, die Domain-Reputation bleibt aber weiterhin vom DNS-Setup und vom Versandverhalten abhängig.
+
 ## Terminorte und Meeting-Links
 
 Im Buchungsformular kann der Kunde zwischen Telefon, Zoom, Microsoft Teams, Google Meet, Ortstermin und individueller Abstimmung wählen. Die Auswahl wird in Supabase gespeichert und in Apple Kalender, ICS-Datei und E-Mail übernommen.

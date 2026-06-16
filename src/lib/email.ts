@@ -5,6 +5,8 @@ import { getEnv } from "@/lib/env";
 import { getMeetingLocationDetails } from "@/lib/meeting-location";
 import { BookingType } from "@/lib/types";
 
+const DEFAULT_PUBLIC_SITE_URL = "https://booking.builtsmart-ai.app";
+
 type BookingEmail = {
   id: string;
   customer_name: string;
@@ -30,8 +32,8 @@ export async function sendBookingEmails(booking: BookingEmail) {
 
   const transporter = createMailTransport(env);
   const ownerEmail = env.BOOKING_OWNER_EMAIL || "bernhard@builtsmart-ai.app";
-  const cancelUrl = `${env.NEXT_PUBLIC_SITE_URL}/cancel/${booking.cancellation_token}`;
-  const changeUrl = `${env.NEXT_PUBLIC_SITE_URL}/change/${booking.cancellation_token}`;
+  const cancelUrl = buildPublicUrl(env, `/cancel/${booking.cancellation_token}`);
+  const changeUrl = buildPublicUrl(env, `/change/${booking.cancellation_token}`);
   const label = buildSlotLabel(new Date(booking.starts_at), new Date(booking.ends_at));
   const ics = createIcsFallback(booking);
   const from = env.MAIL_FROM || "SMART Booking <termine@builtsmart-ai.app>";
@@ -40,7 +42,9 @@ export async function sendBookingEmails(booking: BookingEmail) {
     transporter.sendMail({
       from,
       to: booking.customer_email,
-      subject: "Ihre Terminbuchung bei BuiltSmart AI",
+      replyTo: ownerEmail,
+      subject: `Terminbestätigung: ${booking.bookingType.name}`,
+      text: customerText(booking, label, cancelUrl, changeUrl),
       html: customerHtml(booking, label, cancelUrl, changeUrl),
       attachments: [
         {
@@ -53,7 +57,9 @@ export async function sendBookingEmails(booking: BookingEmail) {
     transporter.sendMail({
       from,
       to: ownerEmail,
+      replyTo: booking.customer_email,
       subject: `Neue Buchung: ${booking.bookingType.name}`,
+      text: ownerText(booking, label),
       html: ownerHtml(booking, label)
     })
   ]);
@@ -76,13 +82,17 @@ export async function sendBookingCancellationEmails(booking: BookingEmail) {
     transporter.sendMail({
       from,
       to: booking.customer_email,
-      subject: "Ihr Termin bei BuiltSmart AI wurde storniert",
+      replyTo: ownerEmail,
+      subject: `Termin storniert: ${booking.bookingType.name}`,
+      text: customerCancellationText(booking, label),
       html: customerCancellationHtml(booking, label)
     }),
     transporter.sendMail({
       from,
       to: ownerEmail,
+      replyTo: booking.customer_email,
       subject: `Termin storniert: ${booking.bookingType.name}`,
+      text: ownerCancellationText(booking, label),
       html: ownerCancellationHtml(booking, label)
     })
   ]);
@@ -108,6 +118,7 @@ export async function sendEmailTest() {
     from,
     to: ownerEmail,
     subject: "SMART Booking E-Mail-Test",
+    text: "E-Mail-Versand funktioniert.\n\nSMART Booking kann E-Mails über Brevo SMTP versenden.",
     html: `
       <div style="font-family:Arial,sans-serif;color:#111827;line-height:1.6">
         <h1>E-Mail-Versand funktioniert</h1>
@@ -115,6 +126,20 @@ export async function sendEmailTest() {
       </div>
     `
   });
+}
+
+function buildPublicUrl(env: ReturnType<typeof getEnv>, path: string) {
+  return `${getPublicSiteUrl(env)}${path}`;
+}
+
+function getPublicSiteUrl(env: ReturnType<typeof getEnv>) {
+  const configuredUrl = env.NEXT_PUBLIC_SITE_URL?.replace(/\/+$/, "");
+
+  if (!configuredUrl || configuredUrl.includes("localhost") || configuredUrl.includes("127.0.0.1")) {
+    return DEFAULT_PUBLIC_SITE_URL;
+  }
+
+  return configuredUrl;
 }
 
 function hasSmtpConfig(env: ReturnType<typeof getEnv>) {
@@ -147,11 +172,32 @@ function customerHtml(booking: BookingEmail, label: string, cancelUrl: string, c
       <p>Terminort: ${escapeHtml(meeting.label)}<br>
       ${escapeHtml(meeting.description)}
       ${meeting.link ? `<br><a href="${escapeHtml(meeting.link)}">${escapeHtml(meeting.linkLabel || meeting.link)}</a>` : ""}</p>
-      <p>Änderung vorschlagen: <a href="${changeUrl}">${changeUrl}</a></p>
-      <p>Stornierung: <a href="${cancelUrl}">${cancelUrl}</a></p>
+      <p>Änderung vorschlagen: <a href="${escapeHtml(changeUrl)}">${escapeHtml(changeUrl)}</a></p>
+      <p>Stornierung: <a href="${escapeHtml(cancelUrl)}">${escapeHtml(cancelUrl)}</a></p>
       <p>BuiltSmart AI · Powered by BuiltSmart Hub</p>
     </div>
   `;
+}
+
+function customerText(booking: BookingEmail, label: string, cancelUrl: string, changeUrl: string) {
+  const meeting = getMeetingLocationDetails(booking.meeting_location, booking.phone, booking.meeting_url);
+
+  return joinTextLines([
+    `Guten Tag ${booking.customer_name},`,
+    "",
+    "Ihr Termin wurde bestätigt.",
+    "",
+    booking.bookingType.name,
+    label,
+    `Terminort: ${meeting.label}`,
+    meeting.description,
+    meeting.link ? `${meeting.linkLabel || "Link"}: ${meeting.link}` : null,
+    "",
+    `Änderung vorschlagen: ${changeUrl}`,
+    `Termin stornieren: ${cancelUrl}`,
+    "",
+    "BuiltSmart AI · Powered by BuiltSmart Hub"
+  ]);
 }
 
 function ownerHtml(booking: BookingEmail, label: string) {
@@ -173,6 +219,27 @@ function ownerHtml(booking: BookingEmail, label: string) {
   `;
 }
 
+function ownerText(booking: BookingEmail, label: string) {
+  const meeting = getMeetingLocationDetails(booking.meeting_location, booking.phone, booking.meeting_url);
+
+  return joinTextLines([
+    "Neue Buchung",
+    "",
+    booking.bookingType.name,
+    label,
+    "",
+    `Name: ${booking.customer_name}`,
+    `E-Mail: ${booking.customer_email}`,
+    `Unternehmen: ${booking.company}`,
+    `Terminort: ${meeting.label}`,
+    `Hinweis: ${meeting.description}`,
+    meeting.link ? `${meeting.linkLabel || "Link"}: ${meeting.link}` : null,
+    `Telefon: ${booking.phone || "-"}`,
+    "",
+    booking.topic
+  ]);
+}
+
 function customerCancellationHtml(booking: BookingEmail, label: string) {
   return `
     <div style="font-family:Arial,sans-serif;color:#111827;line-height:1.6">
@@ -186,6 +253,21 @@ function customerCancellationHtml(booking: BookingEmail, label: string) {
   `;
 }
 
+function customerCancellationText(booking: BookingEmail, label: string) {
+  return joinTextLines([
+    `Guten Tag ${booking.customer_name},`,
+    "",
+    "Ihr Termin wurde storniert.",
+    "",
+    booking.bookingType.name,
+    label,
+    "",
+    "Falls Sie einen neuen Termin buchen möchten, nutzen Sie bitte die Buchungsseite.",
+    "",
+    "BuiltSmart AI · Powered by BuiltSmart Hub"
+  ]);
+}
+
 function ownerCancellationHtml(booking: BookingEmail, label: string) {
   return `
     <div style="font-family:Arial,sans-serif;color:#111827;line-height:1.6">
@@ -196,6 +278,23 @@ function ownerCancellationHtml(booking: BookingEmail, label: string) {
       Unternehmen: ${escapeHtml(booking.company)}</p>
     </div>
   `;
+}
+
+function ownerCancellationText(booking: BookingEmail, label: string) {
+  return joinTextLines([
+    "Termin storniert",
+    "",
+    booking.bookingType.name,
+    label,
+    "",
+    `Name: ${booking.customer_name}`,
+    `E-Mail: ${booking.customer_email}`,
+    `Unternehmen: ${booking.company}`
+  ]);
+}
+
+function joinTextLines(lines: Array<string | null>) {
+  return lines.filter((line) => line !== null).join("\n");
 }
 
 function escapeHtml(value: string) {

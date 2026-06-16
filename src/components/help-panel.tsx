@@ -167,6 +167,7 @@ const helpSections: HelpSection[] = [
       "Kein freier Termin sichtbar: Verfügbarkeiten, blockierte Zeiten, Pufferzeiten und Apple Kalender prüfen.",
       "Kalendereintrag schlägt fehl: Apple CalDAV-URL, Benutzername, app-spezifisches Passwort und Kalender-ID prüfen.",
       "Keine E-Mail: SMTP-Werte, Absenderdomain, SPF/DKIM/DMARC und Brevo-Logs prüfen.",
+      "E-Mail landet im Spam: Absenderdomain in Brevo authentifizieren, SPF/DKIM/DMARC prüfen und möglichst nur die freigegebene Absenderadresse verwenden.",
       "Zoom-Link fehlt: Zoom Server-to-Server OAuth, Scopes und Environment Variables prüfen.",
       "Terminart wird nicht gespeichert: Fehlermeldung im Bereich Terminarten lesen. Häufige Ursachen sind fehlende Supabase-Migrationen, Slug-Konflikte oder mehr als vier Terminarten im gleichen Profil.",
       "Subheadline 1 erscheint nicht: Im Profil prüfen, ob neben Subheadline 1 „Anzeigen“ aktiviert ist und danach „Profil speichern“ klicken."
