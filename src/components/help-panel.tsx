@@ -47,7 +47,7 @@ const helpSections: HelpSection[] = [
     title: "Bedienoberfläche",
     body: [
       "Die öffentliche Seite führt Kunden durch Terminart, Tag/Uhrzeit und Kontaktdaten.",
-      "Der Adminbereich enthält Dashboard, Buchungsübersicht, Einstellungen und Profile. Änderungen an Profilen werden erst nach dem Speichern auf der Live-Seite sichtbar."
+      "Der Adminbereich enthält Dashboard, Buchungsübersicht, Einstellungen, Profile und Datensicherung. Änderungen an Profilen werden erst nach dem Speichern auf der Live-Seite sichtbar."
     ]
   },
   {
@@ -61,7 +61,10 @@ const helpSections: HelpSection[] = [
       "Eigene Vorlage speichern: Im Profilbereich auf „Als eigene Vorlage speichern“ klicken. Die aktuelle Konfiguration wird als wiederverwendbare Vorlage abgelegt.",
       "Vorlage laden: Eine Vorlagen-Karte anklicken. Die Werte der Vorlage werden sofort in das Formular übernommen.",
       "Profilname und Slug bleiben beim Anwenden einer Vorlage unverändert, damit der öffentliche Link nicht versehentlich geändert wird.",
+      "Subheadline 1 erscheint fett direkt unter der Headline. Subheadline 2 steht darunter als normaler erklärender Text.",
+      "Der Name unter dem Profilfoto und der optionale Slogan/Info-Text werden im Abschnitt „Profilbild“ gepflegt und sind unabhängig vom Kontaktname-Feld.",
       "Die Ablaufanzeige 01/02/03 kann im Profil unter „Profilansicht“ ein- oder ausgeschaltet werden.",
+      "Terminarten werden in den Einstellungen direkt je Profil gepflegt. Pro Profil sind bis zu vier eigene Terminarten mit eigener Sortierung vorgesehen.",
       "Nach dem Anwenden einer Vorlage die Felder kontrollieren und bei Bedarf anpassen.",
       "Erst mit „Profil speichern“ wird die geladene Vorlage wirklich in Supabase gespeichert und auf der öffentlichen Buchungsseite sichtbar."
     ]
@@ -72,7 +75,7 @@ const helpSections: HelpSection[] = [
     body: ["SMART Booking konzentriert sich auf eine klare Terminlogik und professionelle Verwaltung."],
     bullets: [
       "Öffentliche Buchungsseiten mit bis zu vier Profilen.",
-      "Terminarten mit Dauer, Pufferzeiten und Beschreibung.",
+      "Bis zu vier Terminarten pro Profil mit Dauer, Pufferzeiten, Beschreibung und eigener Sortierung.",
       "30-Minuten-Zeitfenster und Verfügbarkeit auf Basis von Regeln, Blockzeiten, Supabase-Buchungen und Apple Kalender.",
       "Zoom-Link-Erstellung, wenn Zoom eingerichtet und als Terminort gewählt ist.",
       "Bestätigungs- und Benachrichtigungs-E-Mails über SMTP.",
@@ -90,6 +93,20 @@ const helpSections: HelpSection[] = [
       "Live-Buchungsseite testen.",
       "Buchungen in der Übersicht kontrollieren.",
       "Stornierungen sauber über den Adminbereich auslösen."
+    ]
+  },
+  {
+    id: "backup",
+    title: "Datensicherung",
+    body: [
+      "Der Menüpunkt Datensicherung dient zum Exportieren und Importieren der SMART-Booking-Konfiguration.",
+      "Die Sicherung enthält Profile, Terminarten, Profil-Zuordnungen, Verfügbarkeitsregeln, Blockzeiten und Profil-Vorlagen. Buchungen werden bewusst nicht importiert oder überschrieben."
+    ],
+    bullets: [
+      "Export erstellen: Lädt eine JSON-Datei herunter, die als Sicherung der aktuellen Konfiguration abgelegt werden kann.",
+      "Import prüfen: Eine SMART-Booking-JSON-Datei auswählen und zuerst die Vorschau kontrollieren.",
+      "Import ausführen: Übernimmt die geprüfte Konfiguration. Profile und Terminarten werden anhand ihrer Slugs aktualisiert oder ergänzt.",
+      "Nach einem Import die Adminseiten neu laden und öffentliche Buchungsseite kontrollieren."
     ]
   },
   {

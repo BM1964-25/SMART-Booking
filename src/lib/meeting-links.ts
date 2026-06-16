@@ -49,7 +49,7 @@ export async function testZoomMeetingLink() {
       buffer_before_minutes: 0,
       buffer_after_minutes: 0,
       is_active: true,
-      sort_order: 0
+      sort_order: 1
     }
   });
 }

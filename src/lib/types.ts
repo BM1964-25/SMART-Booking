@@ -20,6 +20,7 @@ export type BookingProfile = {
   preheadline: string | null;
   headline: string;
   subheadline: string;
+  highlight_subheadline: string | null;
   contact_name: string | null;
   contact_email: string | null;
   contact_phone: string | null;
@@ -34,6 +35,8 @@ export type BookingProfile = {
   secondary_website_url: string | null;
   contact_icon_order: string[] | null;
   portrait_url: string | null;
+  portrait_display_name: string | null;
+  portrait_info: string | null;
   primary_color: string;
   profile_card_bg_color: string;
   booking_card_bg_color: string;
@@ -42,8 +45,11 @@ export type BookingProfile = {
   portrait_position_y: number;
   portrait_zoom: number;
   show_portrait: boolean;
+  show_portrait_display_name: boolean;
+  show_portrait_info: boolean;
   show_preheadline: boolean;
   show_subheadline: boolean;
+  show_highlight_subheadline: boolean;
   show_workflow_steps: boolean;
   show_contact_links: boolean;
   show_contact_name: boolean;
@@ -61,6 +67,7 @@ export type BookingProfile = {
   show_legal_imprint: boolean;
   legal_privacy_url: string | null;
   legal_imprint_url: string | null;
+  allow_embed_view: boolean;
   is_active: boolean;
 };
 

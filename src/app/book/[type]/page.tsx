@@ -1,5 +1,6 @@
 import { addDays, getDay, startOfWeek } from "date-fns";
 import { DaySlotPicker } from "@/components/day-slot-picker";
+import { EmbedShellStyle } from "@/components/embed-shell-style";
 import { getAvailableSlots } from "@/lib/availability";
 import { getBookingTypeIdsForProfile } from "@/lib/booking-type-profiles";
 import { hasSupabaseConfig } from "@/lib/config";
@@ -16,11 +17,12 @@ export default async function SlotPage({
   searchParams
 }: {
   params: Promise<{ type: string }>;
-  searchParams?: Promise<{ profile?: string }>;
+  searchParams?: Promise<{ embed?: string; profile?: string }>;
 }) {
   const { type } = await params;
-  const { profile: profileSlug } = (await searchParams) || {};
+  const { embed, profile: profileSlug } = (await searchParams) || {};
   const profile = await getBookingProfile(profileSlug);
+  const isEmbedView = embed === "1" && profile.allow_embed_view === true;
   const isConfigured = hasSupabaseConfig();
   let bookingType: BookingType | null | undefined = findSeedBookingType(type);
   const from = new Date();
@@ -32,7 +34,8 @@ export default async function SlotPage({
     const supabase = createSupabaseAdmin();
     const { data } = await supabase.from("booking_types").select("*").eq("slug", type).eq("is_active", true).single<BookingType>();
     const profileTypeIds = await getBookingTypeIdsForProfile(profile.id);
-    bookingType = data && (!profileTypeIds || profileTypeIds.has(data.id)) ? data : null;
+    const belongsToProfile = Boolean(data && (data.profile_id === profile.id || (!data.profile_id && profileTypeIds?.has(data.id))));
+    bookingType = data && belongsToProfile ? data : null;
   }
 
   const slots = bookingType ? (isConfigured ? await getAvailableSlots(type, from, to) : demoSlots(bookingType.duration_minutes)) : [];
@@ -45,6 +48,7 @@ export default async function SlotPage({
 
   return (
     <section className="mx-auto max-w-5xl px-5 py-12">
+      {isEmbedView ? <EmbedShellStyle /> : null}
       <p className="text-sm font-semibold uppercase tracking-wider text-brand-600">{bookingType.duration_minutes} Minuten</p>
       <h1 className="mt-2 text-3xl font-semibold text-slate-950">{bookingType.name}</h1>
       <p className="mt-3 text-slate-600">Wählen Sie zuerst einen Tag und anschließend eine freie Uhrzeit. Termine sind maximal 4 Wochen im Voraus buchbar.</p>
@@ -54,7 +58,7 @@ export default async function SlotPage({
         </div>
       ) : null}
       {slots.length > 0 ? (
-        <DaySlotPicker bookingTypeSlug={type} profileSlug={profileSlug} days={days} groupedSlots={grouped} />
+        <DaySlotPicker bookingTypeSlug={type} embedView={isEmbedView} profileSlug={profileSlug} days={days} groupedSlots={grouped} />
       ) : (
         <p className="mt-8 rounded-lg border border-slate-200 bg-white p-5 text-slate-600">Aktuell sind keine freien Zeitfenster verfügbar.</p>
       )}

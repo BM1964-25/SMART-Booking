@@ -7,10 +7,10 @@ export default async function ProfileBookPage({
   searchParams
 }: {
   params: Promise<{ profile: string }>;
-  searchParams?: Promise<{ preview?: string }>;
+  searchParams?: Promise<{ embed?: string; preview?: string }>;
 }) {
   const { profile } = await params;
-  const { preview } = (await searchParams) || {};
+  const { embed, preview } = (await searchParams) || {};
 
-  return <BookPage searchParams={Promise.resolve({ profile, preview })} />;
+  return <BookPage searchParams={Promise.resolve({ embed, profile, preview })} />;
 }

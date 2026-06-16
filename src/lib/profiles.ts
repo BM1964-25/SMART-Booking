@@ -9,6 +9,7 @@ export const defaultBookingProfile: BookingProfile = {
   preheadline: "SMART Booking",
   headline: "Termin mit BuiltSmart AI buchen",
   subheadline: "Wählen Sie einen passenden 30-Minuten-Termin für ein Erstgespräch, eine KI-Demo oder eine projektbezogene Beratung.",
+  highlight_subheadline: "Sichern Sie sich Ihr persönliches Zeitfenster direkt online.",
   contact_name: "Bernhard Metzger",
   contact_email: "info@built-smart-hub.com",
   contact_phone: "+491627111911",
@@ -23,6 +24,8 @@ export const defaultBookingProfile: BookingProfile = {
   secondary_website_url: "https://www.built-smart-hub.com",
   contact_icon_order: ["email", "phone", "website", "linkedin", "xing", "x", "instagram", "facebook", "youtube", "spotify"],
   portrait_url: "/bernhard-metzger.jpg",
+  portrait_display_name: "Bernhard Metzger",
+  portrait_info: "BuiltSmart AI",
   primary_color: "#527DF6",
   profile_card_bg_color: "#F8FAFC",
   booking_card_bg_color: "#FFFFFF",
@@ -31,8 +34,11 @@ export const defaultBookingProfile: BookingProfile = {
   portrait_position_y: 35,
   portrait_zoom: 1,
   show_portrait: true,
+  show_portrait_display_name: true,
+  show_portrait_info: false,
   show_preheadline: true,
   show_subheadline: true,
+  show_highlight_subheadline: true,
   show_workflow_steps: true,
   show_contact_links: true,
   show_contact_name: true,
@@ -50,6 +56,7 @@ export const defaultBookingProfile: BookingProfile = {
   show_legal_imprint: true,
   legal_privacy_url: "https://www.built-smart-hub.com/datenschutz",
   legal_imprint_url: "https://www.built-smart-hub.com/impressum",
+  allow_embed_view: true,
   is_active: true
 };
 

@@ -4,13 +4,27 @@ import { useEffect, useId, useState } from "react";
 
 type ProfileImageEditorProps = {
   portraitUrl?: string | null;
+  displayName?: string | null;
+  portraitInfo?: string | null;
   positionX: number;
   positionY: number;
   zoom: number;
   showPortrait: boolean;
+  showDisplayName: boolean;
+  showPortraitInfo: boolean;
 };
 
-export function ProfileImageEditor({ portraitUrl, positionX, positionY, zoom, showPortrait }: ProfileImageEditorProps) {
+export function ProfileImageEditor({
+  portraitUrl,
+  displayName,
+  portraitInfo,
+  positionX,
+  positionY,
+  zoom,
+  showPortrait,
+  showDisplayName,
+  showPortraitInfo
+}: ProfileImageEditorProps) {
   const fileInputId = useId();
   const [previewUrl, setPreviewUrl] = useState(portraitUrl || "");
   const [objectUrl, setObjectUrl] = useState<string | null>(null);
@@ -101,6 +115,50 @@ export function ProfileImageEditor({ portraitUrl, positionX, positionY, zoom, sh
             <RangeControl label="Horizontal" name="portrait_position_x" min={0} max={100} step={1} value={currentX} suffix="%" onChange={setCurrentX} />
             <RangeControl label="Vertikal" name="portrait_position_y" min={0} max={100} step={1} value={currentY} suffix="%" onChange={setCurrentY} />
             <RangeControl label="Zoom" name="portrait_zoom" min={1} max={1.8} step={0.05} value={currentZoom} suffix="x" onChange={setCurrentZoom} />
+          </div>
+          <div className="grid gap-3 md:grid-cols-2">
+            <label className="block rounded-md bg-white px-3 py-2 ring-1 ring-slate-200">
+              <span className="flex items-center justify-between gap-3 text-sm font-medium text-slate-700">
+                Name unter Profilfoto
+                <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500">
+                  <input
+                    name="show_portrait_display_name"
+                    type="checkbox"
+                    defaultChecked={showDisplayName}
+                    className="h-3.5 w-3.5 rounded border-slate-300 text-brand-600"
+                  />
+                  Anzeigen
+                </span>
+              </span>
+              <input
+                name="portrait_display_name"
+                type="text"
+                defaultValue={displayName || ""}
+                placeholder="Name, der direkt unter dem Profilfoto erscheint"
+                className="mt-2 w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+              />
+            </label>
+            <label className="block rounded-md bg-white px-3 py-2 ring-1 ring-slate-200">
+              <span className="flex items-center justify-between gap-3 text-sm font-medium text-slate-700">
+                Slogan oder Info
+                <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500">
+                  <input
+                    name="show_portrait_info"
+                    type="checkbox"
+                    defaultChecked={showPortraitInfo}
+                    className="h-3.5 w-3.5 rounded border-slate-300 text-brand-600"
+                  />
+                  Anzeigen
+                </span>
+              </span>
+              <input
+                name="portrait_info"
+                type="text"
+                defaultValue={portraitInfo || ""}
+                placeholder="Optionaler Slogan oder kurzer Hinweis unter dem Namen"
+                className="mt-2 w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+              />
+            </label>
           </div>
         </div>
       </div>

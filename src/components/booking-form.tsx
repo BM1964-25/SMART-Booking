@@ -9,10 +9,12 @@ const disabledMeetingLocations = new Set(["teams", "google_meet"]);
 
 type BookingFormProps = {
   bookingTypeSlug: string;
+  embedView?: boolean;
+  profileSlug?: string;
   startsAt: string;
 };
 
-export function BookingForm({ bookingTypeSlug, startsAt }: BookingFormProps) {
+export function BookingForm({ bookingTypeSlug, embedView = false, profileSlug, startsAt }: BookingFormProps) {
   const formRef = useRef<HTMLFormElement>(null);
   const [status, setStatus] = useState<"idle" | "submitting" | "success">("idle");
   const [message, setMessage] = useState<string | null>(null);
@@ -80,6 +82,8 @@ export function BookingForm({ bookingTypeSlug, startsAt }: BookingFormProps) {
   return (
     <form ref={formRef} noValidate onSubmit={submit} className="mt-6 space-y-5 rounded-lg border border-slate-200 bg-white p-5">
       <input type="hidden" name="bookingTypeSlug" value={bookingTypeSlug} />
+      <input type="hidden" name="embedView" value={embedView ? "1" : "0"} />
+      <input type="hidden" name="profileSlug" value={profileSlug || ""} />
       <input type="hidden" name="startsAt" value={startsAt} />
       <Field label="Name" name="customerName" minLength={2} required />
       <Field label="E-Mail" name="customerEmail" type="email" required />

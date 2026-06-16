@@ -49,6 +49,7 @@ export async function POST(request: NextRequest) {
   }
 
   const formData = await request.formData();
+  const successPath = buildSuccessPath(formData);
   const payload = {
     bookingTypeSlug: formData.get("bookingTypeSlug"),
     startsAt: formData.get("startsAt"),
@@ -91,7 +92,7 @@ export async function POST(request: NextRequest) {
     .maybeSingle();
 
   if (existingBooking) {
-    return navigate("/success?existing=1");
+    return navigate(successPath("existing", "1"));
   }
 
   const isAvailable = await assertSlotAvailable(parsed.data.bookingTypeSlug, startsAt, endsAt);
@@ -107,7 +108,7 @@ export async function POST(request: NextRequest) {
       .maybeSingle();
 
     if (concurrentBooking) {
-      return navigate("/success?existing=1");
+      return navigate(successPath("existing", "1"));
     }
 
     return navigate(`/booking-error?reason=unavailable&type=${encodeURIComponent(parsed.data.bookingTypeSlug)}`);
@@ -173,7 +174,29 @@ export async function POST(request: NextRequest) {
     console.error("Booking email delivery failed", error);
   }
 
-  return navigate("/success");
+  return navigate(successPath());
+}
+
+function buildSuccessPath(formData: FormData) {
+  return (key?: string, value?: string) => {
+    const params = new URLSearchParams();
+    const profileSlug = String(formData.get("profileSlug") || "").trim();
+    const embedView = formData.get("embedView") === "1";
+
+    if (key && value) {
+      params.set(key, value);
+    }
+
+    if (profileSlug) {
+      params.set("profile", profileSlug);
+    }
+
+    if (embedView) {
+      params.set("embed", "1");
+    }
+
+    return params.toString() ? `/success?${params.toString()}` : "/success";
+  };
 }
 
 function getCalendarErrorCode(error: unknown) {

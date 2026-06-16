@@ -7,14 +7,12 @@ import {
   CalendarCheck,
   Globe2,
   Mail,
-  MailCheck,
   Phone,
   SearchCheck,
-  ShieldCheck,
   Sparkles,
-  Video
 } from "lucide-react";
 import { FacebookIcon, InstagramIcon, LinkedInIcon, SpotifyIcon, XIcon, XingIcon, YouTubeIcon } from "@/components/brand-icons";
+import { EmbedShellStyle } from "@/components/embed-shell-style";
 import { getBookingTypeIdsForProfile } from "@/lib/booking-type-profiles";
 import { hasSupabaseConfig, missingSupabaseKeys } from "@/lib/config";
 import { ContactIconKey, normalizeContactIconOrder } from "@/lib/contact-icon-order";
@@ -29,13 +27,7 @@ export const metadata = {
   title: "Termin buchen"
 };
 
-const highlights = [
-  { icon: CalendarCheck, text: "Live-Kalenderabgleich" },
-  { icon: Video, text: "Zoom-Link bei Online-Terminen" },
-  { icon: MailCheck, text: "Bestätigung per E-Mail" }
-];
-
-const workflowSteps = ["Terminart wählen", "Tag und Uhrzeit auswählen", "Daten bestätigen"];
+const workflowSteps = ["Gespräch auswählen", "Wunschtermin festlegen", "Buchung abschließen"];
 const defaultPrivacyUrl = "https://www.built-smart-hub.com/datenschutz";
 const defaultImprintUrl = "https://www.built-smart-hub.com/impressum";
 
@@ -82,11 +74,13 @@ function getContactLinks(profile: BookingProfile) {
   }>;
 }
 
-export default async function BookPage({ searchParams }: { searchParams?: Promise<{ profile?: string; preview?: string }> }) {
+export default async function BookPage({ searchParams }: { searchParams?: Promise<{ embed?: string; profile?: string; preview?: string }> }) {
   const resolvedSearchParams = await searchParams;
   const requestedProfile = resolvedSearchParams?.profile;
+  const requestedEmbedView = resolvedSearchParams?.embed === "1";
   const isAdminPreview = resolvedSearchParams?.preview === "admin";
   const profile = await getBookingProfile(requestedProfile);
+  const isEmbedView = requestedEmbedView && profile.allow_embed_view === true;
   const primaryColor = normalizeColor(profile.primary_color);
   const profileCardBgColor = normalizeColor(profile.profile_card_bg_color, "#F8FAFC");
   const bookingCardBgColor = normalizeColor(profile.booking_card_bg_color, "#FFFFFF");
@@ -96,17 +90,34 @@ export default async function BookPage({ searchParams }: { searchParams?: Promis
   const showPortrait = profile.show_portrait !== false;
   const showPreheadline = profile.show_preheadline !== false;
   const showSubheadline = profile.show_subheadline !== false;
+  const showHighlightSubheadline = profile.show_highlight_subheadline === true;
   const showWorkflowSteps = profile.show_workflow_steps !== false;
-  const showContactName = profile.show_contact_name !== false;
+  const showPortraitDisplayName = profile.show_portrait_display_name !== false;
+  const showPortraitInfo = profile.show_portrait_info === true;
+  const portraitDisplayName = profile.portrait_display_name || profile.contact_name;
   const preheadline = profile.preheadline || "SMART Booking";
   const isCenteredLayout = profile.profile_layout === "centered";
   const legalLinks = [
     profile.show_legal_privacy !== false ? { href: profile.legal_privacy_url || defaultPrivacyUrl, label: "Datenschutz" } : null,
     profile.show_legal_imprint !== false ? { href: profile.legal_imprint_url || defaultImprintUrl, label: "Impressum" } : null
   ].filter(Boolean) as Array<{ href: string; label: string }>;
-  const profileQuery = profile.slug === defaultBookingProfile.slug ? "" : `?profile=${encodeURIComponent(profile.slug)}`;
+  const bookingQueryParams = new URLSearchParams();
+
+  if (profile.slug !== defaultBookingProfile.slug) {
+    bookingQueryParams.set("profile", profile.slug);
+  }
+
+  if (isEmbedView) {
+    bookingQueryParams.set("embed", "1");
+  }
+
+  const profileQuery = bookingQueryParams.toString() ? `?${bookingQueryParams.toString()}` : "";
   const contactLinks = getContactLinks(profile);
-  const hasContactCard = (showContactName && profile.contact_name) || (showPortrait && profile.portrait_url) || contactLinks.length > 0;
+  const hasContactCard =
+    (showPortraitDisplayName && portraitDisplayName) ||
+    (showPortraitInfo && profile.portrait_info) ||
+    (showPortrait && profile.portrait_url) ||
+    contactLinks.length > 0;
   let types: BookingType[] = seedBookingTypes;
   const isConfigured = hasSupabaseConfig();
 
@@ -121,11 +132,12 @@ export default async function BookPage({ searchParams }: { searchParams?: Promis
     const profileTypeIds = await getBookingTypeIdsForProfile(profile.id);
     const allTypes = data || [];
 
-    types = profileTypeIds ? allTypes.filter((type) => profileTypeIds.has(type.id)) : allTypes;
+    types = allTypes.filter((type) => type.profile_id === profile.id || (!type.profile_id && profileTypeIds?.has(type.id)));
   }
 
   return (
     <section className="mx-auto max-w-6xl px-5 py-8 md:py-12">
+      {isEmbedView ? <EmbedShellStyle /> : null}
       {isAdminPreview ? (
         <div className="mb-4 flex justify-end">
           <Link
@@ -151,8 +163,13 @@ export default async function BookPage({ searchParams }: { searchParams?: Promis
               <h1 className={isCenteredLayout ? "mx-auto mt-4 max-w-4xl text-4xl font-semibold tracking-normal text-slate-950 md:text-5xl" : "mt-4 max-w-3xl text-4xl font-semibold tracking-normal text-slate-950 md:text-5xl"}>
                 {profile.headline}
               </h1>
+              {showHighlightSubheadline && profile.highlight_subheadline ? (
+                <p className={isCenteredLayout ? "mx-auto mt-4 max-w-3xl text-base font-semibold leading-7 text-slate-900" : "mt-4 max-w-2xl text-base font-semibold leading-7 text-slate-900"}>
+                  {profile.highlight_subheadline}
+                </p>
+              ) : null}
               {showSubheadline ? (
-                <p className={isCenteredLayout ? "mx-auto mt-5 max-w-3xl text-base leading-7 text-slate-600" : "mt-5 max-w-2xl text-base leading-7 text-slate-600"}>
+                <p className={isCenteredLayout ? "mx-auto mt-3 max-w-3xl text-base leading-7 text-slate-600" : "mt-3 max-w-2xl text-base leading-7 text-slate-600"}>
                   {profile.subheadline}
                 </p>
               ) : null}
@@ -166,7 +183,7 @@ export default async function BookPage({ searchParams }: { searchParams?: Promis
                   <div className="mx-auto h-28 w-28 overflow-hidden rounded-full border-4 border-white bg-slate-100 shadow-sm ring-1 ring-slate-200">
                     <img
                       src={profile.portrait_url}
-                      alt={profile.contact_name || profile.name}
+                      alt={portraitDisplayName || profile.contact_name || profile.name}
                       className="h-full w-full object-cover"
                       style={{
                         objectPosition: `${portraitPositionX}% ${portraitPositionY}%`,
@@ -175,7 +192,8 @@ export default async function BookPage({ searchParams }: { searchParams?: Promis
                     />
                   </div>
                 ) : null}
-                {showContactName && profile.contact_name ? <p className="mt-4 text-base font-semibold text-slate-950">{profile.contact_name}</p> : null}
+                {showPortraitDisplayName && portraitDisplayName ? <p className="mt-4 text-base font-semibold text-slate-950">{portraitDisplayName}</p> : null}
+                {showPortraitInfo && profile.portrait_info ? <p className="mt-1 text-sm leading-6 text-slate-500">{profile.portrait_info}</p> : null}
                 {contactLinks.length > 0 ? (
                   <div className="mt-4 flex items-center justify-center gap-2">
                     {contactLinks.map((item) => (
@@ -219,31 +237,22 @@ export default async function BookPage({ searchParams }: { searchParams?: Promis
           <span className="font-semibold">{missingSupabaseKeys().join(", ")}</span>.
         </div>
       ) : null}
-      <div className="mt-6 flex flex-col gap-3 rounded-lg bg-white px-4 py-3 ring-1 ring-slate-200 md:flex-row md:items-center md:justify-between">
-        {highlights.map((item) => (
-          <div key={item.text} className="flex items-center gap-2 text-sm font-medium text-slate-600">
-            <item.icon className="h-4 w-4 text-brand-600" />
-            <span>{item.text}</span>
-          </div>
-        ))}
-        <div className="hidden items-center gap-2 text-sm font-medium text-slate-500 lg:flex">
-          <ShieldCheck className="h-4 w-4 text-emerald-600" />
-          Serverbasierte Prüfung
-        </div>
-      </div>
       <div className="mt-10 flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
         <div>
           <h2 className="text-2xl font-semibold text-slate-950">Terminart auswählen</h2>
-          <p className="mt-2 text-sm leading-6 text-slate-600">Wählen Sie das Format, das am besten zu Ihrem Anliegen passt.</p>
+          <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">
+            Wählen Sie die gewünschte Gesprächsart aus und reservieren Sie Ihr persönliches Zeitfenster.
+            <br />
+            Die Terminbestätigung erhalten Sie unmittelbar nach der Buchung.
+          </p>
         </div>
-        <p className="text-sm font-medium text-slate-500">Alle Formate: 30 Minuten</p>
       </div>
       <div className="mt-5 grid gap-4 md:grid-cols-2">
         {types.map((type) => {
           const TypeIcon = getTypeIcon(type.name);
 
           return (
-            <Link
+            <a
               key={type.id}
               href={`/book/${type.slug}${profileQuery}`}
               className="group rounded-lg border border-slate-200 p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
@@ -269,15 +278,12 @@ export default async function BookPage({ searchParams }: { searchParams?: Promis
                   </span>
                 </div>
               </div>
-            </Link>
+            </a>
           );
         })}
       </div>
-      <p className="mt-6 rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm leading-6 text-slate-600">
-        Nach der Buchung erhalten Sie automatisch eine Bestätigung per E-Mail. Der Termin wird im Kalender eingetragen und ist danach verbindlich reserviert.
-      </p>
       {legalLinks.length > 0 ? (
-        <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-slate-500">
+        <div className="mt-6 flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-slate-500">
           {legalLinks.map((link, index) => (
             <span key={link.href} className="inline-flex items-center gap-3">
               {index > 0 ? <span className="text-slate-300">|</span> : null}

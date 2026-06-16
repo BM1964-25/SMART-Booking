@@ -2,11 +2,12 @@ import { revalidatePath } from "next/cache";
 import { AdminNav } from "@/components/admin-nav";
 import { AdminDeleteBlockedTimeButton } from "@/components/admin-delete-blocked-time-button";
 import { AvailabilityGrid } from "@/components/availability-grid";
+import { BookingTypeProfileTabs } from "@/components/booking-type-profile-tabs";
 import { SaveSubmitButton } from "@/components/save-submit-button";
 import { requireAdmin } from "@/lib/admin";
 import { getBookingTypeProfileAssignments, replaceBookingTypeProfileAssignments } from "@/lib/booking-type-profiles";
 import { createSupabaseAdmin } from "@/lib/supabase/admin";
-import { BookingProfile } from "@/lib/types";
+import { BookingProfile, BookingType } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
@@ -20,14 +21,17 @@ const weekdays = [
   { value: 7, label: "Sonntag" }
 ];
 
-export default async function AdminSettingsPage() {
+export default async function AdminSettingsPage({ searchParams }: { searchParams?: Promise<{ bookingProfile?: string }> }) {
   await requireAdmin();
+  const resolvedSearchParams = await searchParams;
+  const activeBookingProfileId = resolvedSearchParams?.bookingProfile;
   const supabase = createSupabaseAdmin();
-  const [{ data: types }, { data: profiles }, { data: rules }, { data: blockedTimes }, typeProfileAssignments] = await Promise.all([
-    supabase.from("booking_types").select("*").order("sort_order"),
+  const [{ data: types }, { data: profiles }, { data: rules }, { data: blockedTimes }, { data: bookingsForTypes }, typeProfileAssignments] = await Promise.all([
+    supabase.from("booking_types").select("*").order("sort_order").returns<BookingType[]>(),
     supabase.from("booking_profiles").select("*").order("name").returns<BookingProfile[]>(),
     supabase.from("availability_rules").select("*").order("weekday").order("start_time"),
     supabase.from("blocked_times").select("*").order("starts_at", { ascending: false }).limit(20),
+    supabase.from("bookings").select("booking_type_id").returns<Array<{ booking_type_id: string }>>(),
     getBookingTypeProfileAssignments()
   ]);
   const profileIdsByType = new Map<string, string[]>();
@@ -36,6 +40,17 @@ export default async function AdminSettingsPage() {
     ids.push(assignment.profile_id);
     profileIdsByType.set(assignment.booking_type_id, ids);
   }
+  const resolveBookingTypeProfileId = (type: BookingType) => type.profile_id || profileIdsByType.get(type.id)?.[0] || "";
+  const typesByProfile = (profiles || []).map((profile) => ({
+    profile,
+    types: (types || []).filter((type) => resolveBookingTypeProfileId(type) === profile.id)
+  }));
+  const unassignedTypes = (types || []).filter((type) => !resolveBookingTypeProfileId(type));
+  const bookingCountsByType = new Map<string, number>();
+  for (const booking of bookingsForTypes || []) {
+    bookingCountsByType.set(booking.booking_type_id, (bookingCountsByType.get(booking.booking_type_id) || 0) + 1);
+  }
+  const bookingCountsByTypeRecord = Object.fromEntries(bookingCountsByType);
   const rulesByWeekday = weekdays.map((day) => ({
     ...day,
     rules: (rules || []).filter((rule) => rule.weekday === day.value)
@@ -47,16 +62,34 @@ export default async function AdminSettingsPage() {
     await requireAdmin();
     const supabase = createSupabaseAdmin();
     const id = String(formData.get("id") || "");
-    const selectedProfileIds = formData.getAll("profile_ids").map((value) => String(value));
+    const profileId = String(formData.get("profile_id") || "");
+    const name = String(formData.get("name") || "").trim();
+
+    if (!profileId || !name) {
+      return;
+    }
+
+    const { data: profileTypes } = await supabase
+      .from("booking_types")
+      .select("id")
+      .eq("profile_id", profileId)
+      .returns<Array<{ id: string }>>();
+    const otherProfileTypes = (profileTypes || []).filter((type) => type.id !== id);
+    const isAlreadyInProfile = (profileTypes || []).some((type) => type.id === id);
+
+    if (!isAlreadyInProfile && otherProfileTypes.length >= 4) {
+      return;
+    }
+
     const payload = {
-      slug: String(formData.get("slug") || "").trim(),
-      name: String(formData.get("name") || "").trim(),
+      slug: slugify(String(formData.get("slug") || name)),
+      name,
       description: String(formData.get("description") || "").trim(),
       duration_minutes: Number(formData.get("duration_minutes")),
       buffer_before_minutes: Number(formData.get("buffer_before_minutes") || 0),
       buffer_after_minutes: Number(formData.get("buffer_after_minutes") || 0),
-      sort_order: Number(formData.get("sort_order") || 0),
-      profile_id: selectedProfileIds[0] || null,
+      sort_order: clampSortOrder(formData.get("sort_order")),
+      profile_id: profileId,
       is_active: formData.get("is_active") === "on"
     };
     let savedId = id;
@@ -69,8 +102,36 @@ export default async function AdminSettingsPage() {
     }
 
     if (savedId) {
-      await replaceBookingTypeProfileAssignments(savedId, selectedProfileIds);
+      await replaceBookingTypeProfileAssignments(savedId, [profileId]);
     }
+
+    revalidatePath("/admin/settings");
+    revalidatePath("/book");
+    revalidatePath("/admin/profiles");
+  }
+
+  async function deleteBookingType(formData: FormData) {
+    "use server";
+
+    await requireAdmin();
+    const bookingTypeId = String(formData.get("id") || "");
+
+    if (!bookingTypeId) {
+      return;
+    }
+
+    const supabase = createSupabaseAdmin();
+    const { count } = await supabase
+      .from("bookings")
+      .select("id", { count: "exact", head: true })
+      .eq("booking_type_id", bookingTypeId);
+
+    if ((count || 0) > 0) {
+      return;
+    }
+
+    await supabase.from("booking_type_profiles").delete().eq("booking_type_id", bookingTypeId);
+    await supabase.from("booking_types").delete().eq("id", bookingTypeId);
 
     revalidatePath("/admin/settings");
     revalidatePath("/book");
@@ -218,30 +279,33 @@ export default async function AdminSettingsPage() {
         </div>
       </div>
 
-      <div className="mt-8 space-y-5">
+      <div id="terminarten" className="mt-8 scroll-mt-6 space-y-5">
         <div>
           <h2 className="text-lg font-semibold text-slate-950">Terminarten</h2>
           <p className="mt-2 text-sm leading-6 text-slate-600">
-            Kompakte Verwaltung von Dauer, Pufferzeiten und Sichtbarkeit auf der Buchungsseite.
+            Verwalten Sie die Terminarten direkt im jeweiligen Profil. Pro Profil sind bis zu vier Terminarten vorgesehen, inklusive eigener Sortierung.
           </p>
         </div>
-        <div className="grid gap-4 lg:grid-cols-2 2xl:grid-cols-3">
-          {(types || []).map((type) => (
-            <BookingTypeForm
-              key={type.id}
-              action={saveBookingType}
-              type={type}
-              profiles={profiles || []}
-              assignedProfileIds={profileIdsByType.get(type.id) || (type.profile_id ? [type.profile_id] : [])}
-            />
-          ))}
-        </div>
-        <details className="rounded-lg border border-dashed border-slate-300 bg-white p-4 shadow-sm">
-          <summary className="cursor-pointer text-sm font-semibold text-slate-800">Neue Terminart anlegen</summary>
-          <div className="mt-4">
-            <BookingTypeForm action={saveBookingType} isNew profiles={profiles || []} assignedProfileIds={(profiles || []).map((profile) => profile.id)} />
-          </div>
-        </details>
+        <BookingTypeProfileTabs
+          action={saveBookingType}
+          activeProfileId={activeBookingProfileId}
+          bookingCountsByType={bookingCountsByTypeRecord}
+          deleteAction={deleteBookingType}
+          groups={typesByProfile}
+        />
+        {unassignedTypes.length > 0 ? (
+          <details className="rounded-lg border border-amber-200 bg-amber-50 p-5 shadow-sm">
+            <summary className="cursor-pointer text-sm font-semibold text-amber-950">Nicht zugeordnete Terminarten prüfen</summary>
+            <div className="mt-3 space-y-2 text-sm leading-6 text-amber-900">
+              <p>Diese Terminarten haben noch kein Profil und erscheinen deshalb nicht auf einer öffentlichen Profilseite.</p>
+              <ul className="list-disc space-y-1 pl-5">
+                {unassignedTypes.map((type) => (
+                  <li key={type.id}>{type.name}</li>
+                ))}
+              </ul>
+            </div>
+          </details>
+        ) : null}
       </div>
 
       <details className="mt-8 rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
@@ -275,112 +339,6 @@ export default async function AdminSettingsPage() {
         </div>
       </details>
     </section>
-  );
-}
-
-function BookingTypeForm({
-  action,
-  type,
-  profiles,
-  assignedProfileIds,
-  isNew = false
-}: {
-  action: (formData: FormData) => Promise<void>;
-  isNew?: boolean;
-  profiles: BookingProfile[];
-  assignedProfileIds: string[];
-  type?: {
-    id: string;
-    profile_id?: string | null;
-    slug: string;
-    name: string;
-    description: string | null;
-    duration_minutes: number;
-    buffer_before_minutes: number;
-    buffer_after_minutes: number;
-    sort_order: number;
-    is_active: boolean;
-  };
-}) {
-  return (
-    <form action={action} className={isNew ? "rounded-md border border-slate-200 bg-slate-50 p-4" : "rounded-lg border border-slate-200 bg-white p-4 shadow-sm"}>
-      <input type="hidden" name="id" value={type?.id || ""} />
-      <div className="grid gap-3 sm:grid-cols-2">
-        <fieldset className="rounded-md border border-slate-200 bg-slate-50 p-3 sm:col-span-2">
-          <legend className="px-1 text-sm font-medium text-slate-700">In diesen Profilen anzeigen</legend>
-          <p className="mt-1 text-xs leading-5 text-slate-500">
-            Eine Terminart kann in mehreren Profilen sichtbar sein. Ohne Auswahl erscheint sie auf keiner öffentlichen Buchungsseite.
-          </p>
-          <div className="mt-3 grid gap-2 sm:grid-cols-2">
-            {profiles.map((profile) => (
-              <label key={profile.id} className="flex items-center gap-2 rounded-md border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700">
-                <input
-                  name="profile_ids"
-                  value={profile.id}
-                  type="checkbox"
-                  defaultChecked={assignedProfileIds.includes(profile.id)}
-                  className="h-4 w-4 rounded border-slate-300 text-brand-600"
-                />
-                <span>{profile.name}</span>
-              </label>
-            ))}
-          </div>
-        </fieldset>
-        <div className="sm:col-span-2">
-          <Field label="Name" name="name" defaultValue={type?.name || ""} required />
-        </div>
-        <div className="sm:col-span-2">
-          <Field label="Slug" name="slug" defaultValue={type?.slug || ""} required />
-        </div>
-        <Field label="Dauer (Min.)" name="duration_minutes" type="number" defaultValue={String(type?.duration_minutes || 30)} required />
-        <Field label="Sortierung" name="sort_order" type="number" defaultValue={String(type?.sort_order || 0)} />
-        <Field label="Puffer davor (Min.)" name="buffer_before_minutes" type="number" defaultValue={String(type?.buffer_before_minutes || 0)} />
-        <Field label="Puffer danach (Min.)" name="buffer_after_minutes" type="number" defaultValue={String(type?.buffer_after_minutes || 0)} />
-      </div>
-      <label className="mt-3 block">
-        <span className="text-sm font-medium text-slate-700">Beschreibung</span>
-        <textarea
-          name="description"
-          rows={2}
-          defaultValue={type?.description || ""}
-          className="mt-2 w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
-        />
-      </label>
-      <div className="mt-3 flex items-center justify-between gap-4">
-        <label className="flex items-center gap-2 text-sm text-slate-700">
-          <input name="is_active" type="checkbox" defaultChecked={type?.is_active ?? false} className="h-4 w-4 rounded border-slate-300 text-brand-600" />
-          Aktiv
-        </label>
-        <SaveSubmitButton idleLabel={type ? "Speichern" : "Terminart anlegen"} savedLabel={type ? "Gespeichert" : "Angelegt"} />
-      </div>
-    </form>
-  );
-}
-
-function Field({
-  label,
-  name,
-  type = "text",
-  defaultValue = "",
-  required = false
-}: {
-  label: string;
-  name: string;
-  type?: string;
-  defaultValue?: string;
-  required?: boolean;
-}) {
-  return (
-    <label className="block">
-      <span className="text-sm font-medium text-slate-700">{label}</span>
-      <input
-        name={name}
-        type={type}
-        defaultValue={defaultValue}
-        required={required}
-        className="mt-2 w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
-      />
-    </label>
   );
 }
 
@@ -420,4 +378,28 @@ function formatDateTime(value: string) {
 
 function formatRuleTime(value: string) {
   return String(value).slice(0, 5);
+}
+
+function slugify(value: string) {
+  return value
+    .toLowerCase()
+    .replace(/ä/g, "ae")
+    .replace(/ö/g, "oe")
+    .replace(/ü/g, "ue")
+    .replace(/ß/g, "ss")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 80);
+}
+
+function clampSortOrder(value: FormDataEntryValue | null) {
+  const number = Number(value || 1);
+
+  if (!Number.isFinite(number)) {
+    return 1;
+  }
+
+  return Math.min(4, Math.max(1, Math.trunc(number)));
 }

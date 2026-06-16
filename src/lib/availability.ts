@@ -9,6 +9,8 @@ export type AvailableSlot = {
   endsAt: string;
 };
 
+const calendarReadTimeoutMs = 5000;
+
 export async function getAvailableSlots(typeSlug: string, from: Date, to: Date): Promise<AvailableSlot[]> {
   const supabase = createSupabaseAdmin();
   const { data: bookingType, error: typeError } = await supabase
@@ -40,7 +42,7 @@ export async function getAvailableSlots(typeSlug: string, from: Date, to: Date):
   let calendarRanges: TimeRange[] = [];
 
   try {
-    calendarRanges = (await getEvents(from, to)).map((event) => ({
+    calendarRanges = (await withTimeout(getEvents(from, to), calendarReadTimeoutMs)).map((event) => ({
       startsAt: event.startsAt,
       endsAt: event.endsAt
     }));
@@ -96,4 +98,13 @@ export async function assertSlotAvailable(typeSlug: string, startsAt: Date, ends
 
 function overlaps(aStart: Date, aEnd: Date, bStart: Date, bEnd: Date) {
   return aStart < bEnd && bStart < aEnd;
+}
+
+function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<T>((_, reject) => {
+      setTimeout(() => reject(new Error("Apple Kalender konnte nicht rechtzeitig geladen werden.")), timeoutMs);
+    })
+  ]);
 }

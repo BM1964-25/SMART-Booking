@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { formatGermanTime, TIMEZONE } from "@/lib/date";
 
 type Slot = {
@@ -11,6 +10,7 @@ type Slot = {
 
 type DaySlotPickerProps = {
   bookingTypeSlug: string;
+  embedView?: boolean;
   profileSlug?: string;
   days: string[];
   groupedSlots: Record<string, Slot[]>;
@@ -35,7 +35,7 @@ const longDayFormatter = new Intl.DateTimeFormat("de-DE", {
   timeZone: TIMEZONE
 });
 
-export function DaySlotPicker({ bookingTypeSlug, profileSlug, days, groupedSlots }: DaySlotPickerProps) {
+export function DaySlotPicker({ bookingTypeSlug, embedView = false, profileSlug, days, groupedSlots }: DaySlotPickerProps) {
   const firstAvailableDay = days.find((day) => (groupedSlots[day] || []).length > 0) || days[0];
   const [selectedDay, setSelectedDay] = useState(firstAvailableDay);
   const selectedSlots = groupedSlots[selectedDay] || [];
@@ -82,13 +82,13 @@ export function DaySlotPicker({ bookingTypeSlug, profileSlug, days, groupedSlots
         {selectedSlots.length > 0 ? (
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
             {selectedSlots.map((slot) => (
-              <Link
+              <a
                 key={slot.startsAt}
-                href={`/book/${bookingTypeSlug}/confirm?start=${encodeURIComponent(slot.startsAt)}${profileSlug ? `&profile=${encodeURIComponent(profileSlug)}` : ""}`}
+                href={`/book/${bookingTypeSlug}/confirm?start=${encodeURIComponent(slot.startsAt)}${profileSlug ? `&profile=${encodeURIComponent(profileSlug)}` : ""}${embedView ? "&embed=1" : ""}`}
                 className="rounded-md border border-slate-200 px-4 py-3 text-center text-sm font-semibold text-slate-800 transition hover:border-brand-500 hover:text-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2"
               >
                 {formatGermanTime(new Date(slot.startsAt))}
-              </Link>
+              </a>
             ))}
           </div>
         ) : (

@@ -3,32 +3,39 @@
 import { useState } from "react";
 
 type EmbedCodeOptionsProps = {
+  allowEmbedView: boolean;
+  embedUrl: string;
   publicUrl: string;
 };
 
 const buttonClass =
   "rounded-md border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-slate-700 transition hover:border-brand-500 hover:text-brand-700";
 
-export function EmbedCodeOptions({ publicUrl }: EmbedCodeOptionsProps) {
+export function EmbedCodeOptions({ allowEmbedView, embedUrl, publicUrl }: EmbedCodeOptionsProps) {
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
   const variants = [
     {
       key: "link",
-      title: "Direkter Link",
-      description: "Für Buttons, Menüs oder Textlinks. Empfohlen, wenn die Buchung in einem neuen Tab öffnen soll.",
+      title: "Standard-Link",
+      description: "Für einfache Kunden: öffnet die Buchungsseite mit SMART-Booking-Header und Footer.",
       value: publicUrl
     },
     {
       key: "button",
-      title: "HTML-Button",
-      description: "Für bestehende Websites, wenn ein sichtbarer Button direkt eingebaut werden soll.",
+      title: "Standard-Button",
+      description: "Für Buttons oder Menüs, wenn die Buchung als eigene Seite öffnen soll.",
       value: `<a href="${publicUrl}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;justify-content:center;border-radius:8px;background:#527DF6;color:#fff;padding:12px 18px;font-weight:700;text-decoration:none;">Termin buchen</a>`
     },
     {
       key: "iframe",
-      title: "Einbettung per iframe",
-      description: "Für Seitenbereiche, in denen SMART Booking direkt innerhalb der Website erscheinen soll.",
-      value: `<iframe src="${publicUrl}" width="100%" height="900" style="border:0;width:100%;min-height:900px;" loading="lazy"></iframe>`
+      title: "Premium-iframe",
+      description: allowEmbedView
+        ? "Für Premium-Kunden: bindet die Buchung ohne SMART-Booking-Header und Footer in die Website ein."
+        : "Premium-Funktion: wird erst nach Freischaltung ohne Header und Footer aktiv.",
+      value: allowEmbedView
+        ? `<iframe src="${embedUrl}" width="100%" height="900" style="border:0;width:100%;min-height:900px;" loading="lazy"></iframe>`
+        : "Premium-Einbettung im Profil freischalten, um den iframe-Code zu verwenden.",
+      disabled: !allowEmbedView
     }
   ];
 
@@ -49,7 +56,7 @@ export function EmbedCodeOptions({ publicUrl }: EmbedCodeOptionsProps) {
                 <p className="text-sm font-semibold text-slate-950">{variant.title}</p>
                 <p className="mt-1 text-xs leading-5 text-slate-500">{variant.description}</p>
               </div>
-              <button type="button" className={buttonClass} onClick={() => copyText(variant.key, variant.value)}>
+              <button type="button" className={buttonClass} disabled={variant.disabled} onClick={() => copyText(variant.key, variant.value)}>
                 {copiedKey === variant.key ? "Kopiert" : "Kopieren"}
               </button>
             </div>

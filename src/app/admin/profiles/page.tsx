@@ -26,6 +26,7 @@ export const dynamic = "force-dynamic";
 const MAX_PROFILES = 4;
 const DEFAULT_PRIVACY_URL = "https://www.built-smart-hub.com/datenschutz";
 const DEFAULT_IMPRINT_URL = "https://www.built-smart-hub.com/impressum";
+const PUBLIC_BOOKING_SITE_URL = "https://booking.builtsmart-ai.app";
 
 export default async function AdminProfilesPage({ searchParams }: { searchParams?: Promise<{ savedProfile?: string }> }) {
   await requireAdmin();
@@ -38,7 +39,7 @@ export default async function AdminProfilesPage({ searchParams }: { searchParams
     .select("*")
     .order("created_at", { ascending: false })
     .returns<BookingProfileTemplate[]>();
-  const siteUrl = getEnv().NEXT_PUBLIC_SITE_URL.replace(/\/$/, "");
+  const siteUrl = normalizePublicSiteUrl(getEnv().NEXT_PUBLIC_SITE_URL);
   const profileCount = (profiles || []).length;
   const canCreateMoreProfiles = profileCount < MAX_PROFILES;
 
@@ -57,6 +58,7 @@ export default async function AdminProfilesPage({ searchParams }: { searchParams
       preheadline: nullableString(formData.get("preheadline")),
       headline: String(formData.get("headline") || "").trim(),
       subheadline: String(formData.get("subheadline") || "").trim(),
+      highlight_subheadline: nullableString(formData.get("highlight_subheadline")),
       contact_name: nullableString(formData.get("contact_name")),
       contact_email: nullableString(formData.get("contact_email")),
       contact_phone: nullableString(formData.get("contact_phone")),
@@ -71,6 +73,8 @@ export default async function AdminProfilesPage({ searchParams }: { searchParams
       secondary_website_url: null,
       contact_icon_order: normalizeContactIconOrder(formData.get("contact_icon_order")),
       portrait_url: removePortrait ? null : uploadedPortraitUrl || nullableString(formData.get("portrait_url")),
+      portrait_display_name: nullableString(formData.get("portrait_display_name")),
+      portrait_info: nullableString(formData.get("portrait_info")),
       primary_color: normalizeColor(String(formData.get("primary_color") || "#527DF6")),
       profile_card_bg_color: normalizeColor(String(formData.get("profile_card_bg_color") || "#F8FAFC"), "#F8FAFC"),
       booking_card_bg_color: normalizeColor(String(formData.get("booking_card_bg_color") || "#FFFFFF"), "#FFFFFF"),
@@ -80,8 +84,11 @@ export default async function AdminProfilesPage({ searchParams }: { searchParams
       portrait_position_y: clampNumber(formData.get("portrait_position_y"), 0, 100, 35),
       portrait_zoom: clampNumber(formData.get("portrait_zoom"), 1, 1.8, 1),
       show_portrait: formData.get("show_portrait") === "on",
+      show_portrait_display_name: formData.get("show_portrait_display_name") === "on",
+      show_portrait_info: formData.get("show_portrait_info") === "on",
       show_preheadline: formData.get("show_preheadline") === "on",
       show_subheadline: formData.get("show_subheadline") === "on",
+      show_highlight_subheadline: formData.get("show_highlight_subheadline") === "on",
       show_contact_links: true,
       show_contact_name: formData.get("show_contact_name") === "on",
       show_contact_email: formData.get("show_contact_email") === "on",
@@ -98,6 +105,7 @@ export default async function AdminProfilesPage({ searchParams }: { searchParams
       show_legal_imprint: formData.get("show_legal_imprint") === "on",
       legal_privacy_url: nullableString(formData.get("legal_privacy_url")) || DEFAULT_PRIVACY_URL,
       legal_imprint_url: nullableString(formData.get("legal_imprint_url")) || DEFAULT_IMPRINT_URL,
+      allow_embed_view: formData.get("allow_embed_view") === "on",
       is_active: formData.get("is_active") === "on",
       updated_at: new Date().toISOString()
     };
@@ -190,6 +198,7 @@ export default async function AdminProfilesPage({ searchParams }: { searchParams
       preheadline: sourceProfile.preheadline || "SMART Booking",
       headline: sourceProfile.headline,
       subheadline: sourceProfile.subheadline,
+      highlight_subheadline: sourceProfile.highlight_subheadline,
       contact_name: sourceProfile.contact_name,
       contact_email: sourceProfile.contact_email,
       contact_phone: sourceProfile.contact_phone,
@@ -204,6 +213,8 @@ export default async function AdminProfilesPage({ searchParams }: { searchParams
       secondary_website_url: sourceProfile.secondary_website_url,
       contact_icon_order: normalizeContactIconOrder(sourceProfile.contact_icon_order),
       portrait_url: sourceProfile.portrait_url,
+      portrait_display_name: sourceProfile.portrait_display_name || sourceProfile.contact_name,
+      portrait_info: sourceProfile.portrait_info,
       primary_color: sourceProfile.primary_color,
       profile_card_bg_color: sourceProfile.profile_card_bg_color,
       booking_card_bg_color: sourceProfile.booking_card_bg_color,
@@ -213,8 +224,11 @@ export default async function AdminProfilesPage({ searchParams }: { searchParams
       portrait_position_y: sourceProfile.portrait_position_y,
       portrait_zoom: sourceProfile.portrait_zoom,
       show_portrait: sourceProfile.show_portrait,
+      show_portrait_display_name: sourceProfile.show_portrait_display_name ?? true,
+      show_portrait_info: sourceProfile.show_portrait_info ?? false,
       show_preheadline: sourceProfile.show_preheadline ?? true,
       show_subheadline: sourceProfile.show_subheadline,
+      show_highlight_subheadline: sourceProfile.show_highlight_subheadline ?? false,
       show_contact_links: true,
       show_contact_name: sourceProfile.show_contact_name,
       show_contact_email: sourceProfile.show_contact_email,
@@ -231,6 +245,7 @@ export default async function AdminProfilesPage({ searchParams }: { searchParams
       show_legal_imprint: sourceProfile.show_legal_imprint ?? true,
       legal_privacy_url: sourceProfile.legal_privacy_url || DEFAULT_PRIVACY_URL,
       legal_imprint_url: sourceProfile.legal_imprint_url || DEFAULT_IMPRINT_URL,
+      allow_embed_view: sourceProfile.allow_embed_view ?? false,
       is_active: false
     });
 
@@ -387,6 +402,7 @@ function ProfileForm({
   const publicPath = slug === defaultBookingProfile.slug || !slug ? "/book" : `/book/profile/${slug}`;
   const previewPath = `${publicPath}?preview=admin`;
   const publicUrl = `${siteUrl}${publicPath}`;
+  const embedUrl = `${publicUrl}${publicUrl.includes("?") ? "&" : "?"}embed=1`;
 
   return (
     <ProfileSaveForm action={action} initialState={initialSaveState} className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
@@ -445,7 +461,28 @@ function ProfileForm({
         </div>
         <label className="block sm:col-span-2 lg:col-span-3">
           <span className="flex items-center justify-between gap-3 text-sm font-medium text-slate-700">
-            Subheadline
+            Subheadline 1
+            <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500">
+              <input
+                name="show_highlight_subheadline"
+                type="checkbox"
+                defaultChecked={profile?.show_highlight_subheadline ?? false}
+                className="h-3.5 w-3.5 rounded border-slate-300 text-brand-600"
+              />
+              Anzeigen
+            </span>
+          </span>
+          <textarea
+            name="highlight_subheadline"
+            rows={2}
+            defaultValue={profile?.highlight_subheadline || ""}
+            placeholder="Fetter Hinweis, der direkt unter der Headline erscheint."
+            className="mt-2 w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+          />
+        </label>
+        <label className="block sm:col-span-2 lg:col-span-3">
+          <span className="flex items-center justify-between gap-3 text-sm font-medium text-slate-700">
+            Subheadline 2
             <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500">
               <input name="show_subheadline" type="checkbox" defaultChecked={profile?.show_subheadline ?? true} className="h-3.5 w-3.5 rounded border-slate-300 text-brand-600" />
               Anzeigen
@@ -496,7 +533,7 @@ function ProfileForm({
             <span>
               <span className="block font-semibold text-slate-950">Ablaufanzeige anzeigen</span>
               <span className="mt-1 block text-xs leading-5 text-slate-500">
-                Zeigt die 01/02/03-Leiste „Terminart wählen“, „Tag und Uhrzeit auswählen“, „Daten bestätigen“.
+                Zeigt die 01/02/03-Leiste „Gespräch auswählen“, „Wunschtermin festlegen“, „Buchung abschließen“.
               </span>
             </span>
             <span className="relative mt-0.5 inline-flex h-6 w-11 shrink-0 items-center rounded-full bg-slate-200 transition has-[:checked]:bg-brand-500">
@@ -504,6 +541,47 @@ function ProfileForm({
               <span className="ml-1 h-4 w-4 rounded-full bg-white shadow transition peer-checked:translate-x-5" />
             </span>
           </label>
+        </fieldset>
+        <fieldset className="rounded-md border border-slate-200 bg-slate-50 p-3 sm:col-span-2 lg:col-span-3">
+          <legend className="px-1 text-sm font-semibold text-slate-800">Website-Einbindung</legend>
+          <div className="mt-2 grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(300px,0.7fr)] lg:items-start">
+            <div>
+              <div className="rounded-md border border-slate-200 bg-white p-4">
+                <p className="text-sm font-semibold text-slate-950">Zwei Buchungsvarianten für unterschiedliche Leistungspakete</p>
+                <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">
+                  Die Standard-Variante öffnet SMART Booking als eigene Buchungsseite mit Header und Footer. Die Premium-Variante ist für die Einbindung in
+                  bestehende Webseiten gedacht und blendet Header sowie Footer aus.
+                </p>
+              </div>
+              <div className="mt-3 grid gap-3 md:grid-cols-2">
+                <LinkBox
+                  badge="Standard"
+                  title="Buchungsseite"
+                  description="Für Basis-Kunden oder externe Terminbuttons. SMART-Booking-Header und Footer bleiben sichtbar."
+                  value={publicUrl}
+                />
+                <LinkBox
+                  badge="Premium"
+                  title="Website-Einbettung"
+                  description="Für höherwertige Pakete. Die Buchung wirkt wie ein Bestandteil der Kundenwebsite."
+                  value={embedUrl}
+                  muted={!(profile?.allow_embed_view ?? false)}
+                />
+              </div>
+            </div>
+            <label className="flex cursor-pointer items-start justify-between gap-4 rounded-md border border-brand-100 bg-brand-50 p-4 text-sm text-slate-700">
+              <span>
+                <span className="block font-semibold text-slate-950">Premium-Einbettung freischalten</span>
+                <span className="mt-1 block text-xs leading-5 text-slate-500">
+                  Aktiviert den Premium-Link mit `embed=1`. Erst dann werden Header und Footer auf der öffentlichen Buchungsstrecke ausgeblendet.
+                </span>
+              </span>
+              <span className="relative mt-0.5 inline-flex h-6 w-11 shrink-0 items-center rounded-full bg-slate-200 transition has-[:checked]:bg-brand-500">
+                <input name="allow_embed_view" type="checkbox" defaultChecked={profile?.allow_embed_view ?? false} className="peer sr-only" />
+                <span className="ml-1 h-4 w-4 rounded-full bg-white shadow transition peer-checked:translate-x-5" />
+              </span>
+            </label>
+          </div>
         </fieldset>
         <fieldset className="rounded-md border border-slate-200 bg-slate-50 p-3 sm:col-span-2 lg:col-span-3">
           <legend className="px-1 text-sm font-semibold text-slate-800">Kontaktdaten und Links</legend>
@@ -524,10 +602,14 @@ function ProfileForm({
         <ContactIconOrderEditor order={normalizeContactIconOrder(profile?.contact_icon_order)} />
         <ProfileImageEditor
           portraitUrl={profile?.portrait_url || ""}
+          displayName={profile?.portrait_display_name || profile?.contact_name || ""}
+          portraitInfo={profile?.portrait_info || ""}
           positionX={profile?.portrait_position_x ?? 50}
           positionY={profile?.portrait_position_y ?? 35}
           zoom={profile?.portrait_zoom ?? 1}
           showPortrait={profile?.show_portrait ?? true}
+          showDisplayName={profile?.show_portrait_display_name ?? true}
+          showPortraitInfo={profile?.show_portrait_info ?? false}
         />
         <fieldset className="overflow-hidden rounded-md border border-slate-200 bg-white sm:col-span-2 lg:col-span-3">
           <legend className="sr-only">Rechtliches</legend>
@@ -570,7 +652,7 @@ function ProfileForm({
           deleteAction={deleteTemplateAction}
         />
       </div>
-      <EmbedCodeOptions publicUrl={publicUrl} />
+      <EmbedCodeOptions allowEmbedView={profile?.allow_embed_view ?? false} embedUrl={embedUrl} publicUrl={publicUrl} />
 
       <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
@@ -698,6 +780,47 @@ function LegalLinkField({
   );
 }
 
+function LinkBox({
+  badge,
+  description,
+  muted = false,
+  title,
+  value
+}: {
+  badge: "Premium" | "Standard";
+  description: string;
+  muted?: boolean;
+  title: string;
+  value: string;
+}) {
+  return (
+    <div className={`rounded-md border p-4 ${muted ? "border-slate-200 bg-slate-100" : "border-slate-200 bg-white"}`}>
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <p className="text-sm font-semibold text-slate-950">{title}</p>
+          <p className="mt-1 text-xs leading-5 text-slate-500">{description}</p>
+        </div>
+        <span
+          className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-semibold ${
+            badge === "Premium" ? "bg-brand-100 text-brand-700" : "bg-slate-100 text-slate-700"
+          }`}
+        >
+          {badge}
+        </span>
+      </div>
+      {muted ? <p className="mt-3 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-medium text-amber-800">Erst nach Freischaltung als Premium-Funktion aktiv.</p> : null}
+      <p className="mt-3 text-xs font-semibold uppercase text-slate-500">Öffentlicher HTTPS-Link</p>
+      <input
+        readOnly
+        value={value}
+        className={`mt-2 w-full rounded-md border border-slate-200 px-3 py-2 font-mono text-xs ${
+          muted ? "bg-slate-50 text-slate-400" : "bg-white text-slate-700"
+        }`}
+      />
+    </div>
+  );
+}
+
 function ColorField({
   label,
   name,
@@ -725,11 +848,22 @@ function nullableString(value: FormDataEntryValue | null) {
   return text.length > 0 ? text : null;
 }
 
+function normalizePublicSiteUrl(value: string) {
+  const siteUrl = String(value || "").replace(/\/$/, "");
+
+  if (!siteUrl || siteUrl.includes("localhost") || siteUrl.includes("127.0.0.1")) {
+    return PUBLIC_BOOKING_SITE_URL;
+  }
+
+  return siteUrl;
+}
+
 function buildProfileTemplateData(formData: FormData) {
   return {
     preheadline: nullableString(formData.get("preheadline")),
     headline: String(formData.get("headline") || "").trim(),
     subheadline: String(formData.get("subheadline") || "").trim(),
+    highlight_subheadline: nullableString(formData.get("highlight_subheadline")),
     contact_name: nullableString(formData.get("contact_name")),
     contact_email: nullableString(formData.get("contact_email")),
     contact_phone: nullableString(formData.get("contact_phone")),
@@ -742,13 +876,18 @@ function buildProfileTemplateData(formData: FormData) {
     spotify_url: nullableString(formData.get("spotify_url")),
     website_url: nullableString(formData.get("website_url")),
     contact_icon_order: normalizeContactIconOrder(formData.get("contact_icon_order")),
+    portrait_display_name: nullableString(formData.get("portrait_display_name")),
+    portrait_info: nullableString(formData.get("portrait_info")),
     primary_color: normalizeColor(String(formData.get("primary_color") || "#527DF6")),
     profile_card_bg_color: normalizeColor(String(formData.get("profile_card_bg_color") || "#F8FAFC"), "#F8FAFC"),
     booking_card_bg_color: normalizeColor(String(formData.get("booking_card_bg_color") || "#FFFFFF"), "#FFFFFF"),
     profile_layout: normalizeProfileLayout(formData.get("profile_layout")),
     show_workflow_steps: formData.get("show_workflow_steps") === "on",
+    show_portrait_display_name: formData.get("show_portrait_display_name") === "on",
+    show_portrait_info: formData.get("show_portrait_info") === "on",
     show_preheadline: formData.get("show_preheadline") === "on",
     show_subheadline: formData.get("show_subheadline") === "on",
+    show_highlight_subheadline: formData.get("show_highlight_subheadline") === "on",
     show_contact_name: formData.get("show_contact_name") === "on",
     show_contact_email: formData.get("show_contact_email") === "on",
     show_contact_phone: formData.get("show_contact_phone") === "on",
@@ -772,6 +911,7 @@ function buildProfileTemplateDataFromProfile(profile: BookingProfile) {
     preheadline: profile.preheadline,
     headline: profile.headline,
     subheadline: profile.subheadline,
+    highlight_subheadline: profile.highlight_subheadline,
     contact_name: profile.contact_name,
     contact_email: profile.contact_email,
     contact_phone: profile.contact_phone,
@@ -784,13 +924,18 @@ function buildProfileTemplateDataFromProfile(profile: BookingProfile) {
     spotify_url: profile.spotify_url,
     website_url: profile.website_url,
     contact_icon_order: normalizeContactIconOrder(profile.contact_icon_order),
+    portrait_display_name: profile.portrait_display_name || profile.contact_name,
+    portrait_info: profile.portrait_info,
     primary_color: profile.primary_color,
     profile_card_bg_color: profile.profile_card_bg_color,
     booking_card_bg_color: profile.booking_card_bg_color,
     profile_layout: profile.profile_layout || "split",
     show_workflow_steps: profile.show_workflow_steps ?? true,
+    show_portrait_display_name: profile.show_portrait_display_name ?? true,
+    show_portrait_info: profile.show_portrait_info ?? false,
     show_preheadline: profile.show_preheadline,
     show_subheadline: profile.show_subheadline,
+    show_highlight_subheadline: profile.show_highlight_subheadline ?? false,
     show_contact_name: profile.show_contact_name,
     show_contact_email: profile.show_contact_email,
     show_contact_phone: profile.show_contact_phone,

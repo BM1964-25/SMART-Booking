@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { defaultContactIconOrder } from "@/lib/contact-icon-order";
 
 type ProfileTemplateData = Record<string, string | number | boolean | string[] | null>;
@@ -25,12 +25,14 @@ const standardTemplates: ProfileTemplateOption[] = [
       preheadline: "Terminplanung",
       headline: "Termin buchen",
       subheadline: "Wählen Sie einen passenden 30-Minuten-Termin für ein Erstgespräch oder eine persönliche Beratung.",
+      highlight_subheadline: "Sichern Sie sich Ihr persönliches Zeitfenster direkt online.",
       primary_color: "#527DF6",
       profile_card_bg_color: "#F8FAFC",
       booking_card_bg_color: "#FFFFFF",
       show_workflow_steps: true,
       show_preheadline: true,
       show_subheadline: true,
+      show_highlight_subheadline: true,
       show_contact_name: true,
       show_contact_email: true,
       show_contact_phone: true,
@@ -59,12 +61,14 @@ const standardTemplates: ProfileTemplateOption[] = [
       preheadline: "Online buchbar",
       headline: "Persönlichen Termin vereinbaren",
       subheadline: "Buchen Sie direkt einen freien Termin. Die Bestätigung erhalten Sie automatisch per E-Mail.",
+      highlight_subheadline: "Ideal für schnelle Abstimmung ohne E-Mail-Pingpong.",
       primary_color: "#0F766E",
       profile_card_bg_color: "#F0FDFA",
       booking_card_bg_color: "#FFFFFF",
       show_workflow_steps: true,
       show_preheadline: true,
       show_subheadline: true,
+      show_highlight_subheadline: true,
       show_contact_name: true,
       show_contact_email: true,
       show_contact_phone: false,
@@ -114,9 +118,11 @@ export function ProfileTemplateControls({
     [currentData, templates]
   );
   const [activeTemplateKey, setActiveTemplateKey] = useState<string | null>(initialActiveTemplateKey);
+  const deleteTemplateIdRef = useRef<HTMLInputElement>(null);
 
   return (
     <fieldset className="rounded-md border border-slate-200 bg-slate-50 p-3 sm:col-span-2 lg:col-span-3">
+      <input ref={deleteTemplateIdRef} type="hidden" name="template_id" defaultValue="" />
       <legend className="px-1 text-sm font-semibold text-slate-800">Profilvorlagen</legend>
       <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
         <p className="max-w-2xl text-sm leading-6 text-slate-600">
@@ -177,8 +183,11 @@ export function ProfileTemplateControls({
               <button
                 formAction={deleteAction}
                 formNoValidate
-                name="template_id"
-                value={template.id}
+                onClick={() => {
+                  if (deleteTemplateIdRef.current) {
+                    deleteTemplateIdRef.current.value = template.id;
+                  }
+                }}
                 type="submit"
                 className="mt-3 inline-flex w-fit rounded-md border border-red-200 px-2.5 py-1.5 text-xs font-semibold text-red-600 transition hover:bg-red-50"
               >
