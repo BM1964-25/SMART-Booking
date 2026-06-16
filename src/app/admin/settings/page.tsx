@@ -1,4 +1,5 @@
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { AdminNav } from "@/components/admin-nav";
 import { AdminDeleteBlockedTimeButton } from "@/components/admin-delete-blocked-time-button";
 import { AvailabilityGrid } from "@/components/availability-grid";
@@ -21,10 +22,12 @@ const weekdays = [
   { value: 7, label: "Sonntag" }
 ];
 
-export default async function AdminSettingsPage({ searchParams }: { searchParams?: Promise<{ bookingProfile?: string }> }) {
+export default async function AdminSettingsPage({ searchParams }: { searchParams?: Promise<{ bookingProfile?: string; bookingTypeError?: string; bookingTypeSaved?: string }> }) {
   await requireAdmin();
   const resolvedSearchParams = await searchParams;
   const activeBookingProfileId = resolvedSearchParams?.bookingProfile;
+  const bookingTypeError = resolvedSearchParams?.bookingTypeError || "";
+  const bookingTypeSaved = resolvedSearchParams?.bookingTypeSaved || "";
   const supabase = createSupabaseAdmin();
   const [{ data: types }, { data: profiles }, { data: rules }, { data: blockedTimes }, { data: bookingsForTypes }, typeProfileAssignments] = await Promise.all([
     supabase.from("booking_types").select("*").order("sort_order").returns<BookingType[]>(),
@@ -66,7 +69,7 @@ export default async function AdminSettingsPage({ searchParams }: { searchParams
     const name = String(formData.get("name") || "").trim();
 
     if (!profileId || !name) {
-      return;
+      redirect(bookingTypeRedirect(profileId, { error: "Bitte Profil und Name der Terminart ausfüllen." }));
     }
 
     const { data: profileTypes } = await supabase
@@ -78,36 +81,72 @@ export default async function AdminSettingsPage({ searchParams }: { searchParams
     const isAlreadyInProfile = (profileTypes || []).some((type) => type.id === id);
 
     if (!isAlreadyInProfile && otherProfileTypes.length >= 4) {
-      return;
+      redirect(bookingTypeRedirect(profileId, { error: "Pro Profil sind maximal vier Terminarten vorgesehen." }));
     }
+    const requestedSlug = slugify(String(formData.get("slug") || name));
+    const uniqueSlug = await createUniqueBookingTypeSlug(supabase, requestedSlug || name, id, profileId);
 
     const payload = {
-      slug: slugify(String(formData.get("slug") || name)),
+      slug: uniqueSlug,
       name,
-      description: String(formData.get("description") || "").trim(),
-      duration_minutes: Number(formData.get("duration_minutes")),
-      buffer_before_minutes: Number(formData.get("buffer_before_minutes") || 0),
-      buffer_after_minutes: Number(formData.get("buffer_after_minutes") || 0),
+      description: nullableText(formData.get("description")),
+      duration_minutes: Number(formData.get("duration_minutes") || 30),
+      buffer_before_minutes: Number(formData.get("buffer_before_minutes") || 10),
+      buffer_after_minutes: Number(formData.get("buffer_after_minutes") || 15),
       sort_order: clampSortOrder(formData.get("sort_order")),
       profile_id: profileId,
       is_active: formData.get("is_active") === "on"
     };
     let savedId = id;
+    let saved:
+      | {
+          id: string;
+          description: string | null;
+          buffer_before_minutes: number | null;
+          buffer_after_minutes: number | null;
+          profile_id: string | null;
+        }
+      | null
+      | undefined;
 
     if (id) {
-      await supabase.from("booking_types").update(payload).eq("id", id);
+      const { data, error } = await supabase
+        .from("booking_types")
+        .update(payload)
+        .eq("id", id)
+        .select("id, description, buffer_before_minutes, buffer_after_minutes, profile_id")
+        .single<typeof saved>();
+
+      if (error) {
+        redirect(bookingTypeRedirect(profileId, { error: error.message || "Terminart konnte nicht gespeichert werden." }));
+      }
+
+      saved = data;
     } else {
-      const { data } = await supabase.from("booking_types").insert(payload).select("id").single<{ id: string }>();
+      const { data, error } = await supabase
+        .from("booking_types")
+        .insert(payload)
+        .select("id, description, buffer_before_minutes, buffer_after_minutes, profile_id")
+        .single<typeof saved>();
+
+      if (error) {
+        redirect(bookingTypeRedirect(profileId, { error: error.message || "Terminart konnte nicht angelegt werden." }));
+      }
+
       savedId = data?.id || "";
+      saved = data;
     }
 
-    if (savedId) {
-      await replaceBookingTypeProfileAssignments(savedId, [profileId]);
+    if (!savedId || !bookingTypeSaveMatches(saved, payload)) {
+      redirect(bookingTypeRedirect(profileId, { error: "Terminart wurde nicht vollständig gespeichert. Bitte erneut versuchen." }));
     }
+
+    await replaceBookingTypeProfileAssignments(savedId, [profileId]);
 
     revalidatePath("/admin/settings");
     revalidatePath("/book");
     revalidatePath("/admin/profiles");
+    redirect(bookingTypeRedirect(profileId, { saved: savedId }));
   }
 
   async function deleteBookingType(formData: FormData) {
@@ -286,6 +325,12 @@ export default async function AdminSettingsPage({ searchParams }: { searchParams
             Verwalten Sie die Terminarten direkt im jeweiligen Profil. Pro Profil sind bis zu vier Terminarten vorgesehen, inklusive eigener Sortierung.
           </p>
         </div>
+        {bookingTypeError ? (
+          <p className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-700">{bookingTypeError}</p>
+        ) : null}
+        {bookingTypeSaved ? (
+          <p className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-700">Terminart wurde gespeichert.</p>
+        ) : null}
         <BookingTypeProfileTabs
           action={saveBookingType}
           activeProfileId={activeBookingProfileId}
@@ -378,6 +423,83 @@ function formatDateTime(value: string) {
 
 function formatRuleTime(value: string) {
   return String(value).slice(0, 5);
+}
+
+function bookingTypeRedirect(profileId: string, result?: { error?: string; saved?: string }) {
+  const params = new URLSearchParams();
+
+  if (profileId) {
+    params.set("bookingProfile", profileId);
+  }
+
+  if (result?.error) {
+    params.set("bookingTypeError", result.error);
+  }
+
+  if (result?.saved) {
+    params.set("bookingTypeSaved", result.saved);
+  }
+
+  return `/admin/settings?${params.toString()}#terminarten`;
+}
+
+function nullableText(value: FormDataEntryValue | null) {
+  const text = String(value || "").trim();
+  return text.length > 0 ? text : null;
+}
+
+function bookingTypeSaveMatches(
+  data:
+    | {
+        description: string | null;
+        buffer_before_minutes: number | null;
+        buffer_after_minutes: number | null;
+        profile_id: string | null;
+      }
+    | null
+    | undefined,
+  payload: {
+    description: string | null;
+    buffer_before_minutes: number;
+    buffer_after_minutes: number;
+    profile_id: string;
+  }
+) {
+  return (
+    String(data?.description || "").trim() === String(payload.description || "").trim() &&
+    Number(data?.buffer_before_minutes || 0) === payload.buffer_before_minutes &&
+    Number(data?.buffer_after_minutes || 0) === payload.buffer_after_minutes &&
+    data?.profile_id === payload.profile_id
+  );
+}
+
+async function createUniqueBookingTypeSlug(
+  supabase: ReturnType<typeof createSupabaseAdmin>,
+  requestedSlug: string,
+  currentId: string,
+  profileId: string
+) {
+  const baseSlug = slugify(requestedSlug) || "terminart";
+  const { data: profile } = await supabase.from("booking_profiles").select("slug").eq("id", profileId).maybeSingle<{ slug: string | null }>();
+  const profileSuffix = slugify(profile?.slug || profileId.slice(0, 8));
+  const candidates = [baseSlug, `${baseSlug}-${profileSuffix}`];
+
+  for (let index = 2; index <= 20; index += 1) {
+    candidates.push(`${baseSlug}-${profileSuffix}-${index}`);
+  }
+
+  const { data: existingTypes } = await supabase.from("booking_types").select("id, slug").in("slug", candidates).returns<Array<{ id: string; slug: string }>>();
+  const existingBySlug = new Map((existingTypes || []).map((type) => [type.slug, type.id]));
+
+  for (const candidate of candidates) {
+    const existingId = existingBySlug.get(candidate);
+
+    if (!existingId || existingId === currentId) {
+      return candidate;
+    }
+  }
+
+  return `${baseSlug}-${profileSuffix}-${Date.now()}`;
 }
 
 function slugify(value: string) {

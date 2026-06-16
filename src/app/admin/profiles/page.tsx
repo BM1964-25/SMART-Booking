@@ -7,6 +7,7 @@ import { AdminNav } from "@/components/admin-nav";
 import { FacebookIcon, InstagramIcon, LinkedInIcon, SpotifyIcon, XIcon, XingIcon, YouTubeIcon } from "@/components/brand-icons";
 import { ContactIconOrderEditor } from "@/components/contact-icon-order-editor";
 import { ColorPalettePresets } from "@/components/color-palette-presets";
+import { CopyLinkField } from "@/components/copy-link-field";
 import { DeleteProfileButton } from "@/components/delete-profile-button";
 import { EmbedCodeOptions } from "@/components/embed-code-options";
 import { ProfileIdentityFields } from "@/components/profile-identity-fields";
@@ -27,11 +28,13 @@ const MAX_PROFILES = 4;
 const DEFAULT_PRIVACY_URL = "https://www.built-smart-hub.com/datenschutz";
 const DEFAULT_IMPRINT_URL = "https://www.built-smart-hub.com/impressum";
 const PUBLIC_BOOKING_SITE_URL = "https://booking.builtsmart-ai.app";
+const PROFILE_SAVE_VERIFY_SELECT = "id, profile_layout, show_workflow_steps, highlight_subheadline, show_highlight_subheadline, subheadline, show_subheadline";
 
-export default async function AdminProfilesPage({ searchParams }: { searchParams?: Promise<{ savedProfile?: string }> }) {
+export default async function AdminProfilesPage({ searchParams }: { searchParams?: Promise<{ profile?: string; savedProfile?: string }> }) {
   await requireAdmin();
   const resolvedSearchParams = await searchParams;
   const savedProfileId = resolvedSearchParams?.savedProfile || "";
+  const requestedProfileId = resolvedSearchParams?.profile || "";
   const supabase = createSupabaseAdmin();
   const { data: profiles } = await supabase.from("booking_profiles").select("*").order("created_at").returns<BookingProfile[]>();
   const { data: profileTemplates } = await supabase
@@ -115,17 +118,21 @@ export default async function AdminProfilesPage({ searchParams }: { searchParams
     }
 
     if (id) {
-      const { data, error } = await supabase.from("booking_profiles").update(payload).eq("id", id).select("id, profile_layout, show_workflow_steps").single<{
+      const { data, error } = await supabase.from("booking_profiles").update(payload).eq("id", id).select(PROFILE_SAVE_VERIFY_SELECT).single<{
         id: string;
         profile_layout: string | null;
         show_workflow_steps: boolean | null;
+        highlight_subheadline: string | null;
+        show_highlight_subheadline: boolean | null;
+        subheadline: string | null;
+        show_subheadline: boolean | null;
       }>();
 
       if (error) {
         return { status: "error", message: error.message || "Profil konnte nicht gespeichert werden." };
       }
 
-      if (data?.profile_layout !== payload.profile_layout || data.show_workflow_steps !== payload.show_workflow_steps) {
+      if (!profileSaveMatches(data, payload)) {
         return { status: "error", message: "Profil wurde nicht vollständig gespeichert. Bitte erneut versuchen." };
       }
     } else {
@@ -135,17 +142,21 @@ export default async function AdminProfilesPage({ searchParams }: { searchParams
         return { status: "error", message: `Es können maximal ${MAX_PROFILES} Profile angelegt werden.` };
       }
 
-      const { data, error } = await supabase.from("booking_profiles").insert(payload).select("id, profile_layout, show_workflow_steps").single<{
+      const { data, error } = await supabase.from("booking_profiles").insert(payload).select(PROFILE_SAVE_VERIFY_SELECT).single<{
         id: string;
         profile_layout: string | null;
         show_workflow_steps: boolean | null;
+        highlight_subheadline: string | null;
+        show_highlight_subheadline: boolean | null;
+        subheadline: string | null;
+        show_subheadline: boolean | null;
       }>();
 
       if (error) {
         return { status: "error", message: error.message || "Profil konnte nicht angelegt werden." };
       }
 
-      if (!data?.id || data.profile_layout !== payload.profile_layout || data.show_workflow_steps !== payload.show_workflow_steps) {
+      if (!data?.id || !profileSaveMatches(data, payload)) {
         return { status: "error", message: "Profil wurde nicht vollständig angelegt. Bitte erneut versuchen." };
       }
 
@@ -329,6 +340,7 @@ export default async function AdminProfilesPage({ searchParams }: { searchParams
       ) : null}
 
       <ProfileTabs
+        initialActiveId={savedProfileId || requestedProfileId}
         profiles={[
           ...(profiles || []).map((profile) => ({
             id: profile.id,
@@ -400,7 +412,18 @@ function ProfileForm({
 }) {
   const slug = profile?.slug || "";
   const publicPath = slug === defaultBookingProfile.slug || !slug ? "/book" : `/book/profile/${slug}`;
-  const previewPath = `${publicPath}?preview=admin`;
+  const isPremiumPreview = profile?.allow_embed_view === true;
+  const previewParams = new URLSearchParams({ preview: "admin" });
+
+  if (profile?.id) {
+    previewParams.set("returnProfile", profile.id);
+  }
+
+  if (isPremiumPreview) {
+    previewParams.set("embed", "1");
+  }
+
+  const previewPath = `${publicPath}?${previewParams.toString()}`;
   const publicUrl = `${siteUrl}${publicPath}`;
   const embedUrl = `${publicUrl}${publicUrl.includes("?") ? "&" : "?"}embed=1`;
 
@@ -420,7 +443,7 @@ function ProfileForm({
                 href={previewPath}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex w-fit items-center gap-2 rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm font-semibold text-slate-700 transition hover:border-brand-500 hover:text-brand-700"
+                className="inline-flex w-fit items-center gap-2 rounded-md border border-emerald-300 bg-emerald-100 px-3 py-1.5 text-sm font-semibold text-emerald-950 transition hover:border-emerald-400 hover:bg-emerald-200"
               >
                 Live-Vorschau öffnen
                 <ExternalLink className="h-3.5 w-3.5" />
@@ -430,7 +453,9 @@ function ProfileForm({
             )}
           </div>
           <p className="mt-2 text-xs leading-5 text-slate-500">
-            Die Live-Vorschau zeigt den zuletzt gespeicherten Stand. Änderungen werden erst nach „Profil speichern“ sichtbar.
+            Die Live-Vorschau zeigt den zuletzt gespeicherten Stand
+            {isPremiumPreview ? " als Premium-Einbettung ohne Header und Footer" : " als Standard-Buchungsseite mit Header und Footer"}. Änderungen werden erst
+            nach „Profil speichern“ sichtbar.
           </p>
         </div>
         <label className="flex items-center gap-2 text-sm text-slate-700">
@@ -544,36 +569,20 @@ function ProfileForm({
         </fieldset>
         <fieldset className="rounded-md border border-slate-200 bg-slate-50 p-3 sm:col-span-2 lg:col-span-3">
           <legend className="px-1 text-sm font-semibold text-slate-800">Website-Einbindung</legend>
-          <div className="mt-2 grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(300px,0.7fr)] lg:items-start">
-            <div>
-              <div className="rounded-md border border-slate-200 bg-white p-4">
-                <p className="text-sm font-semibold text-slate-950">Zwei Buchungsvarianten für unterschiedliche Leistungspakete</p>
-                <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">
-                  Die Standard-Variante öffnet SMART Booking als eigene Buchungsseite mit Header und Footer. Die Premium-Variante ist für die Einbindung in
-                  bestehende Webseiten gedacht und blendet Header sowie Footer aus.
-                </p>
-              </div>
-              <div className="mt-3 grid gap-3 md:grid-cols-2">
-                <LinkBox
-                  badge="Standard"
-                  title="Buchungsseite"
-                  description="Für Basis-Kunden oder externe Terminbuttons. SMART-Booking-Header und Footer bleiben sichtbar."
-                  value={publicUrl}
-                />
-                <LinkBox
-                  badge="Premium"
-                  title="Website-Einbettung"
-                  description="Für höherwertige Pakete. Die Buchung wirkt wie ein Bestandteil der Kundenwebsite."
-                  value={embedUrl}
-                  muted={!(profile?.allow_embed_view ?? false)}
-                />
-              </div>
+          <div className="mt-2 grid gap-3">
+            <div className="rounded-md border border-slate-200 bg-white p-4">
+              <p className="text-sm font-semibold text-slate-950">Zwei Buchungsvarianten für unterschiedliche Leistungspakete</p>
+              <p className="mt-2 max-w-4xl text-sm leading-6 text-slate-600">
+                Die Standard-Variante öffnet SMART Booking als eigene Buchungsseite mit Header und Footer. Die Premium-Variante ist für die Einbindung in
+                bestehende Webseiten gedacht und blendet Header sowie Footer aus.
+              </p>
             </div>
             <label className="flex cursor-pointer items-start justify-between gap-4 rounded-md border border-brand-100 bg-brand-50 p-4 text-sm text-slate-700">
               <span>
-                <span className="block font-semibold text-slate-950">Premium-Einbettung freischalten</span>
+                <span className="block font-semibold text-slate-950">Premium-Link freischalten</span>
                 <span className="mt-1 block text-xs leading-5 text-slate-500">
-                  Aktiviert den Premium-Link mit `embed=1`. Erst dann werden Header und Footer auf der öffentlichen Buchungsstrecke ausgeblendet.
+                  Gibt die reduzierte Buchungsansicht ohne SMART-Booking-Header und Footer frei. Geeignet für höherwertige Pakete, bei denen die Buchung ruhiger
+                  in eine Kundenwebsite eingebunden werden soll.
                 </span>
               </span>
               <span className="relative mt-0.5 inline-flex h-6 w-11 shrink-0 items-center rounded-full bg-slate-200 transition has-[:checked]:bg-brand-500">
@@ -581,6 +590,21 @@ function ProfileForm({
                 <span className="ml-1 h-4 w-4 rounded-full bg-white shadow transition peer-checked:translate-x-5" />
               </span>
             </label>
+            <div className="grid gap-3 lg:grid-cols-2">
+              <LinkBox
+                badge="Standard"
+                title="Buchungsseite"
+                description="Für Basis-Kunden oder externe Terminbuttons. SMART-Booking-Header und Footer bleiben sichtbar."
+                value={publicUrl}
+              />
+              <LinkBox
+                badge="Premium"
+                title="Website-Einbettung"
+                description="Für höherwertige Pakete. Die Buchung wirkt wie ein Bestandteil der Kundenwebsite."
+                value={embedUrl}
+                muted={!(profile?.allow_embed_view ?? false)}
+              />
+            </div>
           </div>
         </fieldset>
         <fieldset className="rounded-md border border-slate-200 bg-slate-50 p-3 sm:col-span-2 lg:col-span-3">
@@ -810,13 +834,7 @@ function LinkBox({
       </div>
       {muted ? <p className="mt-3 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-medium text-amber-800">Erst nach Freischaltung als Premium-Funktion aktiv.</p> : null}
       <p className="mt-3 text-xs font-semibold uppercase text-slate-500">Öffentlicher HTTPS-Link</p>
-      <input
-        readOnly
-        value={value}
-        className={`mt-2 w-full rounded-md border border-slate-200 px-3 py-2 font-mono text-xs ${
-          muted ? "bg-slate-50 text-slate-400" : "bg-white text-slate-700"
-        }`}
-      />
+      <CopyLinkField disabled={muted} value={value} />
     </div>
   );
 }
@@ -846,6 +864,41 @@ function ColorField({
 function nullableString(value: FormDataEntryValue | null) {
   const text = String(value || "").trim();
   return text.length > 0 ? text : null;
+}
+
+function profileSaveMatches(
+  data:
+    | {
+        profile_layout: string | null;
+        show_workflow_steps: boolean | null;
+        highlight_subheadline: string | null;
+        show_highlight_subheadline: boolean | null;
+        subheadline: string | null;
+        show_subheadline: boolean | null;
+      }
+    | null
+    | undefined,
+  payload: {
+    profile_layout: string;
+    show_workflow_steps: boolean;
+    highlight_subheadline: string | null;
+    show_highlight_subheadline: boolean;
+    subheadline: string;
+    show_subheadline: boolean;
+  }
+) {
+  return (
+    data?.profile_layout === payload.profile_layout &&
+    data.show_workflow_steps === payload.show_workflow_steps &&
+    normalizeSavedText(data.highlight_subheadline) === normalizeSavedText(payload.highlight_subheadline) &&
+    data.show_highlight_subheadline === payload.show_highlight_subheadline &&
+    normalizeSavedText(data.subheadline) === normalizeSavedText(payload.subheadline) &&
+    data.show_subheadline === payload.show_subheadline
+  );
+}
+
+function normalizeSavedText(value: string | null | undefined) {
+  return String(value || "").trim();
 }
 
 function normalizePublicSiteUrl(value: string) {

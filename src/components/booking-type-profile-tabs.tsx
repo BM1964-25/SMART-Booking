@@ -148,7 +148,7 @@ function BookingTypeForm({
   profile: BookingProfile;
   type?: BookingType;
 }) {
-  const duration = type?.duration_minutes || 30;
+  const duration = type?.duration_minutes ?? 30;
 
   return (
     <form action={action} className={isNew ? "rounded-md border border-slate-200 bg-white p-4" : "rounded-lg border border-slate-200 bg-white p-5 shadow-sm"}>
@@ -202,10 +202,10 @@ function BookingTypeForm({
         <fieldset className="h-full rounded-md border border-slate-200 bg-white p-3">
           <legend className="px-1 text-sm font-semibold text-slate-800">Zeitlogik</legend>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
-            <Field label="Dauer (Min.)" name="duration_minutes" type="number" defaultValue={String(type?.duration_minutes || 30)} required />
+            <Field label="Dauer (Min.)" name="duration_minutes" type="number" defaultValue={String(type?.duration_minutes ?? 30)} required />
             <Field label="Sortierung" name="sort_order" type="number" defaultValue={String(displaySortOrder)} min={1} max={4} />
-            <Field label="Puffer davor (Min.)" name="buffer_before_minutes" type="number" defaultValue={String(type?.buffer_before_minutes || 0)} />
-            <Field label="Puffer danach (Min.)" name="buffer_after_minutes" type="number" defaultValue={String(type?.buffer_after_minutes || 0)} />
+            <Field label="Puffer davor (Min.)" name="buffer_before_minutes" type="number" defaultValue={String(type?.buffer_before_minutes ?? 10)} />
+            <Field label="Puffer danach (Min.)" name="buffer_after_minutes" type="number" defaultValue={String(type?.buffer_after_minutes ?? 15)} />
           </div>
         </fieldset>
       </div>

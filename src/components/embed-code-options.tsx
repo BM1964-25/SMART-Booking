@@ -16,25 +16,23 @@ export function EmbedCodeOptions({ allowEmbedView, embedUrl, publicUrl }: EmbedC
   const variants = [
     {
       key: "link",
-      title: "Standard-Link",
-      description: "Für einfache Kunden: öffnet die Buchungsseite mit SMART-Booking-Header und Footer.",
+      title: "Buchungslink",
+      description: "Öffnet die Buchungsseite als eigene Seite mit SMART-Booking-Header und Footer.",
       value: publicUrl
     },
     {
       key: "button",
-      title: "Standard-Button",
-      description: "Für Buttons oder Menüs, wenn die Buchung als eigene Seite öffnen soll.",
+      title: "Button-Code",
+      description: "HTML-Code für einen Terminbutton auf einer externen Website.",
       value: `<a href="${publicUrl}" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;justify-content:center;border-radius:8px;background:#527DF6;color:#fff;padding:12px 18px;font-weight:700;text-decoration:none;">Termin buchen</a>`
     },
     {
-      key: "iframe",
-      title: "Premium-iframe",
+      key: "premium-link",
+      title: "Premium-Link",
       description: allowEmbedView
-        ? "Für Premium-Kunden: bindet die Buchung ohne SMART-Booking-Header und Footer in die Website ein."
+        ? "Öffnet die Buchungsseite ohne SMART-Booking-Header und Footer."
         : "Premium-Funktion: wird erst nach Freischaltung ohne Header und Footer aktiv.",
-      value: allowEmbedView
-        ? `<iframe src="${embedUrl}" width="100%" height="900" style="border:0;width:100%;min-height:900px;" loading="lazy"></iframe>`
-        : "Premium-Einbettung im Profil freischalten, um den iframe-Code zu verwenden.",
+      value: allowEmbedView ? embedUrl : "Premium-Einbettung im Profil freischalten, um den Premium-Link zu verwenden.",
       disabled: !allowEmbedView
     }
   ];
@@ -47,7 +45,7 @@ export function EmbedCodeOptions({ allowEmbedView, embedUrl, publicUrl }: EmbedC
 
   return (
     <details className="mt-4 rounded-md border border-slate-200 bg-slate-50 p-3">
-      <summary className="cursor-pointer text-sm font-semibold text-slate-800">Einbindung auf Website kopieren</summary>
+      <summary className="cursor-pointer text-sm font-semibold text-slate-800">Link- und Button-Code für Website kopieren</summary>
       <div className="mt-4 grid gap-3 lg:grid-cols-3">
         {variants.map((variant) => (
           <div key={variant.key} className="rounded-md border border-slate-200 bg-white p-3">
@@ -63,7 +61,7 @@ export function EmbedCodeOptions({ allowEmbedView, embedUrl, publicUrl }: EmbedC
             <textarea
               readOnly
               value={variant.value}
-              rows={variant.key === "iframe" ? 4 : 3}
+              rows={3}
               className="mt-3 w-full resize-none rounded-md border border-slate-200 bg-slate-50 px-3 py-2 font-mono text-xs leading-5 text-slate-700"
             />
           </div>

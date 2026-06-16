@@ -1,6 +1,6 @@
 "use client";
 
-import { Children, ReactNode, useState } from "react";
+import { Children, ReactNode, useEffect, useState } from "react";
 
 type ProfileTab = {
   id: string;
@@ -11,13 +11,26 @@ type ProfileTab = {
   isCreate?: boolean;
 };
 
-export function ProfileTabs({ profiles, children }: { profiles: ProfileTab[]; children: ReactNode }) {
+export function ProfileTabs({ children, initialActiveId, profiles }: { children: ReactNode; initialActiveId?: string; profiles: ProfileTab[] }) {
   const panels = Children.toArray(children);
-  const [activeId, setActiveId] = useState(profiles[0]?.id || "");
+  const fallbackActiveId = profiles.some((profile) => profile.id === initialActiveId) ? initialActiveId || "" : profiles[0]?.id || "";
+  const [activeId, setActiveId] = useState(fallbackActiveId);
   const activeIndex = Math.max(
     0,
     profiles.findIndex((profile) => profile.id === activeId)
   );
+
+  useEffect(() => {
+    if (initialActiveId) {
+      return;
+    }
+
+    const rememberedProfileId = window.sessionStorage.getItem("smart-booking-active-profile-tab");
+
+    if (rememberedProfileId && profiles.some((profile) => profile.id === rememberedProfileId)) {
+      setActiveId(rememberedProfileId);
+    }
+  }, [initialActiveId, profiles]);
 
   if (profiles.length === 0) {
     return (
@@ -38,7 +51,10 @@ export function ProfileTabs({ profiles, children }: { profiles: ProfileTab[]; ch
             <button
               key={profile.id}
               type="button"
-              onClick={() => setActiveId(profile.id)}
+              onClick={() => {
+                setActiveId(profile.id);
+                rememberProfileTab(profile.id);
+              }}
               className={`relative -mb-px inline-flex items-center gap-2 rounded-t-md border px-4 py-2 text-sm font-semibold transition ${
                 selected
                   ? "border-slate-200 border-b-white bg-white text-slate-950 shadow-sm"
@@ -64,6 +80,15 @@ export function ProfileTabs({ profiles, children }: { profiles: ProfileTab[]; ch
       <div className="pt-5">{panels[activeIndex]}</div>
     </section>
   );
+}
+
+function rememberProfileTab(profileId: string) {
+  window.sessionStorage.setItem("smart-booking-active-profile-tab", profileId);
+
+  const url = new URL(window.location.href);
+  url.searchParams.set("profile", profileId);
+  url.searchParams.delete("savedProfile");
+  window.history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
 }
 
 function isValidHexColor(value?: string | null): value is string {

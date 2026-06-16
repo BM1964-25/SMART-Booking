@@ -1,17 +1,13 @@
 import Link from "next/link";
 import type { ComponentType } from "react";
 import {
-  ArrowRight,
   ArrowLeft,
-  Building2,
-  CalendarCheck,
   Globe2,
   Mail,
   Phone,
-  SearchCheck,
-  Sparkles,
 } from "lucide-react";
 import { FacebookIcon, InstagramIcon, LinkedInIcon, SpotifyIcon, XIcon, XingIcon, YouTubeIcon } from "@/components/brand-icons";
+import { BookingTypeCardLink } from "@/components/booking-type-card-link";
 import { EmbedShellStyle } from "@/components/embed-shell-style";
 import { getBookingTypeIdsForProfile } from "@/lib/booking-type-profiles";
 import { hasSupabaseConfig, missingSupabaseKeys } from "@/lib/config";
@@ -30,24 +26,6 @@ export const metadata = {
 const workflowSteps = ["Gespräch auswählen", "Wunschtermin festlegen", "Buchung abschließen"];
 const defaultPrivacyUrl = "https://www.built-smart-hub.com/datenschutz";
 const defaultImprintUrl = "https://www.built-smart-hub.com/impressum";
-
-function getTypeIcon(name: string) {
-  const lowerName = name.toLowerCase();
-
-  if (lowerName.includes("demo") || lowerName.includes("ki")) {
-    return Sparkles;
-  }
-
-  if (lowerName.includes("analyse")) {
-    return SearchCheck;
-  }
-
-  if (lowerName.includes("bau") || lowerName.includes("immobilien")) {
-    return Building2;
-  }
-
-  return CalendarCheck;
-}
 
 function getContactLinks(profile: BookingProfile) {
   if (profile.show_contact_links === false) {
@@ -74,11 +52,12 @@ function getContactLinks(profile: BookingProfile) {
   }>;
 }
 
-export default async function BookPage({ searchParams }: { searchParams?: Promise<{ embed?: string; profile?: string; preview?: string }> }) {
+export default async function BookPage({ searchParams }: { searchParams?: Promise<{ embed?: string; profile?: string; preview?: string; returnProfile?: string }> }) {
   const resolvedSearchParams = await searchParams;
   const requestedProfile = resolvedSearchParams?.profile;
   const requestedEmbedView = resolvedSearchParams?.embed === "1";
   const isAdminPreview = resolvedSearchParams?.preview === "admin";
+  const returnProfile = resolvedSearchParams?.returnProfile || "";
   const profile = await getBookingProfile(requestedProfile);
   const isEmbedView = requestedEmbedView && profile.allow_embed_view === true;
   const primaryColor = normalizeColor(profile.primary_color);
@@ -141,7 +120,7 @@ export default async function BookPage({ searchParams }: { searchParams?: Promis
       {isAdminPreview ? (
         <div className="mb-4 flex justify-end">
           <Link
-            href="/admin/profiles"
+            href={returnProfile ? `/admin/profiles?profile=${encodeURIComponent(returnProfile)}` : "/admin/profiles"}
             className="inline-flex items-center gap-2 rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition hover:border-brand-500 hover:text-brand-700"
           >
             <ArrowLeft className="h-4 w-4" />
@@ -248,39 +227,17 @@ export default async function BookPage({ searchParams }: { searchParams?: Promis
         </div>
       </div>
       <div className="mt-5 grid gap-4 md:grid-cols-2">
-        {types.map((type) => {
-          const TypeIcon = getTypeIcon(type.name);
-
-          return (
-            <a
-              key={type.id}
-              href={`/book/${type.slug}${profileQuery}`}
-              className="group rounded-lg border border-slate-200 p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
-              style={{ borderTopColor: primaryColor, backgroundColor: bookingCardBgColor }}
-            >
-              <div className="flex h-full flex-col justify-between gap-6">
-                <div>
-                  <div className="flex items-start justify-between gap-4">
-                    <span className="inline-flex h-10 w-10 items-center justify-center rounded-md bg-brand-50" style={{ color: primaryColor }}>
-                      <TypeIcon className="h-5 w-5" />
-                    </span>
-                    <span className="rounded-full bg-white px-2.5 py-1 text-xs font-semibold text-slate-600 ring-1 ring-slate-200">
-                      {type.duration_minutes} Minuten
-                    </span>
-                  </div>
-                  <h3 className="mt-5 text-xl font-semibold text-slate-950">{type.name}</h3>
-                  <p className="mt-3 text-sm leading-6 text-slate-600">{type.description}</p>
-                </div>
-                <div className="flex items-center justify-end border-t border-slate-100 pt-4">
-                  <span className="inline-flex items-center gap-2 rounded-md px-3 py-2 text-sm font-semibold text-white transition" style={{ backgroundColor: primaryColor }}>
-                    Termin wählen
-                    <ArrowRight className="h-4 w-4" />
-                  </span>
-                </div>
-              </div>
-            </a>
-          );
-        })}
+        {types.map((type) => (
+          <BookingTypeCardLink
+            key={type.id}
+            href={`/book/${type.slug}${profileQuery}`}
+            name={type.name}
+            description={type.description}
+            durationMinutes={type.duration_minutes}
+            primaryColor={primaryColor}
+            cardBackgroundColor={bookingCardBgColor}
+          />
+        ))}
       </div>
       {legalLinks.length > 0 ? (
         <div className="mt-6 flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-slate-500">
