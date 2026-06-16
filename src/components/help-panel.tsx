@@ -104,12 +104,13 @@ const helpSections: HelpSection[] = [
     title: "Kalender & Meetings",
     body: [
       "Der Menüpunkt Kalender & Meetings steuert, welche Kalender SMART Booking nutzt und welche Meeting-Dienste für Online-Termine vorgesehen sind.",
-      "Für Apple CalDAV wird genau ein Buchungskalender ausgewählt. In diesen Kalender schreibt SMART Booking neue Termine."
+      "Für Apple CalDAV wird genau ein Buchungskalender ausgewählt. Zusätzlich können mehrere Abgleich-Kalender aktiviert werden."
     ],
     bullets: [
-      "Buchungskalender: Hier werden neue SMART-Booking-Termine eingetragen.",
-      "Abgleich-Kalender: Diese Kalender werden nur gelesen. Belegte Zeiten blockieren freie Slots, vorhandene Termine werden nicht verändert.",
-      "Mehrere private, geschäftliche oder Urlaubskalender können für den Abgleich aktiviert werden.",
+      "Buchungskalender: Ein Kalender für neue Buchungen. Dort erstellt SMART Booking den verbindlichen Kalendereintrag.",
+      "Abgleich-Kalender: Mehrere Kalender für die reine Verfügbarkeitsprüfung. Sie werden gelesen, aber nicht verändert.",
+      "Ein Kalender kann gleichzeitig Buchungskalender und Abgleich-Kalender sein, wenn die dort eingetragenen Buchungen ebenfalls freie Zeiten blockieren sollen.",
+      "Private, geschäftliche oder Urlaubskalender können als Abgleich-Kalender aktiviert werden, ohne dass SMART Booking dort Termine einträgt.",
       "Vor der ersten Nutzung muss die Supabase-Migration 031_calendar_connection_roles.sql ausgeführt werden.",
       "Zoom ist aktuell aktiv. Google Meet und Microsoft Teams sind als spätere Erweiterungen vorbereitet und benötigen eigene OAuth-/Graph-Integrationen."
     ]

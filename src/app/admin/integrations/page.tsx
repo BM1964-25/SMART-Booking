@@ -133,8 +133,8 @@ export default async function AdminIntegrationsPage({ searchParams }: { searchPa
           <div>
             <h2 className="text-lg font-semibold text-slate-950">Apple CalDAV</h2>
             <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">
-              Wählen Sie genau einen Buchungskalender aus. Weitere Kalender können zusätzlich gelesen werden, damit private Termine, Urlaub oder andere Belegungen keine
-              freien Zeitfenster erzeugen.
+              Wählen Sie genau einen Buchungskalender aus, in den neue Termine geschrieben werden. Zusätzlich können mehrere Abgleich-Kalender gelesen werden, damit
+              private Termine, Urlaub oder andere Belegungen keine freien Zeitfenster erzeugen.
             </p>
           </div>
           <span className={`rounded-full px-3 py-1 text-xs font-semibold ${calendarsResult.error ? "bg-amber-50 text-amber-700" : "bg-emerald-50 text-emerald-700"}`}>
@@ -149,67 +149,66 @@ export default async function AdminIntegrationsPage({ searchParams }: { searchPa
           </div>
         ) : null}
 
-        <div className="mt-5 grid gap-5 lg:grid-cols-2">
-          <fieldset className="rounded-md border border-slate-200 p-4">
-            <legend className="px-2 text-sm font-semibold text-slate-950">Buchungskalender</legend>
-            <p className="mt-1 text-sm leading-6 text-slate-600">
-              In diesen Kalender schreibt SMART Booking neue Termine. Hier sollte nur der Kalender ausgewählt werden, der bewusst für Buchungen genutzt wird.
-            </p>
-            <div className="mt-4 space-y-2">
-              {calendarsResult.calendars.length > 0 ? (
-                calendarsResult.calendars.map((calendar) => (
-                  <label key={calendar.id} className="flex cursor-pointer items-start gap-3 rounded-md border border-slate-200 bg-slate-50 p-3 text-sm transition hover:border-brand-300">
-                    <input
-                      type="radio"
-                      name="booking_calendar_id"
-                      value={calendar.id}
-                      defaultChecked={calendar.id === selectedBookingCalendar}
-                      className="mt-1 h-4 w-4 accent-brand-500"
-                    />
+        <fieldset className="mt-5 rounded-md border border-slate-200 p-4">
+          <legend className="px-2 text-sm font-semibold text-slate-950">Kalenderrollen</legend>
+          <p className="mt-1 text-sm leading-6 text-slate-600">
+            Der Link wird je Kalender nur einmal angezeigt. Wählen Sie genau einen Schreibkalender für neue Buchungen und beliebig viele Lesekalender für belegte Zeiten.
+          </p>
+          <div className="mt-4 flex flex-col gap-2 rounded-md border border-slate-200 bg-slate-50 px-3 py-3 text-sm text-slate-700 md:flex-row md:items-center md:justify-between">
+            <span>
+              <span className="font-semibold text-slate-950">Buchungskalender:</span> ein Kalender für neue Buchungen.
+            </span>
+            <span>
+              <span className="font-semibold text-slate-950">Abgleich-Kalender:</span> mehrere Kalender zur reinen Verfügbarkeitsprüfung.
+            </span>
+          </div>
+          <div className="mt-4 space-y-2">
+            {calendarsResult.calendars.length > 0 ? (
+              <>
+                <div className="hidden grid-cols-[minmax(0,1fr)_112px_92px] gap-3 px-3 text-xs font-semibold uppercase text-slate-500 md:grid">
+                  <span>Kalender</span>
+                  <span className="text-center">Schreiben</span>
+                  <span className="text-center">Lesen</span>
+                </div>
+                {calendarsResult.calendars.map((calendar) => (
+                  <div key={calendar.id} className="grid gap-3 rounded-md border border-slate-200 bg-white p-3 text-sm shadow-sm md:grid-cols-[minmax(0,1fr)_112px_92px] md:items-center">
                     <CalendarLabel calendar={calendar} />
-                  </label>
-                ))
-              ) : (
-                <p className="rounded-md bg-slate-50 px-3 py-2 text-sm text-slate-500">
-                  Kalender werden nach Ausführung der Supabase-Migration angezeigt.
-                </p>
-              )}
-            </div>
-          </fieldset>
-
-          <fieldset className="rounded-md border border-slate-200 p-4">
-            <legend className="px-2 text-sm font-semibold text-slate-950">Abgleich-Kalender</legend>
-            <p className="mt-1 text-sm leading-6 text-slate-600">
-              Diese Kalender werden nur gelesen. Belegte Zeiten blockieren die Buchungsseite, vorhandene Einträge werden dabei nicht verändert.
-            </p>
-            <div className="mt-4 space-y-2">
-              {calendarsResult.calendars.length > 0 ? (
-                calendarsResult.calendars.map((calendar) => (
-                  <label key={calendar.id} className="flex cursor-pointer items-start gap-3 rounded-md border border-slate-200 bg-slate-50 p-3 text-sm transition hover:border-brand-300">
-                    <input
-                      type="checkbox"
-                      name="availability_calendar_ids"
-                      value={calendar.id}
-                      defaultChecked={selectedAvailabilityCalendars.includes(calendar.id)}
-                      className="mt-1 h-4 w-4 rounded accent-brand-500"
-                    />
-                    <CalendarLabel calendar={calendar} />
-                  </label>
-                ))
-              ) : (
-                <p className="rounded-md bg-slate-50 px-3 py-2 text-sm text-slate-500">
-                  Abgleich-Kalender werden nach Ausführung der Supabase-Migration angezeigt.
-                </p>
-              )}
-            </div>
-          </fieldset>
-        </div>
+                    <label className="inline-flex min-h-10 cursor-pointer items-center gap-2 rounded-md border border-slate-200 bg-slate-50 px-3 py-2 font-medium text-slate-700 transition hover:border-brand-300 md:justify-center">
+                      <input
+                        type="radio"
+                        name="booking_calendar_id"
+                        value={calendar.id}
+                        defaultChecked={calendar.id === selectedBookingCalendar}
+                        className="h-4 w-4 accent-brand-500"
+                      />
+                      <span>Schreiben</span>
+                    </label>
+                    <label className="inline-flex min-h-10 cursor-pointer items-center gap-2 rounded-md border border-slate-200 bg-slate-50 px-3 py-2 font-medium text-slate-700 transition hover:border-brand-300 md:justify-center">
+                      <input
+                        type="checkbox"
+                        name="availability_calendar_ids"
+                        value={calendar.id}
+                        defaultChecked={selectedAvailabilityCalendars.includes(calendar.id)}
+                        className="h-4 w-4 rounded accent-brand-500"
+                      />
+                      <span>Lesen</span>
+                    </label>
+                  </div>
+                ))}
+              </>
+            ) : (
+              <p className="rounded-md bg-slate-50 px-3 py-2 text-sm text-slate-500">
+                Kalender werden nach Ausführung der Supabase-Migration angezeigt.
+              </p>
+            )}
+          </div>
+        </fieldset>
 
         <div className="mt-5 rounded-md border border-slate-200 bg-slate-50 p-4 text-sm leading-6 text-slate-600">
           <p className="font-semibold text-slate-950">Sicherheitslogik</p>
           <p>
-            SMART Booking erstellt neue Termine nur im ausgewählten Buchungskalender. Alle zusätzlich ausgewählten Kalender dienen ausschließlich der
-            Verfügbarkeitsprüfung.
+            SMART Booking erstellt neue Termine nur im ausgewählten Buchungskalender. Alle Abgleich-Kalender dienen ausschließlich der Verfügbarkeitsprüfung und werden
+            nicht beschrieben.
           </p>
         </div>
 
