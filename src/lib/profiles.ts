@@ -87,6 +87,10 @@ export async function getBookingProfile(slug?: string | null, options?: { includ
     ? await query.eq("slug", slug).maybeSingle<BookingProfile>()
     : await query.order("created_at", { ascending: true }).limit(1).maybeSingle<BookingProfile>();
 
+  if (slug) {
+    return data || null;
+  }
+
   return data || defaultBookingProfile;
 }
 

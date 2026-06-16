@@ -21,13 +21,14 @@ export function CopyLinkField({ disabled = false, value }: { disabled?: boolean;
 
   return (
     <div className="mt-2 flex flex-col gap-2 sm:flex-row">
-      <input
-        readOnly
-        value={value}
+      <div
+        aria-label="Link"
         className={`min-w-0 flex-1 rounded-md border border-slate-200 px-3 py-2 font-mono text-xs ${
           disabled ? "bg-slate-50 text-slate-400" : "bg-white text-slate-700"
         }`}
-      />
+      >
+        <span className="block break-all leading-5">{value}</span>
+      </div>
       <button
         type="button"
         onClick={copyLink}

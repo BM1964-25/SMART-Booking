@@ -22,6 +22,11 @@ export default async function SlotPage({
   const { type } = await params;
   const { embed, profile: profileSlug } = (await searchParams) || {};
   const profile = await getBookingProfile(profileSlug);
+
+  if (!profile) {
+    return <section className="mx-auto max-w-3xl px-5 py-12">Dieses Profil ist nicht öffentlich verfügbar.</section>;
+  }
+
   const isEmbedView = embed === "1" && profile.allow_embed_view === true;
   const isConfigured = hasSupabaseConfig();
   let bookingType: BookingType | null | undefined = findSeedBookingType(type);

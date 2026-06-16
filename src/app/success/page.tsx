@@ -5,6 +5,11 @@ import { defaultBookingProfile, getBookingProfile } from "@/lib/profiles";
 export default async function SuccessPage({ searchParams }: { searchParams: Promise<{ cancelled?: string; change?: string; embed?: string; existing?: string; profile?: string }> }) {
   const params = await searchParams;
   const profile = await getBookingProfile(params.profile);
+
+  if (!profile) {
+    return <section className="mx-auto max-w-3xl px-5 py-16">Dieses Profil ist nicht öffentlich verfügbar.</section>;
+  }
+
   const isEmbedView = params.embed === "1" && profile.allow_embed_view === true;
   const bookingPath = profile.slug === defaultBookingProfile.slug ? "/book" : `/book/profile/${profile.slug}`;
   const bookingHref = isEmbedView ? `${bookingPath}?embed=1` : bookingPath;
