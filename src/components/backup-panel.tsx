@@ -10,6 +10,7 @@ type BackupSummary = {
   availabilityRules: number;
   blockedTimes: number;
   profileTemplates: number;
+  calendarConnections: number;
 };
 
 type ImportState = "idle" | "checking" | "ready" | "importing" | "success" | "error";
@@ -31,7 +32,8 @@ export function BackupPanel() {
             ["Profil-Zuordnungen", summary.bookingTypeProfiles],
             ["Verfügbarkeitsregeln", summary.availabilityRules],
             ["Blockierte Zeiten", summary.blockedTimes],
-            ["Profil-Vorlagen", summary.profileTemplates]
+            ["Profil-Vorlagen", summary.profileTemplates],
+            ["Kalender-Verbindungen", summary.calendarConnections]
           ]
         : [],
     [summary]
@@ -121,7 +123,7 @@ export function BackupPanel() {
               Export
             </span>
             <p className="mt-3 max-w-xl text-sm leading-6 text-slate-600">
-              Erstellt eine vollständige JSON-Sicherung der aktuellen Konfiguration. Enthalten sind Profile, Terminarten, Profil-Zuordnungen, Verfügbarkeiten, Blockzeiten und Profil-Vorlagen.
+              Erstellt eine vollständige JSON-Sicherung der aktuellen Konfiguration. Enthalten sind Profile, Terminarten, Profil-Zuordnungen, Verfügbarkeiten, Blockzeiten, Kalender-Verbindungen und Profil-Vorlagen.
             </p>
             <p className="mt-3 rounded-md border border-slate-200 bg-white px-3 py-2 text-xs leading-5 text-slate-500">
               Speicherort: Die Datei wird vom Browser heruntergeladen, normalerweise in den Downloads-Ordner Ihres Computers.

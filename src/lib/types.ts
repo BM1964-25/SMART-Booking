@@ -88,6 +88,19 @@ export type AvailabilityRule = {
   is_active: boolean;
 };
 
+export type CalendarConnection = {
+  id: string;
+  provider: "apple" | string;
+  calendar_id: string | null;
+  display_name: string | null;
+  is_active: boolean;
+  use_for_booking?: boolean | null;
+  use_for_availability?: boolean | null;
+  last_checked_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
 export type Booking = {
   id: string;
   booking_type_id: string;

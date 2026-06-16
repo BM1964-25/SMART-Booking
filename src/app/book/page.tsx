@@ -58,7 +58,7 @@ export default async function BookPage({ searchParams }: { searchParams?: Promis
   const requestedEmbedView = resolvedSearchParams?.embed === "1";
   const isAdminPreview = resolvedSearchParams?.preview === "admin";
   const returnProfile = resolvedSearchParams?.returnProfile || "";
-  const profile = await getBookingProfile(requestedProfile);
+  const profile = await getBookingProfile(requestedProfile, { includeInactive: isAdminPreview });
   const isEmbedView = requestedEmbedView && profile.allow_embed_view === true;
   const primaryColor = normalizeColor(profile.primary_color);
   const profileCardBgColor = normalizeColor(profile.profile_card_bg_color, "#F8FAFC");

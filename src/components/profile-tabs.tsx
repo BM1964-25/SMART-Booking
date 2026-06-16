@@ -21,6 +21,13 @@ export function ProfileTabs({ children, initialActiveId, profiles }: { children:
   );
 
   useEffect(() => {
+    if (initialActiveId && profiles.some((profile) => profile.id === initialActiveId)) {
+      setActiveId(initialActiveId);
+      window.sessionStorage.setItem("smart-booking-active-profile-tab", initialActiveId);
+    }
+  }, [initialActiveId, profiles]);
+
+  useEffect(() => {
     if (initialActiveId) {
       return;
     }

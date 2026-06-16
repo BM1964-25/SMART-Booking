@@ -19,7 +19,7 @@ import { ProfileTemplateControls } from "@/components/profile-template-controls"
 import { requireAdmin } from "@/lib/admin";
 import { normalizeContactIconOrder } from "@/lib/contact-icon-order";
 import { getEnv } from "@/lib/env";
-import { defaultBookingProfile } from "@/lib/profiles";
+import { profileBookPath } from "@/lib/profiles";
 import { createSupabaseAdmin } from "@/lib/supabase/admin";
 import { BookingProfile, BookingProfileTemplate } from "@/lib/types";
 
@@ -411,7 +411,7 @@ function ProfileForm({
   initialSaveState?: ProfileSaveState;
 }) {
   const slug = profile?.slug || "";
-  const publicPath = slug === defaultBookingProfile.slug || !slug ? "/book" : `/book/profile/${slug}`;
+  const publicPath = profile ? profileBookPath(profile) : "/book";
   const isPremiumPreview = profile?.allow_embed_view === true;
   const previewParams = new URLSearchParams({ preview: "admin" });
 

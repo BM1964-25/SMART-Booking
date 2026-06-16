@@ -71,13 +71,18 @@ export async function getActiveProfiles() {
   return data?.length ? data : [defaultBookingProfile];
 }
 
-export async function getBookingProfile(slug?: string | null) {
+export async function getBookingProfile(slug?: string | null, options?: { includeInactive?: boolean }) {
   if (!hasSupabaseConfig()) {
     return defaultBookingProfile;
   }
 
   const supabase = createSupabaseAdmin();
-  const query = supabase.from("booking_profiles").select("*").eq("is_active", true);
+  let query = supabase.from("booking_profiles").select("*");
+
+  if (!options?.includeInactive) {
+    query = query.eq("is_active", true);
+  }
+
   const { data } = slug
     ? await query.eq("slug", slug).maybeSingle<BookingProfile>()
     : await query.order("created_at", { ascending: true }).limit(1).maybeSingle<BookingProfile>();

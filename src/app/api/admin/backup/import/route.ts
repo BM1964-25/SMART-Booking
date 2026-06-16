@@ -15,6 +15,7 @@ type BackupPayload = {
     availabilityRules?: BackupRow[];
     blockedTimes?: BackupRow[];
     profileTemplates?: BackupRow[];
+    calendarConnections?: BackupRow[];
   };
 };
 
@@ -88,6 +89,15 @@ const bookingTypeColumns = [
 const availabilityColumns = ["id", "weekday", "start_time", "end_time", "timezone", "is_active"];
 const blockedTimeColumns = ["id", "title", "starts_at", "ends_at", "reason"];
 const templateColumns = ["id", "name", "template_data", "created_by"];
+const calendarConnectionColumns = [
+  "provider",
+  "calendar_id",
+  "display_name",
+  "is_active",
+  "use_for_booking",
+  "use_for_availability",
+  "last_checked_at"
+];
 
 export async function POST(request: NextRequest) {
   const auth = await requireAdminApi();
@@ -125,6 +135,9 @@ export async function POST(request: NextRequest) {
     ...row,
     created_by: auth.user?.id || null
   }));
+  const calendarConnections = sanitizeRows(data.calendarConnections || [], calendarConnectionColumns).filter(
+    (row) => typeof row.provider === "string" && typeof row.calendar_id === "string"
+  );
   const importedProfileIdsBySlug = new Map((data.profiles || []).map((row) => [String(row.id || ""), String(row.slug || "")]));
   const importedBookingTypeIdsBySlug = new Map((data.bookingTypes || []).map((row) => [String(row.id || ""), String(row.slug || "")]));
 
@@ -224,6 +237,12 @@ export async function POST(request: NextRequest) {
     return templatesResult;
   }
 
+  const calendarConnectionsResult = await replaceTableData(supabase, "calendar_connections", calendarConnections);
+
+  if (calendarConnectionsResult) {
+    return calendarConnectionsResult;
+  }
+
   return NextResponse.json({ summary, imported: true });
 }
 
@@ -232,7 +251,7 @@ function validateBackup(backup: BackupPayload | null | undefined) {
     return { ok: false, error: "Die Datei ist keine gültige SMART Booking Sicherung." };
   }
 
-  const arrays = ["profiles", "bookingTypes", "bookingTypeProfiles", "availabilityRules", "blockedTimes", "profileTemplates"] as const;
+  const arrays = ["profiles", "bookingTypes", "bookingTypeProfiles", "availabilityRules", "blockedTimes", "profileTemplates", "calendarConnections"] as const;
 
   for (const key of arrays) {
     if (backup.data[key] && !Array.isArray(backup.data[key])) {
@@ -250,7 +269,8 @@ function buildSummary(data: NonNullable<BackupPayload["data"]>) {
     bookingTypeProfiles: data.bookingTypeProfiles?.length || 0,
     availabilityRules: data.availabilityRules?.length || 0,
     blockedTimes: data.blockedTimes?.length || 0,
-    profileTemplates: data.profileTemplates?.length || 0
+    profileTemplates: data.profileTemplates?.length || 0,
+    calendarConnections: data.calendarConnections?.length || 0
   };
 }
 

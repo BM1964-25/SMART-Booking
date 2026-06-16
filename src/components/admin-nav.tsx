@@ -7,6 +7,7 @@ const navItems = [
   { href: "/admin", label: "Dashboard" },
   { href: "/admin/bookings", label: "Buchungsübersicht" },
   { href: "/admin/settings", label: "Einstellungen" },
+  { href: "/admin/integrations", label: "Kalender & Meetings" },
   { href: "/admin/profiles", label: "Profile" }
 ];
 

@@ -16,14 +16,16 @@ export async function GET() {
     { data: bookingTypeProfiles, error: bookingTypeProfilesError },
     { data: availabilityRules, error: availabilityRulesError },
     { data: blockedTimes, error: blockedTimesError },
-    { data: profileTemplates, error: profileTemplatesError }
+    { data: profileTemplates, error: profileTemplatesError },
+    { data: calendarConnections, error: calendarConnectionsError }
   ] = await Promise.all([
     supabase.from("booking_profiles").select("*").order("created_at"),
     supabase.from("booking_types").select("*").order("sort_order").order("created_at"),
     supabase.from("booking_type_profiles").select("*"),
     supabase.from("availability_rules").select("*").order("weekday").order("start_time"),
     supabase.from("blocked_times").select("*").order("starts_at"),
-    supabase.from("booking_profile_templates").select("*").order("created_at")
+    supabase.from("booking_profile_templates").select("*").order("created_at"),
+    supabase.from("calendar_connections").select("*").order("display_name")
   ]);
   const error =
     profilesError ||
@@ -31,7 +33,8 @@ export async function GET() {
     bookingTypeProfilesError ||
     availabilityRulesError ||
     blockedTimesError ||
-    profileTemplatesError;
+    profileTemplatesError ||
+    calendarConnectionsError;
 
   if (error) {
     return NextResponse.json({ error: "Export konnte nicht erstellt werden.", details: error.message }, { status: 500 });
@@ -48,7 +51,8 @@ export async function GET() {
       bookingTypeProfiles: bookingTypeProfiles || [],
       availabilityRules: availabilityRules || [],
       blockedTimes: blockedTimes || [],
-      profileTemplates: profileTemplates || []
+      profileTemplates: profileTemplates || [],
+      calendarConnections: calendarConnections || []
     }
   };
   const filename = `smart-booking-backup-${exportedAt.slice(0, 10)}.json`;

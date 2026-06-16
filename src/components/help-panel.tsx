@@ -47,15 +47,15 @@ const helpSections: HelpSection[] = [
     title: "Bedienoberfläche",
     body: [
       "Die öffentliche Seite führt Kunden durch Terminart, Tag/Uhrzeit und Kontaktdaten.",
-      "Der Adminbereich enthält Dashboard, Buchungsübersicht, Einstellungen, Profile und Datensicherung. Änderungen an Profilen werden erst nach dem Speichern auf der Live-Seite sichtbar."
+      "Der Adminbereich enthält Dashboard, Buchungsübersicht, Einstellungen, Profile und Datensicherung. Der aktive Menüpunkt wird hervorgehoben, damit jederzeit klar ist, in welchem Bereich Sie arbeiten."
     ]
   },
   {
     id: "profiles",
     title: "Profile & Vorlagen",
     body: [
-      "Profile steuern die öffentliche Buchungsseite: Texte, Profilansicht, Kontaktlinks, Rechtliches, Farben und Einbindung.",
-      "Im Bereich Profilvorlagen können Sie eine bestehende Konfiguration als eigene Vorlage speichern oder eine vorhandene Vorlage auf das aktuelle Profil anwenden."
+      "Profile steuern die öffentliche Buchungsseite: Texte, Profilansicht, Kontaktlinks, Rechtliches, Farben, Standard-Link und Premium-Link.",
+      "Im Bereich Profilvorlagen können Sie eine bestehende Konfiguration als eigene Vorlage speichern oder eine vorhandene Vorlage auf das aktuelle Profil anwenden. Änderungen werden erst nach „Profil speichern“ auf der Live-Seite sichtbar."
     ],
     bullets: [
       "Eigene Vorlage speichern: Im Profilbereich auf „Als eigene Vorlage speichern“ klicken. Die aktuelle Konfiguration wird als wiederverwendbare Vorlage abgelegt.",
@@ -64,9 +64,25 @@ const helpSections: HelpSection[] = [
       "Subheadline 1 erscheint fett direkt unter der Headline. Subheadline 2 steht darunter als normaler erklärender Text.",
       "Der Name unter dem Profilfoto und der optionale Slogan/Info-Text werden im Abschnitt „Profilbild“ gepflegt und sind unabhängig vom Kontaktname-Feld.",
       "Die Ablaufanzeige 01/02/03 kann im Profil unter „Profilansicht“ ein- oder ausgeschaltet werden.",
-      "Terminarten werden in den Einstellungen direkt je Profil gepflegt. Pro Profil sind bis zu vier eigene Terminarten mit eigener Sortierung vorgesehen.",
+      "Der Button „Live-Vorschau öffnen“ zeigt den zuletzt gespeicherten Stand. Ist der Premium-Link freigeschaltet, öffnet die Vorschau automatisch die reduzierte Ansicht ohne SMART-Booking-Header und Footer.",
+      "Standard- und Premium-Link können im Profil über das Copy-Icon kopiert werden. Nach erfolgreichem Kopieren erscheint kurz ein grünes Häkchen.",
       "Nach dem Anwenden einer Vorlage die Felder kontrollieren und bei Bedarf anpassen.",
       "Erst mit „Profil speichern“ wird die geladene Vorlage wirklich in Supabase gespeichert und auf der öffentlichen Buchungsseite sichtbar."
+    ]
+  },
+  {
+    id: "booking-types",
+    title: "Terminarten",
+    body: [
+      "Terminarten werden in den Einstellungen direkt im jeweiligen Profil gepflegt. Jedes Profil kann bis zu vier eigene Terminarten mit eigener Reihenfolge anzeigen.",
+      "Beim Anlegen einer neuen Terminart sind Dauer, Puffer davor und Puffer danach bereits sinnvoll vorbelegt."
+    ],
+    bullets: [
+      "Standardwerte für neue Terminarten: Dauer 30 Minuten, Puffer davor 10 Minuten, Puffer danach 15 Minuten.",
+      "Beschreibung, Pufferzeiten und Profil-Zuordnung werden nach dem Speichern geprüft. Wenn Supabase einen Wert nicht übernimmt, erscheint eine Fehlermeldung.",
+      "Der sichtbare Name einer Terminart darf in mehreren Profilen gleich sein, zum Beispiel „Kostenloses Erstgespräch“.",
+      "Der technische Slug wird automatisch eindeutig gemacht. Bei Namensgleichheit hängt die App den Profil-Slug oder eine Nummer an.",
+      "Nach dem Speichern bleibt der gewählte Profil-Tab im Terminartenbereich erhalten."
     ]
   },
   {
@@ -76,10 +92,26 @@ const helpSections: HelpSection[] = [
     bullets: [
       "Öffentliche Buchungsseiten mit bis zu vier Profilen.",
       "Bis zu vier Terminarten pro Profil mit Dauer, Pufferzeiten, Beschreibung und eigener Sortierung.",
+      "Standard-Link mit Header/Footer und Premium-Link mit reduzierter Ansicht ohne SMART-Booking-Header und Footer.",
       "30-Minuten-Zeitfenster und Verfügbarkeit auf Basis von Regeln, Blockzeiten, Supabase-Buchungen und Apple Kalender.",
       "Zoom-Link-Erstellung, wenn Zoom eingerichtet und als Terminort gewählt ist.",
       "Bestätigungs- und Benachrichtigungs-E-Mails über SMTP.",
       "Stornierung mit nachvollziehbarer Historie und optionaler Kundenbenachrichtigung."
+    ]
+  },
+  {
+    id: "integrations",
+    title: "Kalender & Meetings",
+    body: [
+      "Der Menüpunkt Kalender & Meetings steuert, welche Kalender SMART Booking nutzt und welche Meeting-Dienste für Online-Termine vorgesehen sind.",
+      "Für Apple CalDAV wird genau ein Buchungskalender ausgewählt. In diesen Kalender schreibt SMART Booking neue Termine."
+    ],
+    bullets: [
+      "Buchungskalender: Hier werden neue SMART-Booking-Termine eingetragen.",
+      "Abgleich-Kalender: Diese Kalender werden nur gelesen. Belegte Zeiten blockieren freie Slots, vorhandene Termine werden nicht verändert.",
+      "Mehrere private, geschäftliche oder Urlaubskalender können für den Abgleich aktiviert werden.",
+      "Vor der ersten Nutzung muss die Supabase-Migration 031_calendar_connection_roles.sql ausgeführt werden.",
+      "Zoom ist aktuell aktiv. Google Meet und Microsoft Teams sind als spätere Erweiterungen vorbereitet und benötigen eigene OAuth-/Graph-Integrationen."
     ]
   },
   {
@@ -88,6 +120,7 @@ const helpSections: HelpSection[] = [
     body: ["Ein üblicher Ablauf besteht aus Einrichtung, Prüfung und laufender Verwaltung."],
     bullets: [
       "Profil und Terminarten vorbereiten.",
+      "Kalender & Meetings prüfen: Buchungskalender festlegen und gewünschte Abgleich-Kalender aktivieren.",
       "Bei Bedarf eine Profilvorlage anwenden und danach das Profil speichern.",
       "Verfügbarkeiten und blockierte Zeiten pflegen.",
       "Live-Buchungsseite testen.",
@@ -133,7 +166,9 @@ const helpSections: HelpSection[] = [
       "Kein freier Termin sichtbar: Verfügbarkeiten, blockierte Zeiten, Pufferzeiten und Apple Kalender prüfen.",
       "Kalendereintrag schlägt fehl: Apple CalDAV-URL, Benutzername, app-spezifisches Passwort und Kalender-ID prüfen.",
       "Keine E-Mail: SMTP-Werte, Absenderdomain, SPF/DKIM/DMARC und Brevo-Logs prüfen.",
-      "Zoom-Link fehlt: Zoom Server-to-Server OAuth, Scopes und Environment Variables prüfen."
+      "Zoom-Link fehlt: Zoom Server-to-Server OAuth, Scopes und Environment Variables prüfen.",
+      "Terminart wird nicht gespeichert: Fehlermeldung im Bereich Terminarten lesen. Häufige Ursachen sind fehlende Supabase-Migrationen, Slug-Konflikte oder mehr als vier Terminarten im gleichen Profil.",
+      "Subheadline 1 erscheint nicht: Im Profil prüfen, ob neben Subheadline 1 „Anzeigen“ aktiviert ist und danach „Profil speichern“ klicken."
     ]
   },
   {

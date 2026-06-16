@@ -2,7 +2,8 @@ import { createDAVClient } from "tsdav";
 import { createEvent as createIcsEvent } from "ics";
 import { getEnv } from "@/lib/env";
 import { getMeetingLocationCalendarLines, getMeetingLocationDetails } from "@/lib/meeting-location";
-import { BookingType } from "@/lib/types";
+import { createSupabaseAdmin } from "@/lib/supabase/admin";
+import { BookingType, CalendarConnection } from "@/lib/types";
 
 type CalendarEvent = {
   uid: string;
@@ -29,6 +30,7 @@ type BookingForCalendar = {
 };
 
 type AppleDavClient = Awaited<ReturnType<typeof createDAVClient>>;
+type AppleCalendar = Awaited<ReturnType<AppleDavClient["fetchCalendars"]>>[number];
 
 let cachedClient: AppleDavClient | null = null;
 
@@ -61,6 +63,17 @@ export async function listCalendars() {
   return client.fetchCalendars();
 }
 
+export function matchesConfiguredCalendar(calendar: AppleCalendar, configured: string) {
+  const calendarUrl = calendar.url || "";
+
+  return (
+    calendarUrl === configured ||
+    calendarUrl.endsWith(`/calendars/${configured}/`) ||
+    calendarUrl.includes(`/calendars/${configured}/`) ||
+    calendar.displayName === configured
+  );
+}
+
 async function getConfiguredCalendar() {
   const env = getEnv();
   const calendars = await listCalendars();
@@ -70,38 +83,83 @@ async function getConfiguredCalendar() {
     return calendars[0];
   }
 
-  return calendars.find((calendar) => {
-    const calendarUrl = calendar.url || "";
-    return (
-      calendarUrl === configured ||
-      calendarUrl.endsWith(`/calendars/${configured}/`) ||
-      calendarUrl.includes(`/calendars/${configured}/`) ||
-      calendar.displayName === configured
-    );
+  return calendars.find((calendar) => matchesConfiguredCalendar(calendar, configured));
+}
+
+async function getCalendarConnections() {
+  try {
+    const supabase = createSupabaseAdmin();
+    const { data, error } = await supabase
+      .from("calendar_connections")
+      .select("*")
+      .eq("provider", "apple")
+      .eq("is_active", true)
+      .returns<CalendarConnection[]>();
+
+    if (error) {
+      return [];
+    }
+
+    return data || [];
+  } catch {
+    return [];
+  }
+}
+
+async function resolveCalendars(connections: CalendarConnection[], predicate: (connection: CalendarConnection) => boolean) {
+  const calendars = await listCalendars();
+  const selected = connections.filter((connection) => connection.calendar_id && predicate(connection));
+
+  if (selected.length === 0) {
+    const fallbackCalendar = await getConfiguredCalendar();
+    return fallbackCalendar ? [fallbackCalendar] : [];
+  }
+
+  return selected.flatMap((connection) => {
+    const calendar = calendars.find((candidate) => matchesConfiguredCalendar(candidate, connection.calendar_id || ""));
+    return calendar ? [calendar] : [];
   });
 }
 
-export async function getEvents(startDate: Date, endDate: Date): Promise<CalendarEvent[]> {
-  const calendar = await getConfiguredCalendar();
+async function getBookingCalendar() {
+  const connections = await getCalendarConnections();
+  const calendars = await resolveCalendars(connections, (connection) => connection.use_for_booking === true);
 
-  if (!calendar) {
+  return calendars[0] || null;
+}
+
+async function getAvailabilityCalendars() {
+  const connections = await getCalendarConnections();
+  const calendars = await resolveCalendars(connections, (connection) => connection.use_for_availability === true);
+
+  return calendars.length > 0 ? calendars : [];
+}
+
+export async function getEvents(startDate: Date, endDate: Date): Promise<CalendarEvent[]> {
+  const calendars = await getAvailabilityCalendars();
+
+  if (calendars.length === 0) {
     throw new Error("Kein Apple Kalender gefunden.");
   }
 
   const client = await connectToAppleCalendar();
-  const objects = await client.fetchCalendarObjects({
-    calendar,
-    timeRange: {
-      start: startDate.toISOString(),
-      end: endDate.toISOString()
-    }
-  });
+  const objectGroups = await Promise.all(
+    calendars.map((calendar) =>
+      client.fetchCalendarObjects({
+        calendar,
+        timeRange: {
+          start: startDate.toISOString(),
+          end: endDate.toISOString()
+        }
+      })
+    )
+  );
 
-  return objects.flatMap((object) => parseVEvent(object.data, object.url, object.etag));
+  return objectGroups.flatMap((objects) => objects.flatMap((object) => parseVEvent(object.data, object.url, object.etag)));
 }
 
 export async function createEvent(booking: BookingForCalendar) {
-  const calendar = await getConfiguredCalendar();
+  const calendar = await getBookingCalendar();
 
   if (!calendar) {
     throw new Error("Kein Apple Kalender für die Buchung gefunden.");
@@ -147,7 +205,7 @@ export async function createEvent(booking: BookingForCalendar) {
 }
 
 export async function deleteEvent(eventId: string) {
-  const calendar = await getConfiguredCalendar();
+  const calendar = await getBookingCalendar();
 
   if (!calendar) {
     throw new Error("Kein Apple Kalender gefunden.");

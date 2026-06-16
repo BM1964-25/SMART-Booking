@@ -230,6 +230,7 @@ export default async function AdminPage() {
           <div className="grid gap-3">
             <QuickAction href="/admin/bookings" icon={CalendarCheck} title="Buchungen prüfen" text="Stornieren, löschen oder Änderungsvorschläge sehen." />
             <QuickAction href="/admin/settings#terminarten" icon={Settings} title="Terminarten bearbeiten" text="Aktive Formate, Reihenfolge und Profil-Zuordnung pflegen." />
+            <QuickAction href="/admin/integrations" icon={Globe2} title="Kalender & Meetings" text="Buchungskalender, Abgleich-Kalender und Meeting-Dienste steuern." />
             <QuickAction href="/admin/profiles" icon={UserRound} title="Profile gestalten" text="Headline, Kontaktdaten, Farben und Premium-Einbettung steuern." />
             <QuickAction href="/admin/backup" icon={Download} title="Datensicherung öffnen" text="Export und Import der Konfiguration verwalten." />
             <QuickAction href={publicBookingUrl} icon={ExternalLink} title="Öffentliche Buchung öffnen" text="Produktionslink in einem neuen Tab prüfen." external />
