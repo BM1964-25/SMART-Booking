@@ -1,5 +1,7 @@
 import { createDAVClient } from "tsdav";
 import { createEvent as createIcsEvent } from "ics";
+import { fromZonedTime } from "date-fns-tz";
+import { TIMEZONE } from "@/lib/date";
 import { getEnv } from "@/lib/env";
 import { getMeetingLocationCalendarLines, getMeetingLocationDetails } from "@/lib/meeting-location";
 import { createSupabaseAdmin } from "@/lib/supabase/admin";
@@ -143,7 +145,7 @@ export async function getEvents(startDate: Date, endDate: Date): Promise<Calenda
   }
 
   const client = await connectToAppleCalendar();
-  const objectGroups = await Promise.all(
+  const objectGroups = await Promise.allSettled(
     calendars.map((calendar) =>
       client.fetchCalendarObjects({
         calendar,
@@ -154,8 +156,13 @@ export async function getEvents(startDate: Date, endDate: Date): Promise<Calenda
       })
     )
   );
+  const successfulGroups = objectGroups.flatMap((result) => (result.status === "fulfilled" ? [result.value] : []));
 
-  return objectGroups.flatMap((objects) => objects.flatMap((object) => parseVEvent(object.data, object.url, object.etag)));
+  if (successfulGroups.length === 0) {
+    throw new Error("Apple Kalender konnten nicht gelesen werden.");
+  }
+
+  return successfulGroups.flatMap((objects) => objects.flatMap((object) => parseVEvent(object.data, object.url, object.etag)));
 }
 
 export async function createEvent(booking: BookingForCalendar) {
@@ -293,15 +300,22 @@ function buildCalendarObject(input: {
 }
 
 function parseVEvent(data: string, href?: string, etag?: string): CalendarEvent[] {
-  const events = data.match(/BEGIN:VEVENT[\s\S]*?END:VEVENT/g) || [];
+  const events = unfoldIcs(data).match(/BEGIN:VEVENT[\s\S]*?END:VEVENT/g) || [];
 
   return events
     .map((event) => {
       const uid = readIcsField(event, "UID") || href || crypto.randomUUID();
-      const dtStart = readIcsField(event, "DTSTART");
-      const dtEnd = readIcsField(event, "DTEND");
+      const dtStart = readIcsProperty(event, "DTSTART");
+      const dtEnd = readIcsProperty(event, "DTEND");
 
       if (!dtStart || !dtEnd) {
+        return null;
+      }
+
+      const startsAt = fromCalDavDate(dtStart.value, dtStart.tzid);
+      const endsAt = fromCalDavDate(dtEnd.value, dtEnd.tzid);
+
+      if (Number.isNaN(startsAt.getTime()) || Number.isNaN(endsAt.getTime())) {
         return null;
       }
 
@@ -309,8 +323,8 @@ function parseVEvent(data: string, href?: string, etag?: string): CalendarEvent[
         uid,
         href,
         etag,
-        startsAt: fromCalDavDate(dtStart),
-        endsAt: fromCalDavDate(dtEnd),
+        startsAt,
+        endsAt,
         summary: readIcsField(event, "SUMMARY") || undefined
       };
     })
@@ -322,13 +336,51 @@ function readIcsField(event: string, field: string) {
   return match?.[1]?.trim();
 }
 
+function readIcsProperty(event: string, field: string) {
+  const match = event.match(new RegExp(`^${field}((?:;[^:]*)?):(.+)$`, "m"));
+
+  if (!match?.[2]) {
+    return null;
+  }
+
+  const params = match[1] || "";
+  const tzid = params.match(/TZID=([^;:]+)/)?.[1];
+
+  return {
+    tzid,
+    value: match[2].trim()
+  };
+}
+
+function unfoldIcs(data: string) {
+  return data.replace(/\r?\n[ \t]/g, "");
+}
+
 function toCalDavDate(date: Date) {
   return date.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}Z$/, "Z");
 }
 
-function fromCalDavDate(value: string) {
+function fromCalDavDate(value: string, tzid?: string) {
   if (/^\d{8}T\d{6}Z$/.test(value)) {
     return new Date(`${value.slice(0, 4)}-${value.slice(4, 6)}-${value.slice(6, 8)}T${value.slice(9, 11)}:${value.slice(11, 13)}:${value.slice(13, 15)}Z`);
+  }
+
+  if (/^\d{8}T\d{6}$/.test(value)) {
+    const localDate = new Date(
+      Number(value.slice(0, 4)),
+      Number(value.slice(4, 6)) - 1,
+      Number(value.slice(6, 8)),
+      Number(value.slice(9, 11)),
+      Number(value.slice(11, 13)),
+      Number(value.slice(13, 15))
+    );
+
+    return fromZonedTime(localDate, tzid || TIMEZONE);
+  }
+
+  if (/^\d{8}$/.test(value)) {
+    const localDate = new Date(Number(value.slice(0, 4)), Number(value.slice(4, 6)) - 1, Number(value.slice(6, 8)), 0, 0, 0);
+    return fromZonedTime(localDate, tzid || TIMEZONE);
   }
 
   return new Date(value);

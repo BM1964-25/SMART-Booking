@@ -46,8 +46,8 @@ export async function getAvailableSlots(typeSlug: string, from: Date, to: Date):
       startsAt: event.startsAt,
       endsAt: event.endsAt
     }));
-  } catch {
-    calendarRanges = [];
+  } catch (error) {
+    throw new Error(error instanceof Error ? `Kalenderabgleich fehlgeschlagen: ${error.message}` : "Kalenderabgleich fehlgeschlagen.");
   }
 
   const busyRanges: TimeRange[] = [

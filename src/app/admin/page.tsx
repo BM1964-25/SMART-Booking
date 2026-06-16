@@ -13,7 +13,9 @@ import {
   FileWarning,
   Globe2,
   Layers3,
+  ListChecks,
   MailCheck,
+  Rocket,
   Settings,
   ShieldCheck,
   UserRound,
@@ -27,7 +29,7 @@ import { formatGermanDate, formatGermanTime } from "@/lib/date";
 import { defaultBookingProfile } from "@/lib/profiles";
 import { createSupabaseAdmin } from "@/lib/supabase/admin";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { BookingProfile, BookingType } from "@/lib/types";
+import { BookingProfile, BookingType, CalendarConnection } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
@@ -56,6 +58,14 @@ type CalendarStatus =
       message: string;
     };
 
+type ProductionCheckStatus = "ready" | "todo" | "warning";
+
+type ProductionCheck = {
+  detail: string;
+  status: ProductionCheckStatus;
+  title: string;
+};
+
 export default async function AdminPage() {
   await requireAdmin();
   const supabase = createSupabaseAdmin();
@@ -73,6 +83,7 @@ export default async function AdminPage() {
     { data: recentBookings },
     { data: profiles },
     { data: bookingTypes },
+    { data: calendarConnections },
     calendarStatus
   ] = await Promise.all([
     supabase.from("bookings").select("*", { count: "exact", head: true }),
@@ -95,6 +106,7 @@ export default async function AdminPage() {
       .order("starts_at", { ascending: true }),
     supabase.from("booking_profiles").select("*").order("name").returns<BookingProfile[]>(),
     supabase.from("booking_types").select("*").order("sort_order").returns<BookingType[]>(),
+    supabase.from("calendar_connections").select("*").order("display_name").returns<CalendarConnection[]>(),
     loadCalendarStatus(now, in30Days)
   ]);
 
@@ -109,8 +121,23 @@ export default async function AdminPage() {
   const weeklySeries = buildWeeklySeries(recentBookings || [], since28Days);
   const maxWeeklyValue = Math.max(1, ...weeklySeries.map((week) => week.count));
   const profileRows = buildProfileRows(profiles || [], bookingTypes || []);
-  const nextFreeHint = nextBookings?.[0] ? `${formatGermanDate(new Date(nextBookings[0].starts_at))}, ${formatGermanTime(new Date(nextBookings[0].starts_at))}` : "Keine Buchung geplant";
+  const activeProfileRows = profileRows.filter((profile) => profile.isActive);
+  const nextFreeHint = nextBookings?.[0] ? `${formatShortGermanDate(new Date(nextBookings[0].starts_at))}\n${formatGermanTime(new Date(nextBookings[0].starts_at))} Uhr` : "Keine Buchung\ngeplant";
   const publicBookingUrl = `${PUBLIC_BOOKING_SITE_URL}/book`;
+  const emailConfigured = Boolean(process.env.SMTP_USER && process.env.SMTP_PASSWORD);
+  const meetingConfigured = Boolean(process.env.ZOOM_MEETING_URL || process.env.GOOGLE_MEET_URL || process.env.TEAMS_MEETING_URL || (process.env.ZOOM_ACCOUNT_ID && process.env.ZOOM_CLIENT_ID && process.env.ZOOM_CLIENT_SECRET));
+  const productionChecks = buildProductionChecks({
+    activeProfiles: activeProfiles || 0,
+    activeTypes: activeTypes || 0,
+    calendarConnections: calendarConnections || [],
+    calendarReady: calendarStatus.status === "ready",
+    emailConfigured,
+    meetingConfigured,
+    profileRows,
+    publicBookingUrl,
+    supabaseReady: hasSupabaseConfig()
+  });
+  const completedChecks = productionChecks.filter((check) => check.status === "ready").length;
 
   return (
     <section className="mx-auto max-w-6xl px-5 py-12">
@@ -137,6 +164,63 @@ export default async function AdminPage() {
         <MetricCard label="Aktive Terminarten" value={activeTypes || 0} icon={Layers3} />
         <MetricCard label="Aktive Profile" value={activeProfiles || 0} icon={UserRound} />
         <MetricCard label="Nächster Termin" value={nextFreeHint} icon={CalendarClock} compact />
+      </div>
+
+      <div className="mt-6">
+        <Panel
+          title="Livebetrieb prüfen"
+          action={
+            <span className="inline-flex items-center gap-2 rounded-full bg-brand-50 px-3 py-1 text-xs font-semibold text-brand-700">
+              <Rocket className="h-4 w-4" />
+              {completedChecks}/{productionChecks.length} erledigt
+            </span>
+          }
+        >
+          <div className="grid gap-3 md:grid-cols-2">
+            {productionChecks.map((check) => (
+              <ReadinessItem key={check.title} {...check} />
+            ))}
+          </div>
+          <div className="mt-4 rounded-md border border-slate-200 bg-slate-50 p-4">
+            <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+              <div>
+                <h3 className="text-sm font-semibold text-slate-950">Aktive Live-Webseiten prüfen</h3>
+                <div className="mt-3 grid gap-2">
+                  {activeProfileRows.length ? (
+                    activeProfileRows.map((profile) => (
+                      <Link
+                        key={profile.id}
+                        href={profile.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="flex items-center justify-between gap-3 rounded-md border border-slate-200 bg-white px-3 py-2 text-sm transition hover:border-brand-300 hover:text-brand-700"
+                      >
+                        <span className="min-w-0">
+                          <span className="block truncate font-semibold text-slate-900">{profile.name}</span>
+                          <span className="mt-0.5 block truncate text-xs text-slate-500">{profile.url}</span>
+                        </span>
+                        <ExternalLink className="h-4 w-4 shrink-0 text-brand-600" />
+                      </Link>
+                    ))
+                  ) : (
+                    <EmptyState text="Noch keine aktiven Profile vorhanden." />
+                  )}
+                </div>
+              </div>
+              <div>
+                <h3 className="text-sm font-semibold text-slate-950">Empfohlene Testfolge</h3>
+                <ol className="mt-3 grid gap-2 text-sm text-slate-600">
+                  {["Live-Link öffnen", "Terminart wählen", "Testbuchung durchführen", "E-Mail und Kalendereintrag prüfen", "Storno oder Änderung testen"].map((step, index) => (
+                    <li key={step} className="flex gap-2 rounded-md border border-slate-200 bg-white px-3 py-2">
+                      <span className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-brand-50 text-xs font-semibold text-brand-700">{index + 1}</span>
+                      <span>{step}</span>
+                    </li>
+                  ))}
+                </ol>
+              </div>
+            </div>
+          </div>
+        </Panel>
       </div>
 
       <div className="mt-6 grid gap-5 lg:grid-cols-2">
@@ -176,8 +260,8 @@ export default async function AdminPage() {
           <div className="space-y-2">
             <StatusLine label="Supabase verbunden" ok={hasSupabaseConfig()} icon={Database} />
             <StatusLine label="Apple CalDAV erreichbar" ok={calendarStatus.status === "ready"} icon={CalendarCheck} detail={calendarStatus.status === "unavailable" ? calendarStatus.message : undefined} />
-            <StatusLine label="E-Mail-Versand konfiguriert" ok={Boolean(process.env.SMTP_USER && process.env.SMTP_PASSWORD)} icon={MailCheck} />
-            <StatusLine label="Zoom-Link aktiv" ok={Boolean(process.env.ZOOM_MEETING_URL || (process.env.ZOOM_ACCOUNT_ID && process.env.ZOOM_CLIENT_ID && process.env.ZOOM_CLIENT_SECRET))} icon={Video} />
+            <StatusLine label="E-Mail-Versand konfiguriert" ok={emailConfigured} icon={MailCheck} />
+            <StatusLine label="Online-Meeting-Link aktiv" ok={meetingConfigured} icon={Video} />
             <StatusLine label="Öffentlicher Buchungslink" ok icon={Globe2} detail={publicBookingUrl} />
           </div>
         </Panel>
@@ -241,6 +325,34 @@ export default async function AdminPage() {
   );
 }
 
+function ReadinessItem({ detail, status, title }: ProductionCheck) {
+  const tone =
+    status === "ready"
+      ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+      : status === "warning"
+        ? "border-amber-200 bg-amber-50 text-amber-700"
+        : "border-slate-200 bg-slate-50 text-slate-600";
+
+  const iconTone =
+    status === "ready"
+      ? "bg-emerald-100 text-emerald-700"
+      : status === "warning"
+        ? "bg-amber-100 text-amber-700"
+        : "bg-white text-slate-500 ring-1 ring-slate-200";
+
+  return (
+    <div className={`flex gap-3 rounded-md border p-3 ${tone}`}>
+      <span className={`mt-0.5 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md ${iconTone}`}>
+        {status === "ready" ? <CheckCircle2 className="h-4 w-4" /> : <ListChecks className="h-4 w-4" />}
+      </span>
+      <div>
+        <p className="text-sm font-semibold text-slate-950">{title}</p>
+        <p className="mt-1 text-xs leading-5 text-slate-600">{detail}</p>
+      </div>
+    </div>
+  );
+}
+
 function MetricCard({
   compact = false,
   icon: Icon,
@@ -264,7 +376,7 @@ function MetricCard({
           <Icon className="h-4 w-4" />
         </span>
       </div>
-      <p className={`mt-3 text-center font-semibold text-slate-950 ${compact ? "text-base leading-6" : "text-3xl"}`}>{value}</p>
+      <p className={`mt-3 text-center font-semibold text-slate-950 ${compact ? "whitespace-pre-line text-sm leading-5" : "text-3xl"}`}>{value}</p>
     </div>
   );
 }
@@ -356,6 +468,15 @@ function buildWeeklySeries(bookings: Array<{ starts_at: string; status: string }
   });
 }
 
+function formatShortGermanDate(date: Date) {
+  return new Intl.DateTimeFormat("de-DE", {
+    day: "2-digit",
+    month: "2-digit",
+    weekday: "short",
+    year: "numeric"
+  }).format(date);
+}
+
 function buildProfileRows(profiles: BookingProfile[], bookingTypes: BookingType[]) {
   return profiles.map((profile) => ({
     id: profile.id,
@@ -365,6 +486,73 @@ function buildProfileRows(profiles: BookingProfile[], bookingTypes: BookingType[
     bookingTypes: bookingTypes.filter((type) => type.profile_id === profile.id).length,
     url: `${PUBLIC_BOOKING_SITE_URL}${profile.slug === defaultBookingProfile.slug ? "/book" : `/book/profile/${profile.slug}`}`
   }));
+}
+
+function buildProductionChecks({
+  activeProfiles,
+  activeTypes,
+  calendarConnections,
+  calendarReady,
+  emailConfigured,
+  meetingConfigured,
+  profileRows,
+  publicBookingUrl,
+  supabaseReady
+}: {
+  activeProfiles: number;
+  activeTypes: number;
+  calendarConnections: CalendarConnection[];
+  calendarReady: boolean;
+  emailConfigured: boolean;
+  meetingConfigured: boolean;
+  profileRows: ReturnType<typeof buildProfileRows>;
+  publicBookingUrl: string;
+  supabaseReady: boolean;
+}): ProductionCheck[] {
+  const bookingCalendarCount = calendarConnections.filter((connection) => connection.is_active && connection.use_for_booking).length;
+  const availabilityCalendarCount = calendarConnections.filter((connection) => connection.is_active && connection.use_for_availability).length;
+  const profilesWithoutTypes = profileRows.filter((profile) => profile.isActive && profile.bookingTypes === 0);
+
+  return [
+    {
+      title: "Öffentliche Buchungsseite",
+      status: "ready",
+      detail: publicBookingUrl
+    },
+    {
+      title: "Supabase-Datenbank",
+      status: supabaseReady ? "ready" : "todo",
+      detail: supabaseReady ? "Konfiguration vorhanden. Migrationen und Live-Daten können genutzt werden." : "Supabase-URL und Schlüssel müssen in Vercel gesetzt sein."
+    },
+    {
+      title: "Profile & Terminarten",
+      status: activeProfiles > 0 && activeTypes > 0 && profilesWithoutTypes.length === 0 ? "ready" : "warning",
+      detail:
+        profilesWithoutTypes.length > 0
+          ? `${profilesWithoutTypes.length} aktives Profil hat noch keine Terminarten.`
+          : `${activeProfiles} aktive Profile und ${activeTypes} aktive Terminarten.`
+    },
+    {
+      title: "Kalenderabgleich",
+      status: calendarReady && bookingCalendarCount === 1 && availabilityCalendarCount > 0 ? "ready" : "warning",
+      detail:
+        bookingCalendarCount === 1
+          ? `${availabilityCalendarCount} Abgleich-Kalender aktiv. Neue Termine werden in genau einen Buchungskalender geschrieben.`
+          : "Genau ein Buchungskalender muss aktiv sein; Abgleich-Kalender dürfen mehrere sein."
+    },
+    {
+      title: "E-Mail-Zustellung",
+      status: emailConfigured ? "ready" : "warning",
+      detail: emailConfigured
+        ? "SMTP ist lokal konfiguriert. Testmails an Gmail, Outlook und iCloud bleiben der nächste Praxistest."
+        : "Lokal fehlen SMTP_USER und SMTP_PASSWORD. Wenn diese Werte in Vercel gesetzt sind, kann der Livebetrieb trotzdem korrekt laufen."
+    },
+    {
+      title: "Online-Meeting",
+      status: meetingConfigured ? "ready" : "warning",
+      detail: meetingConfigured ? "Mindestens ein Meeting-Link ist eingerichtet." : "Optional: Nur für Online-Termine erforderlich. Zoom, Teams oder Google Meet können bei Bedarf in Kalender & Meetings hinterlegt werden."
+    }
+  ];
 }
 
 async function loadCalendarStatus(from: Date, to: Date): Promise<CalendarStatus> {

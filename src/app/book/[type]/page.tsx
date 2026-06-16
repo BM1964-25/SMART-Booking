@@ -34,6 +34,7 @@ export default async function SlotPage({
   const previewDays = 28;
   const pickerStart = buildPickerStartDate(from);
   const to = addDays(from, previewDays);
+  let availabilityError: string | null = null;
 
   if (isConfigured) {
     const supabase = createSupabaseAdmin();
@@ -43,7 +44,20 @@ export default async function SlotPage({
     bookingType = data && belongsToProfile ? data : null;
   }
 
-  const slots = bookingType ? (isConfigured ? await getAvailableSlots(type, from, to) : demoSlots(bookingType.duration_minutes)) : [];
+  let slots: { startsAt: string; endsAt: string }[] = [];
+
+  if (bookingType) {
+    if (isConfigured) {
+      try {
+        slots = await getAvailableSlots(type, from, to);
+      } catch (error) {
+        availabilityError = error instanceof Error ? error.message : "Verfügbarkeiten konnten nicht geladen werden.";
+      }
+    } else {
+      slots = demoSlots(bookingType.duration_minutes);
+    }
+  }
+
   const days = buildPickerDays(pickerStart, previewDays);
   const grouped = groupByDay(slots);
 
@@ -60,6 +74,11 @@ export default async function SlotPage({
       {!isConfigured ? (
         <div className="mt-6 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-900">
           Setup-Modus: Diese Zeitfenster sind Beispieldaten. Echte Slots werden erst nach Supabase- und Apple-CalDAV-Konfiguration berechnet.
+        </div>
+      ) : null}
+      {availabilityError ? (
+        <div className="mt-6 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-900">
+          Der Kalenderabgleich konnte gerade nicht vollständig geprüft werden. Bitte versuchen Sie es später erneut oder wenden Sie sich direkt an den Anbieter.
         </div>
       ) : null}
       {slots.length > 0 ? (

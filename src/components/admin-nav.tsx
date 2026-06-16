@@ -1,7 +1,9 @@
 "use client";
 
+import { Clock3 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 
 const navItems = [
   { href: "/admin", label: "Dashboard" },
@@ -21,10 +23,48 @@ export function AdminNav() {
           <AdminNavLink key={item.href} href={item.href} label={item.label} active={isActivePath(pathname, item.href)} />
         ))}
       </div>
-      <div className="flex justify-start sm:justify-end">
+      <div className="flex flex-wrap items-center gap-3 sm:justify-end">
+        <CurrentDateTime />
         <AdminNavLink href="/admin/backup" label="Datensicherung" active={isActivePath(pathname, "/admin/backup")} />
       </div>
     </nav>
+  );
+}
+
+function CurrentDateTime() {
+  const [now, setNow] = useState<Date | null>(null);
+
+  useEffect(() => {
+    setNow(new Date());
+
+    const timer = window.setInterval(() => {
+      setNow(new Date());
+    }, 30000);
+
+    return () => window.clearInterval(timer);
+  }, []);
+
+  if (!now) {
+    return null;
+  }
+
+  const date = new Intl.DateTimeFormat("de-DE", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric"
+  }).format(now);
+  const time = new Intl.DateTimeFormat("de-DE", {
+    hour: "2-digit",
+    minute: "2-digit"
+  }).format(now);
+
+  return (
+    <span className="inline-flex items-center gap-2 rounded-md border border-slate-200 bg-white px-4 py-2 font-semibold text-slate-600 shadow-sm">
+      <Clock3 className="h-4 w-4 text-brand-600" />
+      <span>
+        {date} · {time} Uhr
+      </span>
+    </span>
   );
 }
 
