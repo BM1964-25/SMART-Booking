@@ -30,6 +30,7 @@ const bookingTypes = [
 ];
 
 const features = [
+  // Source-level deployment marker: reminder cron rollout is part of the app build.
   {
     icon: CalendarCheck,
     title: "Automatische Verfügbarkeitsprüfung",
