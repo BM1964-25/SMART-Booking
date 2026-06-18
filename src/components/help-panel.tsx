@@ -9,6 +9,13 @@ type HelpSection = {
   title: string;
   body: string[];
   bullets?: string[];
+  matrix?: {
+    columns: string[];
+    rows: Array<{
+      label: string;
+      values: string[];
+    }>;
+  };
 };
 
 const helpSections: HelpSection[] = [
@@ -116,11 +123,28 @@ const helpSections: HelpSection[] = [
       "Feste Meeting-Links funktionieren unabhängig vom Kalenderanbieter. Ein dauerhafter Zoom-, Google-Meet- oder Teams-Link wird bei jeder passenden Buchung in E-Mail und Kalendereintrag übernommen.",
       "Feste Links eignen sich für persönliche Dauerräume, Teamräume oder bewusst wiederverwendete Beratungsräume. Der Link bleibt für zukünftige Gespräche gleich, bis er im Adminbereich geändert wird.",
       "Automatische Links per API erzeugen pro Buchung einen eigenen Link. Dafür muss der jeweilige Dienst technisch verbunden und für SMART Booking nutzbar sein.",
-      "Google Meet per API kann nur automatisch erzeugt werden, wenn Google Kalender verbunden und als aktiver Buchungskalender ausgewählt ist. Mit Apple CalDAV kann Google Meet nur über einen festen Link genutzt werden.",
+      "Google Meet kann über einen festen Link genutzt werden. Automatische Google-Meet-Links werden über die Google-Verbindung erzeugt.",
       "Zoom kann per API eigene Links erzeugen, wenn die Zoom Server-to-Server-OAuth-Daten korrekt sind. Wenn Zoom den Zugang mit „invalid_client“ ablehnt, sind Client ID, Client Secret, Account ID oder die Zoom-App-Freigabe zu prüfen.",
       "Microsoft Teams ist im aktuellen Stand über feste Links nutzbar. Die automatische Teams-Erzeugung über Microsoft Graph bleibt als späterer Ausbau vorbereitet.",
       "Die Prüfbuttons kontrollieren feste Links formal und testen verfügbare API-Verbindungen. Eine erfolgreiche Prüfung ersetzt keine echte Testbuchung, reduziert aber typische Konfigurationsfehler."
-    ]
+    ],
+    matrix: {
+      columns: ["Kalenderanbieter", "Zoom fester Link", "Zoom API", "Google Meet fester Link", "Google Meet API", "Teams fester Link", "Teams API"],
+      rows: [
+        {
+          label: "Apple / iCloud CalDAV",
+          values: ["Ja", "Ja", "Ja", "Nein", "Ja", "Nein"]
+        },
+        {
+          label: "Google Kalender",
+          values: ["Ja", "Ja", "Ja", "Ja", "Ja", "Nein"]
+        },
+        {
+          label: "Microsoft 365 / Outlook",
+          values: ["Ja", "Ja", "Ja", "Nein", "Ja", "Ja"]
+        }
+      ]
+    }
   },
   {
     id: "workflow",
@@ -332,6 +356,35 @@ export function HelpPanel() {
                                 </li>
                               ))}
                             </ul>
+                          ) : null}
+                          {section.matrix ? (
+                            <div className="overflow-x-auto rounded-md border border-slate-200">
+                              <table className="min-w-full divide-y divide-slate-200 text-left text-xs">
+                                <thead className="bg-slate-50 text-slate-600">
+                                  <tr>
+                                    {section.matrix.columns.map((column) => (
+                                      <th key={column} scope="col" className="whitespace-nowrap px-3 py-2 font-semibold">
+                                        {column}
+                                      </th>
+                                    ))}
+                                  </tr>
+                                </thead>
+                                <tbody className="divide-y divide-slate-100 bg-white">
+                                  {section.matrix.rows.map((row) => (
+                                    <tr key={row.label}>
+                                      <th scope="row" className="whitespace-nowrap px-3 py-2 font-semibold text-slate-900">
+                                        {row.label}
+                                      </th>
+                                      {row.values.map((value, index) => (
+                                        <td key={`${row.label}-${section.matrix?.columns[index + 1]}`} className="whitespace-nowrap px-3 py-2 text-slate-700">
+                                          {value}
+                                        </td>
+                                      ))}
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
                           ) : null}
                         </div>
                       </section>

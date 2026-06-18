@@ -54,8 +54,7 @@ export function MeetingServiceSettings({
             <p className="font-semibold text-slate-950">Meeting-Links flexibel nutzen</p>
             <p className="mt-1 max-w-4xl">
               Feste Links funktionieren mit jedem Kalenderanbieter und werden für alle zukünftigen Buchungen wiederverwendet. Automatische Links per API erzeugen pro
-              Buchung einen eigenen Link. Google Meet per API benötigt Google Kalender als aktiven Anbieter, Microsoft Teams per API benötigt Microsoft 365 / Outlook als
-              aktiven Anbieter.
+              Buchung einen eigenen Link, sobald der passende Dienst vollständig verbunden ist.
             </p>
           </div>
           <button
