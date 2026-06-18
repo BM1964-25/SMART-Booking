@@ -3,7 +3,7 @@ import { AdminCancelBookingButton } from "@/components/admin-cancel-booking-butt
 import { AdminDeleteBookingButton } from "@/components/admin-delete-booking-button";
 import { AdminNav } from "@/components/admin-nav";
 import { requireAdmin } from "@/lib/admin";
-import { deleteEvent } from "@/lib/calendar/caldav";
+import { deleteBookingCalendarEvent } from "@/lib/calendar/delete-booking-event";
 import { formatGermanDate, formatGermanTime } from "@/lib/date";
 import { sendBookingCancellationEmails } from "@/lib/email";
 import { getMeetingLocationLabel } from "@/lib/meeting-location";
@@ -16,9 +16,20 @@ export default async function AdminBookingsPage() {
   const supabase = createSupabaseAdmin();
   const { data: bookings } = await supabase
     .from("bookings")
-    .select("*, booking_types(name), booking_change_requests(id, proposed_starts_at, message, status, created_at)")
+    .select("*, booking_types(name, profile_id), booking_change_requests(id, proposed_starts_at, message, status, created_at)")
     .order("starts_at", { ascending: false })
     .limit(100);
+  const profileIds = Array.from(
+    new Set(
+      (bookings || [])
+        .map((booking) => booking.booking_types?.profile_id)
+        .filter((profileId): profileId is string => typeof profileId === "string" && profileId.length > 0)
+    )
+  );
+  const { data: profiles } = profileIds.length
+    ? await supabase.from("booking_profiles").select("id, name").in("id", profileIds)
+    : { data: [] as Array<{ id: string; name: string | null }> };
+  const profileNameById = new Map((profiles || []).map((profile) => [profile.id, profile.name || "Standardprofil"]));
 
   async function cancelBooking(formData: FormData) {
     "use server";
@@ -45,7 +56,10 @@ export default async function AdminBookingsPage() {
 
     if (booking.calendar_event_id) {
       try {
-        await deleteEvent(booking.calendar_event_id);
+        await deleteBookingCalendarEvent({
+          eventId: booking.calendar_event_id,
+          eventUrl: booking.calendar_event_url
+        });
       } catch {
         // The admin cancellation should still be recorded if the calendar object was already removed.
       }
@@ -108,12 +122,12 @@ export default async function AdminBookingsPage() {
       </div>
       <AdminNav />
       <div className="mt-8 overflow-hidden rounded-lg border border-slate-200 bg-white">
-        <table className="w-full min-w-[900px] text-left text-sm">
+        <table className="w-full min-w-[1050px] text-left text-sm">
           <thead className="bg-slate-50 text-slate-600">
             <tr>
               <th className="px-4 py-3">Termin</th>
               <th className="px-4 py-3">Kunde</th>
-              <th className="px-4 py-3">Unternehmen / Ort</th>
+              <th className="px-4 py-3">Herkunft / Ort</th>
               <th className="px-4 py-3">Status</th>
               <th className="px-4 py-3">Aktion</th>
             </tr>
@@ -130,6 +144,9 @@ export default async function AdminBookingsPage() {
                     <p className="font-medium text-slate-950">{booking.booking_types?.name}</p>
                     <p className="text-slate-500">
                       {formatGermanDate(new Date(booking.starts_at))}, {formatGermanTime(new Date(booking.starts_at))}
+                    </p>
+                    <p className="mt-1 text-xs text-slate-400">
+                      Eingetragen am {formatGermanDate(new Date(booking.created_at))}, {formatGermanTime(new Date(booking.created_at))}
                     </p>
                     {booking.booking_change_requests?.length ? (
                       <div className="mt-3 rounded-md border border-amber-200 bg-amber-50 p-3 text-xs leading-5 text-amber-900">
@@ -156,8 +173,10 @@ export default async function AdminBookingsPage() {
                     <p className="text-slate-500">{booking.customer_email}</p>
                   </td>
                   <td className="px-4 py-3">
-                    <p>{booking.company}</p>
-                    <p className="text-slate-500">{getMeetingLocationLabel(booking.meeting_location)}</p>
+                    <p className="font-medium text-slate-950">{booking.company}</p>
+                    <p className="mt-1 text-sm font-semibold text-slate-800">Profil: {getProfileName(booking.booking_types, profileNameById)}</p>
+                    <p className="text-xs text-slate-500">Terminort: {getMeetingLocationLabel(booking.meeting_location)}</p>
+                    <p className="text-xs text-slate-500">Kalender: {getCalendarProviderLabel(booking.calendar_event_url || booking.calendar_event_id)}</p>
                     <MeetingDetails meetingLocation={booking.meeting_location} meetingUrl={booking.meeting_url} phone={booking.phone} />
                   </td>
                   <td className="px-4 py-3">
@@ -190,6 +209,28 @@ function StatusBadge({ status, isExpired }: { status: string; isExpired: boolean
   }
 
   return <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600">Storniert</span>;
+}
+
+function getProfileName(bookingType: { profile_id?: string | null } | null | undefined, profileNameById: Map<string, string>) {
+  return bookingType?.profile_id ? profileNameById.get(bookingType.profile_id) || "Standardprofil" : "Standardprofil";
+}
+
+function getCalendarProviderLabel(calendarReference: string | null | undefined) {
+  const value = (calendarReference || "").toLowerCase();
+
+  if (value.includes("google.com") || value.includes("googleapis.com")) {
+    return "Google Kalender";
+  }
+
+  if (value.includes("outlook") || value.includes("office.com") || value.includes("microsoft")) {
+    return "Microsoft 365 / Outlook";
+  }
+
+  if (value.includes("icloud.com") || value.includes("caldav")) {
+    return "Apple CalDAV";
+  }
+
+  return calendarReference ? "Kalender eingetragen" : "Noch kein Kalendereintrag";
 }
 
 function MeetingDetails({ meetingLocation, meetingUrl, phone }: { meetingLocation: string; meetingUrl: string | null; phone: string | null }) {

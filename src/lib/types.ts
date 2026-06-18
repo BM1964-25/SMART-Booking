@@ -6,6 +6,7 @@ export type BookingType = {
   slug: string;
   name: string;
   description: string | null;
+  default_meeting_location?: MeetingLocation | null;
   duration_minutes: number;
   buffer_before_minutes: number;
   buffer_after_minutes: number;

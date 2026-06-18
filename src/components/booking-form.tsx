@@ -1,24 +1,76 @@
 "use client";
 
-import { FormEvent, useRef, useState } from "react";
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { Check } from "lucide-react";
 import { PrimaryButton } from "@/components/button";
-import { meetingLocationOptions } from "@/lib/meeting-location";
+import { MeetingLocationIcon } from "@/components/meeting-location-icon";
+import { MeetingLocation, meetingLocationOptions } from "@/lib/meeting-location";
 
-const disabledMeetingLocations = new Set(["teams", "google_meet"]);
+type BookingFormDraft = {
+  company?: string;
+  customerEmail?: string;
+  customerName?: string;
+  meetingLocation?: string;
+  phone?: string;
+  privacyAccepted?: boolean;
+  topic?: string;
+};
 
 type BookingFormProps = {
   bookingTypeSlug: string;
+  defaultMeetingLocation?: MeetingLocation | null;
   embedView?: boolean;
   profileSlug?: string;
   startsAt: string;
 };
 
-export function BookingForm({ bookingTypeSlug, embedView = false, profileSlug, startsAt }: BookingFormProps) {
+export function BookingForm({ bookingTypeSlug, defaultMeetingLocation = "phone", embedView = false, profileSlug, startsAt }: BookingFormProps) {
   const formRef = useRef<HTMLFormElement>(null);
   const [status, setStatus] = useState<"idle" | "submitting" | "success">("idle");
   const [message, setMessage] = useState<string | null>(null);
   const isSubmitting = status === "submitting" || status === "success";
+  const draftKey = useMemo(() => `smart-booking:draft:${profileSlug || "default"}:${bookingTypeSlug}:${startsAt}`, [bookingTypeSlug, profileSlug, startsAt]);
+  const selectableDefaultMeetingLocation = defaultMeetingLocation || "phone";
+
+  useEffect(() => {
+    const form = formRef.current;
+
+    if (!form) {
+      return;
+    }
+
+    try {
+      const savedDraft = window.sessionStorage.getItem(draftKey);
+
+      if (!savedDraft) {
+        return;
+      }
+
+      restoreDraft(form, JSON.parse(savedDraft) as BookingFormDraft);
+      setMessage("Ihre Eingaben wurden wiederhergestellt. Bitte prüfen Sie die Angaben und senden Sie die Buchung erneut ab.");
+    } catch {
+      window.sessionStorage.removeItem(draftKey);
+    }
+  }, [draftKey]);
+
+  function persistDraft(form: HTMLFormElement) {
+    try {
+      const formData = new FormData(form);
+      const draft: BookingFormDraft = {
+        company: String(formData.get("company") || ""),
+        customerEmail: String(formData.get("customerEmail") || ""),
+        customerName: String(formData.get("customerName") || ""),
+        meetingLocation: String(formData.get("meetingLocation") || ""),
+        phone: String(formData.get("phone") || ""),
+        privacyAccepted: formData.get("privacyAccepted") === "true",
+        topic: String(formData.get("topic") || "")
+      };
+
+      window.sessionStorage.setItem(draftKey, JSON.stringify(draft));
+    } catch {
+      // Storage is optional. The booking flow must still work without it.
+    }
+  }
 
   function validateForm(form: HTMLFormElement) {
     if (form.checkValidity()) {
@@ -42,6 +94,7 @@ export function BookingForm({ bookingTypeSlug, embedView = false, profileSlug, s
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const form = event.currentTarget;
+    persistDraft(form);
 
     if (!validateForm(form)) {
       return;
@@ -63,11 +116,16 @@ export function BookingForm({ bookingTypeSlug, embedView = false, profileSlug, s
       const result = (await response.json()) as { redirectTo?: string; error?: string };
 
       if (result.redirectTo) {
-        setStatus("success");
-        setMessage("Termin gespeichert. Sie werden weitergeleitet.");
-        window.setTimeout(() => {
-          window.location.assign(result.redirectTo as string);
-        }, 900);
+        const isSuccessRedirect = result.redirectTo.startsWith("/success") || result.redirectTo.includes("/success?");
+
+        setStatus(isSuccessRedirect ? "success" : "submitting");
+        setMessage(isSuccessRedirect ? "Termin gespeichert. Sie werden weitergeleitet." : "Die Buchung konnte nicht abgeschlossen werden. Sie werden zur Hinweisseite weitergeleitet.");
+
+        if (isSuccessRedirect) {
+          window.sessionStorage.removeItem(draftKey);
+        }
+
+        window.location.assign(result.redirectTo);
         return;
       }
 
@@ -80,7 +138,14 @@ export function BookingForm({ bookingTypeSlug, embedView = false, profileSlug, s
   }
 
   return (
-    <form ref={formRef} noValidate onSubmit={submit} className="mt-6 space-y-5 rounded-lg border border-slate-200 bg-white p-5">
+    <form
+      ref={formRef}
+      noValidate
+      onChange={(event) => persistDraft(event.currentTarget)}
+      onInput={(event) => persistDraft(event.currentTarget)}
+      onSubmit={submit}
+      className="mt-6 space-y-5 rounded-lg border border-slate-200 bg-white p-5"
+    >
       <input type="hidden" name="bookingTypeSlug" value={bookingTypeSlug} />
       <input type="hidden" name="embedView" value={embedView ? "1" : "0"} />
       <input type="hidden" name="profileSlug" value={profileSlug || ""} />
@@ -93,43 +158,48 @@ export function BookingForm({ bookingTypeSlug, embedView = false, profileSlug, s
         <legend className="text-sm font-medium text-slate-700">Terminort</legend>
         <div className="mt-2 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {meetingLocationOptions.map((option) => {
-            const isDisabled = disabledMeetingLocations.has(option.value);
+            const isServiceIcon = option.value === "zoom" || option.value === "teams" || option.value === "google_meet";
+            const iconShellClassName = isServiceIcon
+              ? "inline-flex h-10 w-10 shrink-0 items-center justify-center"
+              : "inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-brand-50 text-brand-600 transition group-has-[:checked]:bg-brand-500 group-has-[:checked]:text-white";
+            const iconClassName =
+              option.value === "google_meet" || option.value === "teams"
+                ? "h-10 w-10"
+                : option.value === "zoom"
+                  ? "h-9 w-9"
+                  : "h-7 w-7";
 
             return (
               <label
                 key={option.value}
-                aria-disabled={isDisabled}
-                className={`group relative flex min-h-24 gap-3 rounded-md border p-4 text-left transition has-[:checked]:border-brand-500 has-[:checked]:bg-brand-50 ${
-                  isDisabled
-                    ? "cursor-not-allowed border-slate-200 bg-slate-50 opacity-60"
-                    : "cursor-pointer border-slate-300 bg-white hover:border-brand-300"
-                }`}
+                className={[
+                  "group relative flex min-h-24 gap-3 rounded-md border p-4 text-left transition",
+                  "cursor-pointer border-slate-300 bg-white hover:border-brand-300 has-[:checked]:border-brand-500 has-[:checked]:bg-brand-50"
+                ].join(" ")}
               >
                 <input
                   type="radio"
                   name="meetingLocation"
                   value={option.value}
                   required
-                  disabled={isDisabled}
-                  defaultChecked={option.value === "phone"}
-                  className="mt-1 h-4 w-4 shrink-0 border-slate-300 text-brand-600 focus:ring-brand-500 disabled:cursor-not-allowed disabled:text-slate-300"
+                  defaultChecked={option.value === selectableDefaultMeetingLocation}
+                  className="mt-1 h-4 w-4 shrink-0 border-slate-300 text-brand-600 focus:ring-brand-500"
                 />
                 <span className="block min-w-0">
                   <span className="flex items-center justify-between gap-3">
-                    <span className="font-semibold text-slate-950">{option.label}</span>
-                  </span>
-                  <span className="mt-2 block text-sm leading-5 text-slate-500">
-                    {isDisabled ? "Diese Option wird später freigeschaltet." : option.description}
-                  </span>
-                  {isDisabled ? (
-                    <span className="mt-3 inline-flex w-fit rounded-full bg-slate-200 px-2 py-0.5 text-[11px] font-semibold text-slate-600">
-                      Später verfügbar
+                    <span className="inline-flex items-center gap-2 font-semibold text-slate-950">
+                      <span
+                        className={iconShellClassName}
+                      >
+                        <MeetingLocationIcon value={option.value} className={iconClassName} />
+                      </span>
+                      {option.label}
                     </span>
-                  ) : (
-                    <span className="mt-3 hidden w-fit rounded-full bg-brand-500 px-2 py-0.5 text-[11px] font-semibold text-white group-has-[:checked]:block">
-                      Aktiv
-                    </span>
-                  )}
+                  </span>
+                  <span className="mt-2 block text-sm leading-5 text-slate-500">{option.description}</span>
+                  <span className="mt-3 hidden w-fit rounded-full bg-brand-500 px-2 py-0.5 text-[11px] font-semibold text-white group-has-[:checked]:block">
+                    Aktiv
+                  </span>
                 </span>
               </label>
             );
@@ -189,6 +259,38 @@ export function BookingForm({ bookingTypeSlug, embedView = false, profileSlug, s
       </div>
     </form>
   );
+}
+
+function restoreDraft(form: HTMLFormElement, draft: BookingFormDraft) {
+  setFieldValue(form, "customerName", draft.customerName);
+  setFieldValue(form, "customerEmail", draft.customerEmail);
+  setFieldValue(form, "company", draft.company);
+  setFieldValue(form, "phone", draft.phone);
+  setFieldValue(form, "topic", draft.topic);
+
+  if (draft.meetingLocation) {
+    const radio = form.querySelector<HTMLInputElement>(`input[name="meetingLocation"][value="${CSS.escape(draft.meetingLocation)}"]`);
+    if (radio) {
+      radio.checked = true;
+    }
+  }
+
+  const privacy = form.elements.namedItem("privacyAccepted");
+  if (privacy instanceof HTMLInputElement) {
+    privacy.checked = draft.privacyAccepted === true;
+  }
+}
+
+function setFieldValue(form: HTMLFormElement, name: string, value?: string) {
+  if (value === undefined) {
+    return;
+  }
+
+  const field = form.elements.namedItem(name);
+
+  if (field instanceof HTMLInputElement || field instanceof HTMLTextAreaElement) {
+    field.value = value;
+  }
 }
 
 function Field({

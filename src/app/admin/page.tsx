@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import { AdminNav } from "@/components/admin-nav";
 import { requireAdmin } from "@/lib/admin";
+import { getEffectiveAppSettings } from "@/lib/app-settings";
 import { getEvents } from "@/lib/calendar/caldav";
 import { hasSupabaseConfig } from "@/lib/config";
 import { formatGermanDate, formatGermanTime } from "@/lib/date";
@@ -84,7 +85,8 @@ export default async function AdminPage() {
     { data: profiles },
     { data: bookingTypes },
     { data: calendarConnections },
-    calendarStatus
+    calendarStatus,
+    appSettings
   ] = await Promise.all([
     supabase.from("bookings").select("*", { count: "exact", head: true }),
     supabase.from("bookings").select("*", { count: "exact", head: true }).eq("status", "confirmed").gte("starts_at", now.toISOString()),
@@ -107,7 +109,8 @@ export default async function AdminPage() {
     supabase.from("booking_profiles").select("*").order("name").returns<BookingProfile[]>(),
     supabase.from("booking_types").select("*").order("sort_order").returns<BookingType[]>(),
     supabase.from("calendar_connections").select("*").order("display_name").returns<CalendarConnection[]>(),
-    loadCalendarStatus(now, in30Days)
+    loadCalendarStatus(now, in30Days),
+    getEffectiveAppSettings()
   ]);
 
   async function logout() {
@@ -124,8 +127,8 @@ export default async function AdminPage() {
   const activeProfileRows = profileRows.filter((profile) => profile.isActive);
   const nextFreeHint = nextBookings?.[0] ? `${formatShortGermanDate(new Date(nextBookings[0].starts_at))}\n${formatGermanTime(new Date(nextBookings[0].starts_at))} Uhr` : "Keine Buchung\ngeplant";
   const publicBookingUrl = `${PUBLIC_BOOKING_SITE_URL}/book`;
-  const emailConfigured = Boolean(process.env.SMTP_USER && process.env.SMTP_PASSWORD);
-  const meetingConfigured = Boolean(process.env.ZOOM_MEETING_URL || process.env.GOOGLE_MEET_URL || process.env.TEAMS_MEETING_URL || (process.env.ZOOM_ACCOUNT_ID && process.env.ZOOM_CLIENT_ID && process.env.ZOOM_CLIENT_SECRET));
+  const emailConfigured = Boolean(appSettings.smtpUser && appSettings.smtpPassword);
+  const meetingConfigured = Boolean(appSettings.zoomMeetingUrl || appSettings.googleMeetUrl || appSettings.teamsMeetingUrl || (process.env.ZOOM_ACCOUNT_ID && process.env.ZOOM_CLIENT_ID && process.env.ZOOM_CLIENT_SECRET));
   const productionChecks = buildProductionChecks({
     activeProfiles: activeProfiles || 0,
     activeTypes: activeTypes || 0,
@@ -544,8 +547,8 @@ function buildProductionChecks({
       title: "E-Mail-Zustellung",
       status: emailConfigured ? "ready" : "warning",
       detail: emailConfigured
-        ? "SMTP ist lokal konfiguriert. Testmails an Gmail, Outlook und iCloud bleiben der nächste Praxistest."
-        : "Lokal fehlen SMTP_USER und SMTP_PASSWORD. Wenn diese Werte in Vercel gesetzt sind, kann der Livebetrieb trotzdem korrekt laufen."
+        ? "SMTP-Daten sind gespeichert. Testmails an Gmail, Outlook und iCloud bleiben der nächste Praxistest."
+        : "SMTP-Benutzer und Passwort fehlen noch. Diese Daten können unter Kalender & Meetings gespeichert werden."
     },
     {
       title: "Online-Meeting",

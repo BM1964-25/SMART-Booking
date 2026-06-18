@@ -1,4 +1,5 @@
 import nodemailer from "nodemailer";
+import { EffectiveAppSettings, getEffectiveAppSettings } from "@/lib/app-settings";
 import { createIcsFallback } from "@/lib/calendar/caldav";
 import { buildSlotLabel } from "@/lib/date";
 import { getEnv } from "@/lib/env";
@@ -24,19 +25,20 @@ type BookingEmail = {
 
 export async function sendBookingEmails(booking: BookingEmail) {
   const env = getEnv();
+  const settings = await getEffectiveAppSettings();
 
-  if (!hasSmtpConfig(env)) {
+  if (!hasSmtpConfig(settings)) {
     console.warn("SMTP-Konfiguration fehlt. E-Mail-Versand wurde übersprungen.");
     return;
   }
 
-  const transporter = createMailTransport(env);
-  const ownerEmail = env.BOOKING_OWNER_EMAIL || "bernhard@builtsmart-ai.app";
+  const transporter = createMailTransport(settings);
+  const ownerEmail = settings.bookingOwnerEmail || "bernhard@builtsmart-ai.app";
   const cancelUrl = buildPublicUrl(env, `/cancel/${booking.cancellation_token}`);
   const changeUrl = buildPublicUrl(env, `/change/${booking.cancellation_token}`);
   const label = buildSlotLabel(new Date(booking.starts_at), new Date(booking.ends_at));
   const ics = createIcsFallback(booking);
-  const from = env.MAIL_FROM || "SMART Booking <termine@builtsmart-ai.app>";
+  const from = settings.mailFrom || "SMART Booking <termine@builtsmart-ai.app>";
 
   await Promise.all([
     transporter.sendMail({
@@ -66,17 +68,17 @@ export async function sendBookingEmails(booking: BookingEmail) {
 }
 
 export async function sendBookingCancellationEmails(booking: BookingEmail) {
-  const env = getEnv();
+  const settings = await getEffectiveAppSettings();
 
-  if (!hasSmtpConfig(env)) {
+  if (!hasSmtpConfig(settings)) {
     console.warn("SMTP-Konfiguration fehlt. Storno-E-Mail wurde übersprungen.");
     return;
   }
 
-  const transporter = createMailTransport(env);
-  const ownerEmail = env.BOOKING_OWNER_EMAIL || "bernhard@builtsmart-ai.app";
+  const transporter = createMailTransport(settings);
+  const ownerEmail = settings.bookingOwnerEmail || "bernhard@builtsmart-ai.app";
   const label = buildSlotLabel(new Date(booking.starts_at), new Date(booking.ends_at));
-  const from = env.MAIL_FROM || "SMART Booking <termine@builtsmart-ai.app>";
+  const from = settings.mailFrom || "SMART Booking <termine@builtsmart-ai.app>";
 
   await Promise.all([
     transporter.sendMail({
@@ -99,20 +101,20 @@ export async function sendBookingCancellationEmails(booking: BookingEmail) {
 }
 
 export async function sendEmailTest() {
-  const env = getEnv();
+  const settings = await getEffectiveAppSettings();
 
-  if (!hasSmtpConfig(env)) {
+  if (!hasSmtpConfig(settings)) {
     throw new Error("SMTP-Konfiguration fehlt.");
   }
 
-  const ownerEmail = env.BOOKING_OWNER_EMAIL;
+  const ownerEmail = settings.bookingOwnerEmail;
 
   if (!ownerEmail) {
     throw new Error("BOOKING_OWNER_EMAIL fehlt.");
   }
 
-  const transporter = createMailTransport(env);
-  const from = env.MAIL_FROM || "SMART Booking <termine@builtsmart-ai.app>";
+  const transporter = createMailTransport(settings);
+  const from = settings.mailFrom || "SMART Booking <termine@builtsmart-ai.app>";
 
   await transporter.sendMail({
     from,
@@ -142,20 +144,20 @@ function getPublicSiteUrl(env: ReturnType<typeof getEnv>) {
   return configuredUrl;
 }
 
-function hasSmtpConfig(env: ReturnType<typeof getEnv>) {
-  return Boolean(env.SMTP_USER && env.SMTP_PASSWORD);
+function hasSmtpConfig(settings: EffectiveAppSettings) {
+  return Boolean(settings.smtpUser && settings.smtpPassword);
 }
 
-function createMailTransport(env: ReturnType<typeof getEnv>) {
-  const port = env.SMTP_PORT || 587;
+function createMailTransport(settings: EffectiveAppSettings) {
+  const port = settings.smtpPort || 587;
 
   return nodemailer.createTransport({
-    host: env.SMTP_HOST || "smtp-relay.brevo.com",
+    host: settings.smtpHost || "smtp-relay.brevo.com",
     port,
     secure: port === 465,
     auth: {
-      user: env.SMTP_USER,
-      pass: env.SMTP_PASSWORD
+      user: settings.smtpUser,
+      pass: settings.smtpPassword
     }
   });
 }

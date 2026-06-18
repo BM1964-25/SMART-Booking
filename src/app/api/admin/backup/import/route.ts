@@ -16,6 +16,7 @@ type BackupPayload = {
     blockedTimes?: BackupRow[];
     profileTemplates?: BackupRow[];
     calendarConnections?: BackupRow[];
+    appSettings?: BackupRow | null;
   };
 };
 
@@ -79,6 +80,7 @@ const bookingTypeColumns = [
   "slug",
   "name",
   "description",
+  "default_meeting_location",
   "duration_minutes",
   "buffer_before_minutes",
   "buffer_after_minutes",
@@ -97,6 +99,27 @@ const calendarConnectionColumns = [
   "use_for_booking",
   "use_for_availability",
   "last_checked_at"
+];
+const appSettingsColumns = [
+  "active_calendar_provider",
+  "smtp_host",
+  "smtp_port",
+  "smtp_user",
+  "smtp_password",
+  "mail_from",
+  "booking_owner_email",
+  "zoom_meeting_url",
+  "zoom_meeting_mode",
+  "zoom_account_id",
+  "zoom_client_id",
+  "zoom_client_secret",
+  "teams_meeting_url",
+  "teams_meeting_mode",
+  "google_meet_url",
+  "google_meeting_mode",
+  "google_client_id",
+  "google_client_secret",
+  "onsite_meeting_url"
 ];
 
 export async function POST(request: NextRequest) {
@@ -138,6 +161,7 @@ export async function POST(request: NextRequest) {
   const calendarConnections = sanitizeRows(data.calendarConnections || [], calendarConnectionColumns).filter(
     (row) => typeof row.provider === "string" && typeof row.calendar_id === "string"
   );
+  const appSettings = data.appSettings ? sanitizeRows([data.appSettings], appSettingsColumns)[0] : null;
   const importedProfileIdsBySlug = new Map((data.profiles || []).map((row) => [String(row.id || ""), String(row.slug || "")]));
   const importedBookingTypeIdsBySlug = new Map((data.bookingTypes || []).map((row) => [String(row.id || ""), String(row.slug || "")]));
 
@@ -182,6 +206,14 @@ export async function POST(request: NextRequest) {
 
     if (error) {
       return NextResponse.json({ error: "Terminarten konnten nicht importiert werden.", details: error.message }, { status: 500 });
+    }
+  }
+
+  if (appSettings) {
+    const { error } = await supabase.from("app_settings").upsert({ id: true, ...appSettings, updated_at: new Date().toISOString() }, { onConflict: "id" });
+
+    if (error) {
+      return NextResponse.json({ error: "App-Einstellungen konnten nicht importiert werden.", details: error.message }, { status: 500 });
     }
   }
 

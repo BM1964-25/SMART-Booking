@@ -60,10 +60,8 @@ export function BookingTypeCardLink({
         </div>
         <div className="flex items-center justify-end border-t border-slate-100 pt-4">
           <span
-            className={`inline-flex min-w-36 items-center justify-center gap-2 rounded-md px-3 py-2 text-sm font-semibold transition ${
-              selected ? "text-emerald-950" : "text-white"
-            }`}
-            style={{ backgroundColor: selected ? "#86EFAC" : primaryColor }}
+            className="inline-flex min-w-36 items-center justify-center gap-2 rounded-md px-3 py-2 text-sm font-semibold text-white transition group-aria-busy:bg-emerald-300 group-aria-busy:text-emerald-950"
+            style={selected ? undefined : { backgroundColor: primaryColor }}
           >
             {selected ? "Ausgewählt" : "Termin wählen"}
             {selected ? <Check className="h-4 w-4" aria-hidden="true" /> : <ArrowRight className="h-4 w-4" aria-hidden="true" />}

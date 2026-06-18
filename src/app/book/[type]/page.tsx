@@ -1,4 +1,5 @@
 import { addDays, getDay, startOfWeek } from "date-fns";
+import { BookingLegalFooter } from "@/components/booking-legal-footer";
 import { DaySlotPicker } from "@/components/day-slot-picker";
 import { EmbedShellStyle } from "@/components/embed-shell-style";
 import { getAvailableSlots } from "@/lib/availability";
@@ -78,7 +79,7 @@ export default async function SlotPage({
       ) : null}
       {availabilityError ? (
         <div className="mt-6 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-900">
-          Der Kalenderabgleich konnte gerade nicht vollständig geprüft werden. Bitte versuchen Sie es später erneut oder wenden Sie sich direkt an den Anbieter.
+          {formatAvailabilityError(availabilityError)}
         </div>
       ) : null}
       {slots.length > 0 ? (
@@ -86,6 +87,7 @@ export default async function SlotPage({
       ) : (
         <p className="mt-8 rounded-lg border border-slate-200 bg-white p-5 text-slate-600">Aktuell sind keine freien Zeitfenster verfügbar.</p>
       )}
+      <BookingLegalFooter embedView={isEmbedView} profile={profile} />
     </section>
   );
 }
@@ -115,4 +117,16 @@ function groupByDay(slots: { startsAt: string; endsAt: string }[]) {
     acc[key].push(slot);
     return acc;
   }, {});
+}
+
+function formatAvailabilityError(error: string) {
+  if (error.includes("Google Kalender muss neu verbunden werden")) {
+    return "Der Google-Kalenderzugang muss neu verbunden werden. Bitte prüfen Sie im Adminbereich Kalender & Meetings die Google-Verbindung.";
+  }
+
+  if (error.includes("Kein Google Kalender")) {
+    return "Für Google Kalender ist noch kein Buchungs- oder Abgleichkalender gespeichert. Bitte wählen Sie im Adminbereich Kalender & Meetings einen Google-Kalender aus.";
+  }
+
+  return "Der Kalenderabgleich konnte gerade nicht vollständig geprüft werden. Bitte versuchen Sie es später erneut oder wenden Sie sich direkt an den Anbieter.";
 }

@@ -2,8 +2,11 @@ import { addMinutes } from "date-fns";
 import { NextRequest, NextResponse } from "next/server";
 import { assertSlotAvailable } from "@/lib/availability";
 import { createEvent } from "@/lib/calendar/caldav";
+import { createGoogleCalendarEvent } from "@/lib/calendar/google";
+import { createMicrosoftCalendarEvent } from "@/lib/calendar/microsoft";
 import { hasSupabaseConfig } from "@/lib/config";
 import { getEnv } from "@/lib/env";
+import { EffectiveAppSettings, getEffectiveAppSettings } from "@/lib/app-settings";
 import { createMeetingLink } from "@/lib/meeting-links";
 import { rateLimit } from "@/lib/rate-limit";
 import { createSupabaseAdmin } from "@/lib/supabase/admin";
@@ -16,7 +19,7 @@ export async function POST(request: NextRequest) {
   const isAjax = request.headers.get("x-smart-booking-ajax") === "1";
   const navigate = (path: string) => {
     const url = path.startsWith("http") ? path : `${env.NEXT_PUBLIC_SITE_URL}${path}`;
-    return isAjax ? NextResponse.json({ redirectTo: url }) : NextResponse.redirect(url, { status: 303 });
+    return isAjax ? NextResponse.json({ redirectTo: path }) : NextResponse.redirect(url, { status: 303 });
   };
   const validationError = (message: string) => {
     return isAjax
@@ -78,6 +81,13 @@ export async function POST(request: NextRequest) {
 
   if (typeError || !bookingType) {
     return navigate("/booking-error?reason=unknown");
+  }
+
+  const settings = await getEffectiveAppSettings();
+  const meetingConfigurationError = await validateMeetingConfiguration(parsed.data.meetingLocation, settings);
+
+  if (meetingConfigurationError) {
+    return validationError(meetingConfigurationError);
   }
 
   const startsAt = new Date(parsed.data.startsAt);
@@ -157,13 +167,34 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const calendarEvent = await createEvent(bookingWithMeeting);
+    const calendarEvent =
+      settings.activeCalendarProvider === "google"
+        ? await createGoogleCalendarEvent(bookingWithMeeting)
+        : settings.activeCalendarProvider === "microsoft"
+          ? await createMicrosoftCalendarEvent(bookingWithMeeting)
+          : await createEvent(bookingWithMeeting);
+    const meetingUrl = "meetingUrl" in calendarEvent ? calendarEvent.meetingUrl : null;
+
+    if (parsed.data.meetingLocation === "google_meet" && settings.googleMeetingMode === "api" && !meetingUrl) {
+      throw new Error("Google Meet konnte keinen Meeting-Link zurückgeben.");
+    }
+
+    const calendarUpdate: { calendar_event_id: string | null; calendar_event_url: string | null; meeting_url?: string } = {
+      calendar_event_id: calendarEvent.eventId,
+      calendar_event_url: calendarEvent.eventUrl
+    };
+
+    if (meetingUrl) {
+      calendarUpdate.meeting_url = meetingUrl;
+      bookingWithMeeting = { ...bookingWithMeeting, meeting_url: meetingUrl };
+    }
+
     await supabase
       .from("bookings")
-      .update({ calendar_event_id: calendarEvent.eventId, calendar_event_url: calendarEvent.eventUrl })
+      .update(calendarUpdate)
       .eq("id", booking.id);
   } catch (error) {
-    console.error("Apple calendar booking failed", error);
+    console.error("Calendar booking failed", error);
     await supabase.from("bookings").update({ status: "cancelled" }).eq("id", booking.id);
     return navigate(buildRetryParams("calendar", parsed.data.bookingTypeSlug, startsAt, getCalendarErrorCode(error)));
   }
@@ -175,6 +206,76 @@ export async function POST(request: NextRequest) {
   }
 
   return navigate(successPath());
+}
+
+async function validateMeetingConfiguration(meetingLocation: string, settings: EffectiveAppSettings) {
+  if (meetingLocation === "zoom") {
+    const hasZoomApi = Boolean(settings.zoomAccountId && settings.zoomClientId && settings.zoomClientSecret);
+
+    if (settings.zoomMeetingMode === "api" && hasZoomApi) {
+      return null;
+    }
+
+    if (settings.zoomMeetingUrl) {
+      return null;
+    }
+
+    return "Für Zoom ist noch kein fester Link oder keine vollständige Zoom-API-Konfiguration hinterlegt.";
+  }
+
+  if (meetingLocation === "teams") {
+    if (settings.teamsMeetingMode === "fixed_link") {
+      return settings.teamsMeetingUrl ? null : "Für Microsoft Teams ist noch kein fester Meeting-Link hinterlegt.";
+    }
+
+    if (settings.activeCalendarProvider !== "microsoft") {
+      return "Microsoft Teams per API kann nur genutzt werden, wenn Microsoft 365 / Outlook als aktiver Kalenderanbieter gewählt ist.";
+    }
+
+    if (!settings.microsoftClientId || !settings.microsoftClientSecret) {
+      return "Microsoft Teams per API ist noch nicht vollständig konfiguriert. Bitte Microsoft OAuth Client ID und Client Secret speichern.";
+    }
+
+    const supabase = createSupabaseAdmin();
+    const { data: microsoftConnection } = await supabase
+      .from("calendar_oauth_connections")
+      .select("id")
+      .eq("provider", "microsoft")
+      .eq("is_active", true)
+      .maybeSingle();
+
+    if (!microsoftConnection) {
+      return "Microsoft Teams per API ist noch nicht verbunden. Bitte Microsoft in Kalender & Meetings verbinden.";
+    }
+  }
+
+  if (meetingLocation === "google_meet") {
+    if (settings.googleMeetingMode === "fixed_link") {
+      return settings.googleMeetUrl ? null : "Für Google Meet ist noch kein fester Meeting-Link hinterlegt.";
+    }
+
+    if (settings.activeCalendarProvider !== "google") {
+      return "Google Meet per API kann nur genutzt werden, wenn Google Kalender als aktiver Buchungskalender gewählt ist.";
+    }
+
+    if (!settings.googleClientId || !settings.googleClientSecret) {
+      return "Google Meet per API ist noch nicht vollständig konfiguriert. Bitte Client ID und Client Secret speichern.";
+    }
+
+    const supabase = createSupabaseAdmin();
+    const { data: googleConnection } = await supabase
+      .from("calendar_oauth_connections")
+      .select("id")
+      .eq("provider", "google")
+      .eq("is_active", true)
+      .maybeSingle();
+
+    if (!googleConnection) {
+      return "Google Meet per API ist noch nicht verbunden. Bitte Google in Kalender & Meetings verbinden.";
+    }
+  }
+
+  return null;
 }
 
 function buildSuccessPath(formData: FormData) {
@@ -202,7 +303,7 @@ function buildSuccessPath(formData: FormData) {
 function getCalendarErrorCode(error: unknown) {
   const message = error instanceof Error ? error.message.toLowerCase() : "";
 
-  if (message.includes("kein apple kalender")) {
+  if (message.includes("kein apple kalender") || message.includes("kein google") || message.includes("kein microsoft")) {
     return "calendar-not-found";
   }
 

@@ -3,6 +3,7 @@ import { createEvent as createIcsEvent } from "ics";
 import { fromZonedTime } from "date-fns-tz";
 import { TIMEZONE } from "@/lib/date";
 import { getEnv } from "@/lib/env";
+import { getEffectiveAppSettings } from "@/lib/app-settings";
 import { getMeetingLocationCalendarLines, getMeetingLocationDetails } from "@/lib/meeting-location";
 import { createSupabaseAdmin } from "@/lib/supabase/admin";
 import { BookingType, CalendarConnection } from "@/lib/types";
@@ -124,6 +125,10 @@ async function resolveCalendars(connections: CalendarConnection[], predicate: (c
 }
 
 async function getBookingCalendar() {
+  if (!(await isAppleCalendarProviderActive())) {
+    return null;
+  }
+
   const connections = await getCalendarConnections();
   const calendars = await resolveCalendars(connections, (connection) => connection.use_for_booking === true);
 
@@ -131,10 +136,23 @@ async function getBookingCalendar() {
 }
 
 async function getAvailabilityCalendars() {
+  if (!(await isAppleCalendarProviderActive())) {
+    return [];
+  }
+
   const connections = await getCalendarConnections();
   const calendars = await resolveCalendars(connections, (connection) => connection.use_for_availability === true);
 
   return calendars.length > 0 ? calendars : [];
+}
+
+async function isAppleCalendarProviderActive() {
+  try {
+    const settings = await getEffectiveAppSettings();
+    return settings.activeCalendarProvider === "apple";
+  } catch {
+    return true;
+  }
 }
 
 export async function getEvents(startDate: Date, endDate: Date): Promise<CalendarEvent[]> {
@@ -237,23 +255,34 @@ export function createIcsFallback(booking: BookingForCalendar) {
   const startsAt = new Date(booking.starts_at);
   const endsAt = new Date(booking.ends_at);
   const meetingDetails = getMeetingLocationDetails(booking.meeting_location, booking.phone, booking.meeting_url);
-  const description = [...getMeetingLocationCalendarLines(booking.meeting_location, booking.phone, booking.meeting_url), "", booking.topic].join("\n");
+  const title = `${booking.bookingType?.name || "Termin"} mit BuiltSmart AI`;
+  const description = [
+    `Termin: ${booking.bookingType?.name || "SMART Booking"}`,
+    `Name: ${booking.customer_name}`,
+    booking.company ? `Unternehmen: ${booking.company}` : null,
+    ...getMeetingLocationCalendarLines(booking.meeting_location, booking.phone, booking.meeting_url),
+    "",
+    booking.topic
+  ]
+    .filter(Boolean)
+    .join("\n");
 
   const result = createIcsEvent({
-    title: booking.bookingType?.name || "Termin mit BuiltSmart AI",
+    uid: `smart-booking-${booking.id}@builtsmart-ai.app`,
+    productId: "//BuiltSmart AI//SMART Booking//DE",
+    method: "PUBLISH",
+    title,
     description,
-    location: meetingDetails.label,
+    location: meetingDetails.link || meetingDetails.label,
     url: meetingDetails.link,
-    start: [
-      startsAt.getFullYear(),
-      startsAt.getMonth() + 1,
-      startsAt.getDate(),
-      startsAt.getHours(),
-      startsAt.getMinutes()
-    ],
-    end: [endsAt.getFullYear(), endsAt.getMonth() + 1, endsAt.getDate(), endsAt.getHours(), endsAt.getMinutes()],
+    start: toUtcDateTime(startsAt),
+    end: toUtcDateTime(endsAt),
     startInputType: "utc",
+    startOutputType: "utc",
     endInputType: "utc",
+    endOutputType: "utc",
+    status: "CONFIRMED",
+    busyStatus: "BUSY",
     organizer: { name: "BuiltSmart AI", email: getEnv().BOOKING_OWNER_EMAIL || "kontakt@builtsmart-ai.app" },
     attendees: [{ name: booking.customer_name, email: booking.customer_email, rsvp: false }]
   });
@@ -263,6 +292,10 @@ export function createIcsFallback(booking: BookingForCalendar) {
   }
 
   return result.value;
+}
+
+function toUtcDateTime(date: Date): [number, number, number, number, number] {
+  return [date.getUTCFullYear(), date.getUTCMonth() + 1, date.getUTCDate(), date.getUTCHours(), date.getUTCMinutes()];
 }
 
 function buildCalendarObject(input: {

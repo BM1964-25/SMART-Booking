@@ -1,5 +1,6 @@
 import { addMinutes } from "date-fns";
 import Link from "next/link";
+import { BookingLegalFooter } from "@/components/booking-legal-footer";
 import { BookingForm } from "@/components/booking-form";
 import { EmbedShellStyle } from "@/components/embed-shell-style";
 import { getBookingTypeIdsForProfile } from "@/lib/booking-type-profiles";
@@ -69,7 +70,13 @@ export default async function ConfirmPage({
         </div>
       ) : null}
       {isConfigured ? (
-        <BookingForm bookingTypeSlug={type} embedView={isEmbedView} profileSlug={profileSlug} startsAt={startsAt.toISOString()} />
+        <BookingForm
+          bookingTypeSlug={type}
+          defaultMeetingLocation={bookingType.default_meeting_location || "phone"}
+          embedView={isEmbedView}
+          profileSlug={profileSlug}
+          startsAt={startsAt.toISOString()}
+        />
       ) : (
         <div className="mt-6 rounded-lg border border-slate-200 bg-white p-5">
           <button
@@ -81,6 +88,7 @@ export default async function ConfirmPage({
           </button>
         </div>
       )}
+      <BookingLegalFooter embedView={isEmbedView} profile={profile} />
     </section>
   );
 }

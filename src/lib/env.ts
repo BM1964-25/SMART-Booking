@@ -23,6 +23,10 @@ const envSchema = z.object({
   ZOOM_CLIENT_SECRET: z.string().optional(),
   TEAMS_MEETING_URL: optionalUrl,
   GOOGLE_MEET_URL: optionalUrl,
+  GOOGLE_CLIENT_ID: z.string().optional(),
+  GOOGLE_CLIENT_SECRET: z.string().optional(),
+  MICROSOFT_CLIENT_ID: z.string().optional(),
+  MICROSOFT_CLIENT_SECRET: z.string().optional(),
   ONSITE_MEETING_URL: optionalUrl
 });
 
@@ -48,6 +52,10 @@ export function getEnv() {
     ZOOM_CLIENT_SECRET: process.env.ZOOM_CLIENT_SECRET,
     TEAMS_MEETING_URL: process.env.TEAMS_MEETING_URL,
     GOOGLE_MEET_URL: process.env.GOOGLE_MEET_URL,
+    GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
+    GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
+    MICROSOFT_CLIENT_ID: process.env.MICROSOFT_CLIENT_ID,
+    MICROSOFT_CLIENT_SECRET: process.env.MICROSOFT_CLIENT_SECRET,
     ONSITE_MEETING_URL: process.env.ONSITE_MEETING_URL
   });
 }

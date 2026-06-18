@@ -7,6 +7,7 @@ import { BookingTypeProfileTabs } from "@/components/booking-type-profile-tabs";
 import { SaveSubmitButton } from "@/components/save-submit-button";
 import { requireAdmin } from "@/lib/admin";
 import { getBookingTypeProfileAssignments, replaceBookingTypeProfileAssignments } from "@/lib/booking-type-profiles";
+import { MeetingLocation, meetingLocationValues } from "@/lib/meeting-location";
 import { createSupabaseAdmin } from "@/lib/supabase/admin";
 import { BookingProfile, BookingType } from "@/lib/types";
 
@@ -93,6 +94,7 @@ export default async function AdminSettingsPage({ searchParams }: { searchParams
       duration_minutes: Number(formData.get("duration_minutes") || 30),
       buffer_before_minutes: Number(formData.get("buffer_before_minutes") || 10),
       buffer_after_minutes: Number(formData.get("buffer_after_minutes") || 15),
+      default_meeting_location: normalizeMeetingLocation(formData.get("default_meeting_location")),
       sort_order: clampSortOrder(formData.get("sort_order")),
       profile_id: profileId,
       is_active: formData.get("is_active") === "on"
@@ -104,6 +106,7 @@ export default async function AdminSettingsPage({ searchParams }: { searchParams
           description: string | null;
           buffer_before_minutes: number | null;
           buffer_after_minutes: number | null;
+          default_meeting_location: MeetingLocation | null;
           profile_id: string | null;
         }
       | null
@@ -114,7 +117,7 @@ export default async function AdminSettingsPage({ searchParams }: { searchParams
         .from("booking_types")
         .update(payload)
         .eq("id", id)
-        .select("id, description, buffer_before_minutes, buffer_after_minutes, profile_id")
+        .select("id, description, buffer_before_minutes, buffer_after_minutes, default_meeting_location, profile_id")
         .single<typeof saved>();
 
       if (error) {
@@ -126,7 +129,7 @@ export default async function AdminSettingsPage({ searchParams }: { searchParams
       const { data, error } = await supabase
         .from("booking_types")
         .insert(payload)
-        .select("id, description, buffer_before_minutes, buffer_after_minutes, profile_id")
+        .select("id, description, buffer_before_minutes, buffer_after_minutes, default_meeting_location, profile_id")
         .single<typeof saved>();
 
       if (error) {
@@ -454,6 +457,7 @@ function bookingTypeSaveMatches(
         description: string | null;
         buffer_before_minutes: number | null;
         buffer_after_minutes: number | null;
+        default_meeting_location: MeetingLocation | null;
         profile_id: string | null;
       }
     | null
@@ -462,6 +466,7 @@ function bookingTypeSaveMatches(
     description: string | null;
     buffer_before_minutes: number;
     buffer_after_minutes: number;
+    default_meeting_location: MeetingLocation;
     profile_id: string;
   }
 ) {
@@ -469,8 +474,14 @@ function bookingTypeSaveMatches(
     String(data?.description || "").trim() === String(payload.description || "").trim() &&
     Number(data?.buffer_before_minutes || 0) === payload.buffer_before_minutes &&
     Number(data?.buffer_after_minutes || 0) === payload.buffer_after_minutes &&
+    (data?.default_meeting_location || "phone") === payload.default_meeting_location &&
     data?.profile_id === payload.profile_id
   );
+}
+
+function normalizeMeetingLocation(value: FormDataEntryValue | null): MeetingLocation {
+  const text = String(value || "phone");
+  return meetingLocationValues.includes(text as MeetingLocation) ? (text as MeetingLocation) : "phone";
 }
 
 async function createUniqueBookingTypeSlug(

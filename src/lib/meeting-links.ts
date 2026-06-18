@@ -1,4 +1,5 @@
 import { getEnv } from "@/lib/env";
+import { getEffectiveAppSettings } from "@/lib/app-settings";
 import { BookingType } from "@/lib/types";
 
 type MeetingLinkBooking = {
@@ -21,11 +22,29 @@ type ZoomMeetingResponse = {
 };
 
 export async function createMeetingLink(booking: MeetingLinkBooking) {
-  if (booking.meeting_location !== "zoom") {
-    return null;
-  }
+  const settings = await getEffectiveAppSettings();
+  const env = getEnv();
 
-  return createZoomMeeting(booking);
+  switch (booking.meeting_location) {
+    case "zoom":
+      return settings.zoomMeetingMode === "api" ? createZoomMeeting(booking) : settings.zoomMeetingUrl || env.ZOOM_MEETING_URL || null;
+    case "teams":
+      if (settings.teamsMeetingMode === "api" && settings.activeCalendarProvider === "microsoft") {
+        return null;
+      }
+
+      return settings.teamsMeetingUrl || env.TEAMS_MEETING_URL || null;
+    case "google_meet":
+      if (settings.googleMeetingMode === "api" && settings.activeCalendarProvider === "google") {
+        return null;
+      }
+
+      return settings.googleMeetUrl || env.GOOGLE_MEET_URL || null;
+    case "onsite":
+      return settings.onsiteMeetingUrl || env.ONSITE_MEETING_URL || null;
+    default:
+      return null;
+  }
 }
 
 export async function testZoomMeetingLink() {
@@ -56,15 +75,20 @@ export async function testZoomMeetingLink() {
 
 async function createZoomMeeting(booking: MeetingLinkBooking) {
   const env = getEnv();
+  const settings = await getEffectiveAppSettings();
 
-  if (!env.ZOOM_ACCOUNT_ID || !env.ZOOM_CLIENT_ID || !env.ZOOM_CLIENT_SECRET) {
-    return env.ZOOM_MEETING_URL || null;
+  const accountId = settings.zoomAccountId || env.ZOOM_ACCOUNT_ID;
+  const clientId = settings.zoomClientId || env.ZOOM_CLIENT_ID;
+  const clientSecret = settings.zoomClientSecret || env.ZOOM_CLIENT_SECRET;
+
+  if (!accountId || !clientId || !clientSecret) {
+    return settings.zoomMeetingUrl || env.ZOOM_MEETING_URL || null;
   }
 
   const accessToken = await getZoomAccessToken({
-    accountId: env.ZOOM_ACCOUNT_ID,
-    clientId: env.ZOOM_CLIENT_ID,
-    clientSecret: env.ZOOM_CLIENT_SECRET
+    accountId,
+    clientId,
+    clientSecret
   });
   const startsAt = new Date(booking.starts_at);
   const endsAt = new Date(booking.ends_at);

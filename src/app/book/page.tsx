@@ -8,6 +8,7 @@ import {
   Phone,
 } from "lucide-react";
 import { FacebookIcon, InstagramIcon, LinkedInIcon, SpotifyIcon, XIcon, XingIcon, YouTubeIcon } from "@/components/brand-icons";
+import { BookingLegalFooter } from "@/components/booking-legal-footer";
 import { BookingTypeCardLink } from "@/components/booking-type-card-link";
 import { EmbedShellStyle } from "@/components/embed-shell-style";
 import { getBookingTypeIdsForProfile } from "@/lib/booking-type-profiles";
@@ -25,8 +26,6 @@ export const metadata = {
 };
 
 const workflowSteps = ["Gespräch auswählen", "Wunschtermin festlegen", "Buchung abschließen"];
-const defaultPrivacyUrl = "https://www.built-smart-hub.com/datenschutz";
-const defaultImprintUrl = "https://www.built-smart-hub.com/impressum";
 
 function getContactLinks(profile: BookingProfile) {
   if (profile.show_contact_links === false) {
@@ -82,10 +81,6 @@ export default async function BookPage({ searchParams }: { searchParams?: Promis
   const portraitDisplayName = profile.portrait_display_name || profile.contact_name;
   const preheadline = profile.preheadline || "SMART Booking";
   const isCenteredLayout = profile.profile_layout === "centered";
-  const legalLinks = [
-    profile.show_legal_privacy !== false ? { href: profile.legal_privacy_url || defaultPrivacyUrl, label: "Datenschutz" } : null,
-    profile.show_legal_imprint !== false ? { href: profile.legal_imprint_url || defaultImprintUrl, label: "Impressum" } : null
-  ].filter(Boolean) as Array<{ href: string; label: string }>;
   const bookingQueryParams = new URLSearchParams();
 
   if (profile.slug !== defaultBookingProfile.slug) {
@@ -245,18 +240,7 @@ export default async function BookPage({ searchParams }: { searchParams?: Promis
           />
         ))}
       </div>
-      {legalLinks.length > 0 ? (
-        <div className="mt-6 flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-slate-500">
-          {legalLinks.map((link, index) => (
-            <span key={link.href} className="inline-flex items-center gap-3">
-              {index > 0 ? <span className="text-slate-300">|</span> : null}
-              <Link href={link.href} target="_blank" rel="noreferrer" className="hover:text-brand-600">
-                {link.label}
-              </Link>
-            </span>
-          ))}
-        </div>
-      ) : null}
+      <BookingLegalFooter embedView={isEmbedView} profile={profile} />
     </section>
   );
 }

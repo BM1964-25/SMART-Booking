@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { deleteEvent } from "@/lib/calendar/caldav";
+import { deleteBookingCalendarEvent } from "@/lib/calendar/delete-booking-event";
 import { hasSupabaseConfig } from "@/lib/config";
 import { getEnv } from "@/lib/env";
 import { createSupabaseAdmin } from "@/lib/supabase/admin";
@@ -34,7 +34,10 @@ export async function POST(request: NextRequest) {
 
   if (booking.calendar_event_id) {
     try {
-      await deleteEvent(booking.calendar_event_id);
+      await deleteBookingCalendarEvent({
+        eventId: booking.calendar_event_id,
+        eventUrl: booking.calendar_event_url
+      });
     } catch {
       // The booking should still be cancelled even if the external calendar already removed the event.
     }

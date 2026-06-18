@@ -1,5 +1,8 @@
 import { addDays, addMinutes, getISODay, isBefore, max, min } from "date-fns";
 import { getEvents } from "@/lib/calendar/caldav";
+import { getGoogleEvents } from "@/lib/calendar/google";
+import { getMicrosoftEvents } from "@/lib/calendar/microsoft";
+import { getEffectiveAppSettings } from "@/lib/app-settings";
 import { eachSlot, TIMEZONE, toBerlinDateTime } from "@/lib/date";
 import { createSupabaseAdmin } from "@/lib/supabase/admin";
 import { AvailabilityRule, BookingType, TimeRange } from "@/lib/types";
@@ -7,6 +10,11 @@ import { AvailabilityRule, BookingType, TimeRange } from "@/lib/types";
 export type AvailableSlot = {
   startsAt: string;
   endsAt: string;
+};
+
+type CalendarBusyEvent = {
+  startsAt: Date;
+  endsAt: Date;
 };
 
 const calendarReadTimeoutMs = 5000;
@@ -42,7 +50,14 @@ export async function getAvailableSlots(typeSlug: string, from: Date, to: Date):
   let calendarRanges: TimeRange[] = [];
 
   try {
-    calendarRanges = (await withTimeout(getEvents(from, to), calendarReadTimeoutMs)).map((event) => ({
+    const settings = await getEffectiveAppSettings();
+    const calendarEvents: Promise<CalendarBusyEvent[]> =
+      settings.activeCalendarProvider === "google"
+        ? getGoogleEvents(from, to)
+        : settings.activeCalendarProvider === "microsoft"
+          ? getMicrosoftEvents(from, to)
+          : getEvents(from, to);
+    calendarRanges = (await withTimeout(calendarEvents, calendarReadTimeoutMs)).map((event) => ({
       startsAt: event.startsAt,
       endsAt: event.endsAt
     }));
@@ -104,7 +119,7 @@ function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T> {
   return Promise.race([
     promise,
     new Promise<T>((_, reject) => {
-      setTimeout(() => reject(new Error("Apple Kalender konnte nicht rechtzeitig geladen werden.")), timeoutMs);
+      setTimeout(() => reject(new Error("Kalender konnte nicht rechtzeitig geladen werden.")), timeoutMs);
     })
   ]);
 }

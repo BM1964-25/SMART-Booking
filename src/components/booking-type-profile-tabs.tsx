@@ -1,6 +1,7 @@
 import { AdminDeleteBookingTypeButton } from "@/components/admin-delete-booking-type-button";
 import { BookingTypeIdentityFields } from "@/components/booking-type-identity-fields";
 import { SaveSubmitButton } from "@/components/save-submit-button";
+import { meetingLocationOptions } from "@/lib/meeting-location";
 import { BookingProfile, BookingType } from "@/lib/types";
 
 type ProfileBookingTypeGroup = {
@@ -202,6 +203,21 @@ function BookingTypeForm({
         <fieldset className="h-full rounded-md border border-slate-200 bg-white p-3">
           <legend className="px-1 text-sm font-semibold text-slate-800">Zeitlogik</legend>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
+            <label className="block">
+              <span className="text-sm font-medium text-slate-700">Standard-Terminort</span>
+              <select
+                name="default_meeting_location"
+                defaultValue={type?.default_meeting_location || "phone"}
+                className="mt-2 w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+              >
+                {meetingLocationOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+              <span className="mt-1 block text-xs leading-5 text-slate-500">Wird im Buchungsformular vorgewählt und kann dort bei Bedarf geändert werden.</span>
+            </label>
             <Field label="Dauer (Min.)" name="duration_minutes" type="number" defaultValue={String(type?.duration_minutes ?? 30)} required />
             <Field label="Sortierung" name="sort_order" type="number" defaultValue={String(displaySortOrder)} min={1} max={4} />
             <Field label="Puffer davor (Min.)" name="buffer_before_minutes" type="number" defaultValue={String(type?.buffer_before_minutes ?? 10)} />

@@ -1,3 +1,4 @@
+import { BookingLegalFooter } from "@/components/booking-legal-footer";
 import { PrimaryLink } from "@/components/button";
 import { EmbedShellStyle } from "@/components/embed-shell-style";
 import { defaultBookingProfile, getBookingProfile } from "@/lib/profiles";
@@ -38,6 +39,7 @@ export default async function SuccessPage({ searchParams }: { searchParams: Prom
           <PrimaryLink href={bookingHref}>Zur Buchungsseite</PrimaryLink>
         </div>
       </div>
+      <BookingLegalFooter embedView={isEmbedView} profile={profile} />
     </section>
   );
 }

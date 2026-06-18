@@ -24,9 +24,9 @@ const helpSections: HelpSection[] = [
     id: "access",
     title: "Einrichtung & Zugang",
     body: [
-      "Der Adminbereich wird über Supabase Auth geschützt. Melden Sie sich mit dem angelegten Admin-Benutzer an.",
-      "Für produktive Buchungen müssen Supabase, Apple CalDAV, SMTP-Mailversand und optional Zoom eingerichtet sein.",
-      "Zugangsdaten und Schlüssel gehören in die Vercel Environment Variables oder in geschützte serverseitige Konfigurationen. Sie werden nicht im Frontend angezeigt."
+      "Der Adminbereich ist geschützt. Melden Sie sich mit dem angelegten Admin-Benutzer an.",
+      "Für produktive Buchungen müssen Kalender, E-Mail-Versand und gewünschte Meeting-Dienste eingerichtet sein.",
+      "Zugangsdaten und Schlüssel werden geschützt verarbeitet und nicht auf der öffentlichen Buchungsseite angezeigt."
     ]
   },
   {
@@ -34,9 +34,9 @@ const helpSections: HelpSection[] = [
     title: "Schnellstart",
     body: ["Für SMART Booking reichen wenige Schritte, um produktiv zu starten."],
     bullets: [
-      "Supabase-Umgebung und Admin-Zugang einrichten.",
-      "Apple Kalender über CalDAV verbinden und Kalender-ID prüfen.",
-      "Brevo SMTP oder einen anderen Mailversand konfigurieren.",
+      "Admin-Zugang einrichten.",
+      "Kalenderanbieter auswählen und Buchungskalender festlegen.",
+      "E-Mail-Versand konfigurieren.",
       "Terminarten und Verfügbarkeiten kontrollieren.",
       "Öffentliche Buchungsseite öffnen und eine Testbuchung durchführen.",
       "Kalendereintrag und E-Mail-Benachrichtigung kontrollieren."
@@ -67,7 +67,7 @@ const helpSections: HelpSection[] = [
       "Der Button „Live-Vorschau öffnen“ zeigt den zuletzt gespeicherten Stand. Ist der Premium-Link freigeschaltet, öffnet die Vorschau automatisch die reduzierte Ansicht ohne SMART-Booking-Header und Footer.",
       "Standard- und Premium-Link können im Profil über das Copy-Icon kopiert werden. Nach erfolgreichem Kopieren erscheint kurz ein grünes Häkchen.",
       "Nach dem Anwenden einer Vorlage die Felder kontrollieren und bei Bedarf anpassen.",
-      "Erst mit „Profil speichern“ wird die geladene Vorlage wirklich in Supabase gespeichert und auf der öffentlichen Buchungsseite sichtbar."
+      "Erst mit „Profil speichern“ wird die geladene Vorlage dauerhaft übernommen und auf der öffentlichen Buchungsseite sichtbar."
     ]
   },
   {
@@ -79,7 +79,7 @@ const helpSections: HelpSection[] = [
     ],
     bullets: [
       "Standardwerte für neue Terminarten: Dauer 30 Minuten, Puffer davor 10 Minuten, Puffer danach 15 Minuten.",
-      "Beschreibung, Pufferzeiten und Profil-Zuordnung werden nach dem Speichern geprüft. Wenn Supabase einen Wert nicht übernimmt, erscheint eine Fehlermeldung.",
+      "Beschreibung, Pufferzeiten und Profil-Zuordnung werden nach dem Speichern geprüft. Wenn ein Wert nicht übernommen werden kann, erscheint eine Fehlermeldung.",
       "Der sichtbare Name einer Terminart darf in mehreren Profilen gleich sein, zum Beispiel „Kostenloses Erstgespräch“.",
       "Der technische Slug wird automatisch eindeutig gemacht. Bei Namensgleichheit hängt die App den Profil-Slug oder eine Nummer an.",
       "Nach dem Speichern bleibt der gewählte Profil-Tab im Terminartenbereich erhalten."
@@ -93,8 +93,8 @@ const helpSections: HelpSection[] = [
       "Öffentliche Buchungsseiten mit bis zu vier Profilen.",
       "Bis zu vier Terminarten pro Profil mit Dauer, Pufferzeiten, Beschreibung und eigener Sortierung.",
       "Standard-Link mit Header/Footer und Premium-Link mit reduzierter Ansicht ohne SMART-Booking-Header und Footer.",
-      "30-Minuten-Zeitfenster und Verfügbarkeit auf Basis von Regeln, Blockzeiten, Supabase-Buchungen und Apple Kalender.",
-      "Zoom-Link-Erstellung, wenn Zoom eingerichtet und als Terminort gewählt ist.",
+      "Zeitfenster und Verfügbarkeit auf Basis von Regeln, Blockzeiten, vorhandenen Buchungen und dem aktiven Kalenderanbieter.",
+      "Meeting-Links über feste Links oder, sofern verbunden, über Anbieter-APIs.",
       "Bestätigungs- und Benachrichtigungs-E-Mails über SMTP.",
       "Stornierung mit nachvollziehbarer Historie und optionaler Kundenbenachrichtigung."
     ]
@@ -104,15 +104,22 @@ const helpSections: HelpSection[] = [
     title: "Kalender & Meetings",
     body: [
       "Der Menüpunkt Kalender & Meetings steuert, welche Kalender SMART Booking nutzt und welche Meeting-Dienste für Online-Termine vorgesehen sind.",
-      "Für Apple CalDAV wird genau ein Buchungskalender ausgewählt. Zusätzlich können mehrere Abgleich-Kalender aktiviert werden."
+      "Pro Installation gibt es genau einen aktiven Kalenderanbieter. Apple CalDAV ist produktiv nutzbar; Google Kalender kann per OAuth verbunden werden; Microsoft Outlook/365 ist als Erweiterung vorbereitet.",
+      "Innerhalb dieses aktiven Anbieters wird genau ein Buchungskalender ausgewählt. Zusätzliche Abgleich-Kalender müssen aus demselben Anbieter stammen, zum Beispiel mehrere Apple-Kalender bei Apple CalDAV."
     ],
     bullets: [
       "Buchungskalender: Ein Kalender für neue Buchungen. Dort erstellt SMART Booking den verbindlichen Kalendereintrag.",
-      "Abgleich-Kalender: Mehrere Kalender für die reine Verfügbarkeitsprüfung. Sie werden gelesen, aber nicht verändert.",
+      "Abgleich-Kalender: Weitere Kalender desselben Anbieters für die reine Verfügbarkeitsprüfung. Sie werden gelesen, aber nicht verändert.",
       "Ein Kalender kann gleichzeitig Buchungskalender und Abgleich-Kalender sein, wenn die dort eingetragenen Buchungen ebenfalls freie Zeiten blockieren sollen.",
-      "Private, geschäftliche oder Urlaubskalender können als Abgleich-Kalender aktiviert werden, ohne dass SMART Booking dort Termine einträgt.",
-      "Vor der ersten Nutzung muss die Supabase-Migration 031_calendar_connection_roles.sql ausgeführt werden.",
-      "Zoom ist aktuell aktiv. Google Meet und Microsoft Teams sind als spätere Erweiterungen vorbereitet und benötigen eigene OAuth-/Graph-Integrationen."
+      "Private, geschäftliche oder Urlaubskalender können als Abgleich-Kalender aktiviert werden, sofern sie im aktiven Kalenderanbieter verfügbar sind. SMART Booking trägt dort keine Termine ein.",
+      "Der Standard-Terminort wird pro Terminart in den Einstellungen festgelegt und im Buchungsformular vorgewählt.",
+      "Feste Meeting-Links funktionieren unabhängig vom Kalenderanbieter. Ein dauerhafter Zoom-, Google-Meet- oder Teams-Link wird bei jeder passenden Buchung in E-Mail und Kalendereintrag übernommen.",
+      "Feste Links eignen sich für persönliche Dauerräume, Teamräume oder bewusst wiederverwendete Beratungsräume. Der Link bleibt für zukünftige Gespräche gleich, bis er im Adminbereich geändert wird.",
+      "Automatische Links per API erzeugen pro Buchung einen eigenen Link. Dafür muss der jeweilige Dienst technisch verbunden und für SMART Booking nutzbar sein.",
+      "Google Meet per API kann nur automatisch erzeugt werden, wenn Google Kalender verbunden und als aktiver Buchungskalender ausgewählt ist. Mit Apple CalDAV kann Google Meet nur über einen festen Link genutzt werden.",
+      "Zoom kann per API eigene Links erzeugen, wenn die Zoom Server-to-Server-OAuth-Daten korrekt sind. Wenn Zoom den Zugang mit „invalid_client“ ablehnt, sind Client ID, Client Secret, Account ID oder die Zoom-App-Freigabe zu prüfen.",
+      "Microsoft Teams ist im aktuellen Stand über feste Links nutzbar. Die automatische Teams-Erzeugung über Microsoft Graph bleibt als späterer Ausbau vorbereitet.",
+      "Die Prüfbuttons kontrollieren feste Links formal und testen verfügbare API-Verbindungen. Eine erfolgreiche Prüfung ersetzt keine echte Testbuchung, reduziert aber typische Konfigurationsfehler."
     ]
   },
   {
@@ -148,7 +155,7 @@ const helpSections: HelpSection[] = [
     title: "Eingaben & Daten",
     body: [
       "Kunden geben Name, E-Mail, Unternehmen, Telefonnummer, Anliegen, Terminort und Datenschutz-Zustimmung ein.",
-      "Admin-Daten, Kalenderzugänge und Schlüssel werden serverseitig verarbeitet. Kalenderdaten und Service-Role-Schlüssel werden nicht im Frontend offengelegt."
+      "Admin-Daten, Kalenderzugänge und Schlüssel werden geschützt verarbeitet und nicht auf der öffentlichen Buchungsseite offengelegt."
     ]
   },
   {
@@ -169,7 +176,7 @@ const helpSections: HelpSection[] = [
       "Keine E-Mail: SMTP-Werte, Absenderdomain, SPF/DKIM/DMARC und Brevo-Logs prüfen.",
       "E-Mail landet im Spam: Absenderdomain in Brevo authentifizieren, SPF/DKIM/DMARC prüfen und möglichst nur die freigegebene Absenderadresse verwenden.",
       "Zoom-Link fehlt: Zoom Server-to-Server OAuth, Scopes und Environment Variables prüfen.",
-      "Terminart wird nicht gespeichert: Fehlermeldung im Bereich Terminarten lesen. Häufige Ursachen sind fehlende Supabase-Migrationen, Slug-Konflikte oder mehr als vier Terminarten im gleichen Profil.",
+      "Terminart wird nicht gespeichert: Fehlermeldung im Bereich Terminarten lesen. Häufige Ursachen sind Slug-Konflikte, unvollständige Angaben oder mehr als vier Terminarten im gleichen Profil.",
       "Subheadline 1 erscheint nicht: Im Profil prüfen, ob neben Subheadline 1 „Anzeigen“ aktiviert ist und danach „Profil speichern“ klicken."
     ]
   },
@@ -177,7 +184,7 @@ const helpSections: HelpSection[] = [
     id: "version",
     title: "Version & Hinweise",
     body: [
-      "Diese Hilfe beschreibt die aktuelle SMART-Booking-Version mit Supabase, Apple CalDAV, Brevo SMTP, Profilen und Zoom-Integration.",
+      "Diese Hilfe beschreibt die aktuelle SMART-Booking-Version mit Kalenderintegrationen, E-Mail-Versand, Profilen und Meeting-Diensten.",
       "Änderungen im Adminbereich werden auf der öffentlichen Buchungsseite sichtbar, nachdem das jeweilige Profil oder die jeweilige Einstellung gespeichert wurde."
     ]
   }
@@ -187,9 +194,27 @@ export function HelpPanel() {
   const [isOpen, setIsOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const [query, setQuery] = useState("");
+  const [targetSectionId, setTargetSectionId] = useState<string | null>(null);
 
   useEffect(() => {
     setIsMounted(true);
+  }, []);
+
+  useEffect(() => {
+    function openHelp(event: Event) {
+      const detail = event instanceof CustomEvent ? event.detail : null;
+      const sectionId = typeof detail?.sectionId === "string" ? detail.sectionId : null;
+
+      setQuery("");
+      setTargetSectionId(sectionId);
+      setIsOpen(true);
+    }
+
+    window.addEventListener("smart-booking:open-help", openHelp);
+
+    return () => {
+      window.removeEventListener("smart-booking:open-help", openHelp);
+    };
   }, []);
 
   useEffect(() => {
@@ -218,11 +243,26 @@ export function HelpPanel() {
     });
   }, [query]);
 
+  useEffect(() => {
+    if (!isOpen || !targetSectionId) {
+      return;
+    }
+
+    const frame = window.requestAnimationFrame(() => {
+      document.getElementById(`help-${targetSectionId}`)?.scrollIntoView({ block: "start" });
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, [isOpen, targetSectionId, visibleSections]);
+
   return (
     <>
       <button
         type="button"
-        onClick={() => setIsOpen(true)}
+        onClick={() => {
+          setTargetSectionId(null);
+          setIsOpen(true);
+        }}
         className="inline-flex items-center gap-2 rounded-md border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition hover:border-brand-500 hover:text-brand-700"
       >
         <HelpCircle className="h-4 w-4" />

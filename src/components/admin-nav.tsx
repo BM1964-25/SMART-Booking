@@ -17,15 +17,15 @@ export function AdminNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="mt-6 flex w-full flex-col gap-3 text-sm sm:flex-row sm:items-center sm:justify-between">
+    <nav className="mt-6 flex w-full flex-wrap items-center gap-3 text-sm">
       <div className="flex flex-wrap gap-3">
         {navItems.map((item) => (
           <AdminNavLink key={item.href} href={item.href} label={item.label} active={isActivePath(pathname, item.href)} />
         ))}
-      </div>
-      <div className="flex flex-wrap items-center gap-3 sm:justify-end">
-        <CurrentDateTime />
         <AdminNavLink href="/admin/backup" label="Datensicherung" active={isActivePath(pathname, "/admin/backup")} />
+      </div>
+      <div className="flex flex-1 justify-start sm:justify-end">
+        <CurrentDateTime />
       </div>
     </nav>
   );
@@ -59,7 +59,7 @@ function CurrentDateTime() {
   }).format(now);
 
   return (
-    <span className="inline-flex items-center gap-2 rounded-md border border-slate-200 bg-white px-4 py-2 font-semibold text-slate-600 shadow-sm">
+    <span className="inline-flex items-center gap-2 rounded-md border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600 shadow-sm">
       <Clock3 className="h-4 w-4 text-brand-600" />
       <span>
         {date} · {time} Uhr
