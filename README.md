@@ -205,3 +205,16 @@ Vor dem Livegang die Checkliste in `docs/live-checklist.md` abarbeiten. Besonder
 - `GET /api/calendar/events`
 - `GET /api/email/test`
 - `GET /api/reminders/run`
+
+## Automatische Erinnerungen
+
+SMART Booking stellt den Erinnerungs-Endpunkt unter `GET /api/reminders/run` bereit. Damit Erinnerungen zuverlässig versendet werden, muss dieser Endpunkt regelmäßig von einem Zeitplaner aufgerufen werden.
+
+Für Vercel Hobby wird kein eingebauter Vercel-Cron verwendet, weil dieser Tarif Cron-Jobs nur einmal pro Tag erlaubt. Verwenden Sie stattdessen einen externen Zeitplaner, zum Beispiel cron-job.org:
+
+- URL: `https://booking.builtsmart-ai.app/api/reminders/run`
+- Methode: `GET`
+- Intervall: alle 30 oder 60 Minuten
+- Header: `Authorization: Bearer <CRON_SECRET>`
+
+`CRON_SECRET` muss in Vercel als Environment Variable hinterlegt sein und im externen Zeitplaner exakt im Authorization-Header verwendet werden.
