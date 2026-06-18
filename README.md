@@ -204,3 +204,4 @@ Vor dem Livegang die Checkliste in `docs/live-checklist.md` abarbeiten. Besonder
 - `GET /api/calendar/test`
 - `GET /api/calendar/events`
 - `GET /api/email/test`
+- `GET /api/reminders/run`
