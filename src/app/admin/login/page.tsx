@@ -19,7 +19,7 @@ export default async function AdminLoginPage({
     const { error } = await supabase.auth.signInWithPassword({ email, password });
 
     if (error) {
-      redirect(`/admin/login?error=invalid&email=${encodeURIComponent(email)}`);
+      redirect("/admin/login?error=invalid");
     }
 
     redirect("/admin");
@@ -41,21 +41,20 @@ export default async function AdminLoginPage({
     });
 
     if (error) {
-      redirect(`/admin/login?error=reset-failed&email=${encodeURIComponent(email)}`);
+      redirect("/admin/login?error=reset-failed");
     }
 
-    redirect(`/admin/login?reset=sent&email=${encodeURIComponent(email)}`);
+    redirect("/admin/login?reset=sent");
   }
 
   const isConfigured = hasSupabaseConfig();
-  const email = "email" in params ? String(params.email || "") : "";
 
   return (
     <section className="mx-auto max-w-2xl px-5 py-12">
       <div className="rounded-lg border border-slate-200 bg-white p-6 shadow-sm">
-        <h1 className="text-2xl font-semibold text-slate-950">Admin Login</h1>
+        <h1 className="text-2xl font-semibold text-slate-950">Admin anmelden</h1>
         <p className="mt-3 text-sm leading-6 text-slate-600">
-          Melden Sie sich mit dem Benutzer an, den Sie in Supabase unter Authentication angelegt haben. Die User ID ist kein Passwort.
+          Melden Sie sich mit dem Administratorkonto dieser SMART-Booking-Installation an.
         </p>
 
         {!isConfigured ? (
@@ -66,13 +65,13 @@ export default async function AdminLoginPage({
             E-Mail oder Passwort ist nicht korrekt. Wenn Sie das Passwort nicht kennen, nutzen Sie unten „Passwort zurücksetzen“.
           </Notice>
         ) : null}
-        {params.error === "missing-email" ? <Notice tone="error">Bitte geben Sie Ihre Admin-E-Mail-Adresse ein.</Notice> : null}
+        {params.error === "missing-email" ? <Notice tone="error">Bitte geben Sie die E-Mail-Adresse Ihres Administratorkontos ein.</Notice> : null}
         {params.error === "reset-failed" ? (
-          <Notice tone="error">Die Reset-Mail konnte nicht gesendet werden. Bitte prüfen Sie, ob die E-Mail in Supabase Auth existiert.</Notice>
+          <Notice tone="error">Der Link zum Zurücksetzen konnte gerade nicht versendet werden. Bitte versuchen Sie es erneut.</Notice>
         ) : null}
         {params.reset === "sent" ? (
           <Notice tone="success">
-            Die Reset-Mail wurde gesendet. Öffnen Sie den Link in der Mail und setzen Sie dort ein neues Passwort.
+            Wenn ein Administratorkonto mit dieser E-Mail-Adresse existiert, wurde ein Link zum Zurücksetzen versendet.
           </Notice>
         ) : null}
         {params.reset === "updated" ? (
@@ -81,7 +80,7 @@ export default async function AdminLoginPage({
           </Notice>
         ) : null}
 
-        <AdminLoginForm email={email} isConfigured={isConfigured} loginAction={login} resetAction={sendPasswordReset} />
+        <AdminLoginForm isConfigured={isConfigured} loginAction={login} resetAction={sendPasswordReset} />
       </div>
     </section>
   );
