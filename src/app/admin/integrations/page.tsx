@@ -339,11 +339,11 @@ export default async function AdminIntegrationsPage({
     const provider = normalizeCalendarProvider(nullableText(formData.get("active_calendar_provider")));
     const googleMeetingMode = normalizeMeetingMode(nullableText(formData.get("google_meeting_mode")));
     const zoomMeetingMode = normalizeMeetingMode(nullableText(formData.get("zoom_meeting_mode")));
-    let googleClientId = nullableTextOrExisting(formData, "google_client_id", currentSettings?.google_client_id);
-    let googleMeetUrl = nullableTextOrExisting(formData, "google_meet_url", currentSettings?.google_meet_url);
-    let zoomAccountId = nullableTextOrExisting(formData, "zoom_account_id", currentSettings?.zoom_account_id);
-    let zoomClientId = nullableTextOrExisting(formData, "zoom_client_id", currentSettings?.zoom_client_id);
-    let zoomMeetingUrl = nullableTextOrExisting(formData, "zoom_meeting_url", currentSettings?.zoom_meeting_url);
+    const googleClientId = nullableTextOrExisting(formData, "google_client_id", currentSettings?.google_client_id);
+    const googleMeetUrl = nullableTextOrExisting(formData, "google_meet_url", currentSettings?.google_meet_url);
+    const zoomAccountId = nullableTextOrExisting(formData, "zoom_account_id", currentSettings?.zoom_account_id);
+    const zoomClientId = nullableTextOrExisting(formData, "zoom_client_id", currentSettings?.zoom_client_id);
+    const zoomMeetingUrl = nullableTextOrExisting(formData, "zoom_meeting_url", currentSettings?.zoom_meeting_url);
     const microsoftClientId = nullableTextOrExisting(formData, "microsoft_client_id", currentSettings?.microsoft_client_id);
     const microsoftClientSecret = nullableTextOrExisting(formData, "microsoft_client_secret", currentSettings?.microsoft_client_secret);
 
