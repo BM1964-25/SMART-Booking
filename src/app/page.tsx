@@ -18,7 +18,7 @@ export default function HomePage() {
             SMART Booking
           </h1>
           <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-600">
-            Professionelle Terminbuchung von BuiltSmart AI für Erstgespräche, KI-Demos und projektbezogene Beratung.
+            Professionelle Terminbuchung für Erstgespräche, KI-Demos und projektbezogene Beratung.
           </p>
           <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
             <PrimaryLink href="/book">Termin auswählen</PrimaryLink>
@@ -26,8 +26,8 @@ export default function HomePage() {
           </div>
           <div className="mt-8 grid w-full max-w-xl grid-cols-3 gap-3">
             {[
-              { value: "30", label: "Minuten" },
-              { value: "3", label: "Formate" },
+              { value: "Flexibel", label: "Dauer" },
+              { value: "Mehrere", label: "Formate" },
               { value: "24/7", label: "buchbar" }
             ].map((item) => (
               <div key={item.label} className="rounded-md border border-slate-200 bg-white px-4 py-3 shadow-sm">
@@ -64,7 +64,7 @@ export default function HomePage() {
             <div className="mt-5 rounded-md border border-brand-100 bg-white p-4">
               <div className="flex items-center gap-3 text-sm font-medium text-slate-700">
                 <MailCheck className="h-5 w-5 text-brand-600" />
-                Bestätigung und Kalendereintrag werden automatisch vorbereitet.
+                Bestätigung und Kalendereintrag werden automatisch erstellt.
               </div>
             </div>
           </div>
@@ -73,9 +73,9 @@ export default function HomePage() {
       <section className="border-y border-slate-200 bg-white">
         <div className="mx-auto grid max-w-6xl gap-4 px-5 py-8 md:grid-cols-3">
           {[
-            { icon: CalendarCheck, title: "Kalenderbasiert", text: "Freie Zeitfenster werden mit dem Apple Kalender abgeglichen." },
-            { icon: ShieldCheck, title: "Sicher verarbeitet", text: "Formulare werden serverseitig validiert und Admin-Daten geschützt." },
-            { icon: Video, title: "Passende Formate", text: "Erstgespräch, Demo, Analyse und Beratung sind vorbereitet." }
+            { icon: CalendarCheck, title: "Kalenderbasiert", text: "Freie Zeitfenster werden mit dem verbundenen Kalender abgeglichen." },
+            { icon: ShieldCheck, title: "Sicher verarbeitet", text: "Buchungsdaten werden serverseitig validiert und geschützt gespeichert." },
+            { icon: Video, title: "Passende Formate", text: "Gesprächsarten, Demos und Beratungen können flexibel vorbereitet werden." }
           ].map((item) => (
             <div key={item.title} className="rounded-lg border border-slate-200 bg-slate-50 p-5">
               <item.icon className="mb-4 h-5 w-5 text-brand-600" />

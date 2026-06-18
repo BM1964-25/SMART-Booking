@@ -23,6 +23,18 @@ export function BackupPanel() {
   const [message, setMessage] = useState<string | null>(null);
   const [state, setState] = useState<ImportState>("idle");
   const canImport = state === "ready" && Boolean(backup);
+  const importButtonLabel =
+    state === "importing"
+      ? "Import läuft"
+      : state === "success"
+        ? "Importiert"
+        : state === "checking"
+          ? "Datei wird geprüft"
+          : !fileName
+            ? "Noch keine Datei ausgewählt"
+            : state === "error"
+              ? "Import nicht möglich"
+              : "Import ausführen";
   const summaryRows = useMemo(
     () =>
       summary
@@ -175,7 +187,10 @@ export function BackupPanel() {
               ))}
             </div>
           ) : (
-            <p className="mt-3 text-sm leading-6 text-slate-500">Wählen Sie zuerst eine SMART-Booking-JSON-Sicherung aus. Danach sehen Sie hier, welche Datenbereiche übernommen würden.</p>
+            <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-500">
+              Wählen Sie zuerst eine SMART-Booking-JSON-Sicherung aus. Danach wird geprüft, welche Konfigurationsbereiche übernommen werden können. Erst nach
+              erfolgreicher Prüfung kann der Import gestartet werden.
+            </p>
           )}
           {message ? (
             <p className={`mt-3 rounded-md px-3 py-2 text-sm leading-6 ${state === "error" ? "bg-red-50 text-red-700" : "bg-slate-50 text-slate-600"}`}>
@@ -189,7 +204,7 @@ export function BackupPanel() {
             className="mt-4 inline-flex min-h-10 items-center justify-center gap-2 rounded-md bg-brand-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-600 disabled:cursor-not-allowed disabled:bg-slate-300"
           >
             {state === "success" ? <Check className="h-4 w-4" /> : <Upload className="h-4 w-4" />}
-            {state === "importing" ? "Import läuft" : state === "success" ? "Importiert" : "Import ausführen"}
+            {importButtonLabel}
           </button>
       </div>
     </section>
