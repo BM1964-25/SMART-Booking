@@ -3,9 +3,11 @@ import Link from "next/link";
 import { BookingLegalFooter } from "@/components/booking-legal-footer";
 import { BookingForm } from "@/components/booking-form";
 import { EmbedShellStyle } from "@/components/embed-shell-style";
+import { getEffectiveAppSettings } from "@/lib/app-settings";
 import { getBookingTypeIdsForProfile } from "@/lib/booking-type-profiles";
 import { hasSupabaseConfig } from "@/lib/config";
 import { buildSlotLabel } from "@/lib/date";
+import type { MeetingLocation } from "@/lib/meeting-location";
 import { getBookingProfile } from "@/lib/profiles";
 import { findSeedBookingType } from "@/lib/seed-data";
 import { createSupabaseAdmin } from "@/lib/supabase/admin";
@@ -46,6 +48,7 @@ export default async function ConfirmPage({
 
   const startsAt = new Date(start);
   const endsAt = addMinutes(startsAt, bookingType.duration_minutes);
+  const availableMeetingLocations: MeetingLocation[] = isConfigured ? await getAvailableMeetingLocations() : ["phone", "onsite", "individual"];
 
   return (
     <section className="mx-auto max-w-3xl px-5 py-12">
@@ -74,6 +77,7 @@ export default async function ConfirmPage({
           bookingTypeSlug={type}
           defaultMeetingLocation={bookingType.default_meeting_location || "phone"}
           embedView={isEmbedView}
+          availableMeetingLocations={availableMeetingLocations}
           profileSlug={profileSlug}
           startsAt={startsAt.toISOString()}
         />
@@ -105,4 +109,55 @@ function buildBackLinkQuery(profileSlug: string | undefined, embedView: boolean)
   }
 
   return params.toString() ? `?${params.toString()}` : "";
+}
+
+async function getAvailableMeetingLocations(): Promise<MeetingLocation[]> {
+  const settings = await getEffectiveAppSettings();
+  const locations = new Set<MeetingLocation>(["phone", "onsite", "individual"]);
+
+  if (settings.zoomMeetingUrl || (settings.zoomMeetingMode === "api" && settings.zoomAccountId && settings.zoomClientId && settings.zoomClientSecret)) {
+    locations.add("zoom");
+  }
+
+  if (settings.googleMeetingMode === "fixed_link" && settings.googleMeetUrl) {
+    locations.add("google_meet");
+  }
+
+  if (
+    settings.googleMeetingMode === "api" &&
+    settings.activeCalendarProvider === "google" &&
+    settings.googleClientId &&
+    settings.googleClientSecret &&
+    (await hasActiveOauthConnection("google"))
+  ) {
+    locations.add("google_meet");
+  }
+
+  if (settings.teamsMeetingMode === "fixed_link" && settings.teamsMeetingUrl) {
+    locations.add("teams");
+  }
+
+  if (
+    settings.teamsMeetingMode === "api" &&
+    settings.activeCalendarProvider === "microsoft" &&
+    settings.microsoftClientId &&
+    settings.microsoftClientSecret &&
+    (await hasActiveOauthConnection("microsoft"))
+  ) {
+    locations.add("teams");
+  }
+
+  return Array.from(locations);
+}
+
+async function hasActiveOauthConnection(provider: "google" | "microsoft") {
+  const supabase = createSupabaseAdmin();
+  const { data } = await supabase
+    .from("calendar_oauth_connections")
+    .select("id")
+    .eq("provider", provider)
+    .eq("is_active", true)
+    .maybeSingle();
+
+  return Boolean(data);
 }

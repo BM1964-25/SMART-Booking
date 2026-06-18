@@ -125,13 +125,13 @@ export default async function AdminIntegrationsPage({
   const selectedGoogleAvailabilityCalendars = findAvailabilityCalendars(googleConnections, googleCalendarsResult.calendars, selectedGoogleBookingCalendar);
   const selectedMicrosoftBookingCalendar = findBookingCalendar(microsoftConnections, microsoftCalendarsResult.calendars);
   const selectedMicrosoftAvailabilityCalendars = findAvailabilityCalendars(microsoftConnections, microsoftCalendarsResult.calendars, selectedMicrosoftBookingCalendar);
-  const displayMeetingValues = normalizeMeetingFieldValues({
+  const displayMeetingValues = {
     googleClientId: appSettings?.google_client_id || env.GOOGLE_CLIENT_ID || null,
     googleMeetUrl: appSettings?.google_meet_url || env.GOOGLE_MEET_URL || null,
     zoomAccountId: appSettings?.zoom_account_id || env.ZOOM_ACCOUNT_ID || null,
     zoomClientId: appSettings?.zoom_client_id || env.ZOOM_CLIENT_ID || null,
     zoomMeetingUrl: appSettings?.zoom_meeting_url || env.ZOOM_MEETING_URL || null
-  });
+  };
 
   async function saveAppleCalendarIntegration(formData: FormData) {
     "use server";
@@ -347,13 +347,6 @@ export default async function AdminIntegrationsPage({
     const microsoftClientId = nullableTextOrExisting(formData, "microsoft_client_id", currentSettings?.microsoft_client_id);
     const microsoftClientSecret = nullableTextOrExisting(formData, "microsoft_client_secret", currentSettings?.microsoft_client_secret);
 
-    ({ googleClientId, googleMeetUrl, zoomAccountId, zoomClientId, zoomMeetingUrl } = normalizeMeetingFieldValues({
-      googleClientId,
-      googleMeetUrl,
-      zoomAccountId,
-      zoomClientId,
-      zoomMeetingUrl
-    }));
     const googleValuesError = validateGoogleMeetingValues({
       clientId: googleClientId,
       meetUrl: googleMeetUrl,
@@ -1226,48 +1219,6 @@ function nullableText(value: FormDataEntryValue | null) {
 
 function nullableTextOrExisting(formData: FormData, name: string, existing: string | null | undefined) {
   return formData.has(name) ? nullableText(formData.get(name)) : existing || null;
-}
-
-function normalizeMeetingFieldValues({
-  googleClientId,
-  googleMeetUrl,
-  zoomAccountId,
-  zoomClientId,
-  zoomMeetingUrl
-}: {
-  googleClientId: string | null;
-  googleMeetUrl: string | null;
-  zoomAccountId: string | null;
-  zoomClientId: string | null;
-  zoomMeetingUrl: string | null;
-}) {
-  if (googleClientId && isUrl(googleClientId)) {
-    googleMeetUrl = googleMeetUrl || googleClientId;
-    googleClientId = null;
-  }
-
-  if (googleMeetUrl && googleMeetUrl.endsWith(".apps.googleusercontent.com")) {
-    googleClientId = googleClientId || googleMeetUrl;
-    googleMeetUrl = null;
-  }
-
-  if (zoomAccountId && isUrl(zoomAccountId)) {
-    zoomMeetingUrl = zoomMeetingUrl || zoomAccountId;
-    zoomAccountId = null;
-  }
-
-  if (zoomClientId && isUrl(zoomClientId)) {
-    zoomMeetingUrl = zoomMeetingUrl || zoomClientId;
-    zoomClientId = null;
-  }
-
-  return {
-    googleClientId,
-    googleMeetUrl,
-    zoomAccountId,
-    zoomClientId,
-    zoomMeetingUrl
-  };
 }
 
 function validateGoogleMeetingValues({

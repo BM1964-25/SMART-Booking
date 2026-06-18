@@ -220,20 +220,20 @@ async function validateMeetingConfiguration(meetingLocation: string, settings: E
       return null;
     }
 
-    return "Für Zoom ist noch kein fester Link oder keine vollständige Zoom-API-Konfiguration hinterlegt.";
+    return "Zoom ist für diesen Termin aktuell nicht verfügbar. Bitte wählen Sie einen anderen Terminort.";
   }
 
   if (meetingLocation === "teams") {
     if (settings.teamsMeetingMode === "fixed_link") {
-      return settings.teamsMeetingUrl ? null : "Für Microsoft Teams ist noch kein fester Meeting-Link hinterlegt.";
+      return settings.teamsMeetingUrl ? null : "Microsoft Teams ist für diesen Termin aktuell nicht verfügbar. Bitte wählen Sie einen anderen Terminort.";
     }
 
     if (settings.activeCalendarProvider !== "microsoft") {
-      return "Microsoft Teams per API kann nur genutzt werden, wenn Microsoft 365 / Outlook als aktiver Kalenderanbieter gewählt ist.";
+      return "Microsoft Teams ist für diesen Termin aktuell nicht verfügbar. Bitte wählen Sie einen anderen Terminort.";
     }
 
     if (!settings.microsoftClientId || !settings.microsoftClientSecret) {
-      return "Microsoft Teams per API ist noch nicht vollständig konfiguriert. Bitte Microsoft OAuth Client ID und Client Secret speichern.";
+      return "Microsoft Teams ist für diesen Termin aktuell nicht verfügbar. Bitte wählen Sie einen anderen Terminort.";
     }
 
     const supabase = createSupabaseAdmin();
@@ -245,21 +245,21 @@ async function validateMeetingConfiguration(meetingLocation: string, settings: E
       .maybeSingle();
 
     if (!microsoftConnection) {
-      return "Microsoft Teams per API ist noch nicht verbunden. Bitte Microsoft in Kalender & Meetings verbinden.";
+      return "Microsoft Teams ist für diesen Termin aktuell nicht verfügbar. Bitte wählen Sie einen anderen Terminort.";
     }
   }
 
   if (meetingLocation === "google_meet") {
     if (settings.googleMeetingMode === "fixed_link") {
-      return settings.googleMeetUrl ? null : "Für Google Meet ist noch kein fester Meeting-Link hinterlegt.";
+      return settings.googleMeetUrl ? null : "Google Meet ist für diesen Termin aktuell nicht verfügbar. Bitte wählen Sie einen anderen Terminort.";
     }
 
     if (settings.activeCalendarProvider !== "google") {
-      return "Google Meet per API kann nur genutzt werden, wenn Google Kalender als aktiver Buchungskalender gewählt ist.";
+      return "Google Meet ist für diesen Termin aktuell nicht verfügbar. Bitte wählen Sie einen anderen Terminort.";
     }
 
     if (!settings.googleClientId || !settings.googleClientSecret) {
-      return "Google Meet per API ist noch nicht vollständig konfiguriert. Bitte Client ID und Client Secret speichern.";
+      return "Google Meet ist für diesen Termin aktuell nicht verfügbar. Bitte wählen Sie einen anderen Terminort.";
     }
 
     const supabase = createSupabaseAdmin();
@@ -271,7 +271,7 @@ async function validateMeetingConfiguration(meetingLocation: string, settings: E
       .maybeSingle();
 
     if (!googleConnection) {
-      return "Google Meet per API ist noch nicht verbunden. Bitte Google in Kalender & Meetings verbinden.";
+      return "Google Meet ist für diesen Termin aktuell nicht verfügbar. Bitte wählen Sie einen anderen Terminort.";
     }
   }
 

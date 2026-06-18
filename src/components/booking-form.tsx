@@ -17,6 +17,7 @@ type BookingFormDraft = {
 };
 
 type BookingFormProps = {
+  availableMeetingLocations?: MeetingLocation[];
   bookingTypeSlug: string;
   defaultMeetingLocation?: MeetingLocation | null;
   embedView?: boolean;
@@ -24,13 +25,30 @@ type BookingFormProps = {
   startsAt: string;
 };
 
-export function BookingForm({ bookingTypeSlug, defaultMeetingLocation = "phone", embedView = false, profileSlug, startsAt }: BookingFormProps) {
+export function BookingForm({
+  availableMeetingLocations = [...meetingLocationOptions.map((option) => option.value)],
+  bookingTypeSlug,
+  defaultMeetingLocation = "phone",
+  embedView = false,
+  profileSlug,
+  startsAt
+}: BookingFormProps) {
   const formRef = useRef<HTMLFormElement>(null);
   const [status, setStatus] = useState<"idle" | "submitting" | "success">("idle");
   const [message, setMessage] = useState<string | null>(null);
   const isSubmitting = status === "submitting" || status === "success";
   const draftKey = useMemo(() => `smart-booking:draft:${profileSlug || "default"}:${bookingTypeSlug}:${startsAt}`, [bookingTypeSlug, profileSlug, startsAt]);
-  const selectableDefaultMeetingLocation = defaultMeetingLocation || "phone";
+  const availableMeetingLocationSet = useMemo(() => new Set(availableMeetingLocations), [availableMeetingLocations]);
+  const visibleMeetingOptions = useMemo(
+    () => meetingLocationOptions.filter((option) => availableMeetingLocationSet.has(option.value)),
+    [availableMeetingLocationSet]
+  );
+  const selectableDefaultMeetingLocation =
+    defaultMeetingLocation && availableMeetingLocationSet.has(defaultMeetingLocation)
+      ? defaultMeetingLocation
+      : availableMeetingLocationSet.has("phone")
+        ? "phone"
+        : visibleMeetingOptions[0]?.value;
 
   useEffect(() => {
     const form = formRef.current;
@@ -157,7 +175,7 @@ export function BookingForm({ bookingTypeSlug, defaultMeetingLocation = "phone",
       <fieldset>
         <legend className="text-sm font-medium text-slate-700">Terminort</legend>
         <div className="mt-2 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {meetingLocationOptions.map((option) => {
+          {visibleMeetingOptions.map((option) => {
             const isServiceIcon = option.value === "zoom" || option.value === "teams" || option.value === "google_meet";
             const iconShellClassName = isServiceIcon
               ? "inline-flex h-10 w-10 shrink-0 items-center justify-center"

@@ -102,7 +102,8 @@ export function MeetingServiceSettings({
               <div className="rounded-md border border-slate-200 bg-slate-50 p-3 text-sm leading-6 text-slate-600">
                 {googleConnectedEmail ? (
                   <p>
-                    Verbunden mit <span className="font-semibold text-slate-900">{googleConnectedEmail}</span>.
+                    Verbunden mit <span className="font-semibold text-slate-900">{googleConnectedEmail}</span>. Nur neu verbinden, wenn das Google-Konto gewechselt oder
+                    die Verbindung erneuert werden soll.
                   </p>
                 ) : (
                   <p>Nach dem Speichern der OAuth-Daten kann Google verbunden werden.</p>
@@ -111,7 +112,7 @@ export function MeetingServiceSettings({
                   href={googleConnectHref}
                   className="mt-3 inline-flex rounded-md border border-brand-200 bg-white px-3 py-2 text-sm font-semibold text-brand-700 transition hover:border-brand-400"
                 >
-                  Google verbinden
+                  {googleConnectedEmail ? "Google neu verbinden" : "Google verbinden"}
                 </a>
               </div>
             </>
@@ -295,7 +296,9 @@ function MeetingServiceCard({
 
       <div className="mt-4 rounded-md border border-slate-200 bg-white p-3">
         <p className="text-xs font-semibold uppercase text-slate-500">{apiIsActive ? "Aktive API-Daten" : "Aktiver fester Link"}</p>
-        <div className="mt-3 grid gap-3">{apiIsActive ? apiFields : fixedField}</div>
+        <div key={`${service}-${mode}`} className="mt-3 grid gap-3">
+          {apiIsActive ? apiFields : fixedField}
+        </div>
         <div className="mt-4 flex flex-wrap items-center gap-3">
           <button
             type="button"

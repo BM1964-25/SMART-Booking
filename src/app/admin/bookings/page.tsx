@@ -27,9 +27,17 @@ export default async function AdminBookingsPage() {
     )
   );
   const { data: profiles } = profileIds.length
-    ? await supabase.from("booking_profiles").select("id, name").in("id", profileIds)
-    : { data: [] as Array<{ id: string; name: string | null }> };
-  const profileNameById = new Map((profiles || []).map((profile) => [profile.id, profile.name || "Standardprofil"]));
+    ? await supabase.from("booking_profiles").select("id, name, primary_color").in("id", profileIds)
+    : { data: [] as Array<{ id: string; name: string | null; primary_color: string | null }> };
+  const profileById = new Map(
+    (profiles || []).map((profile) => [
+      profile.id,
+      {
+        name: profile.name || "Standardprofil",
+        primaryColor: normalizeHexColor(profile.primary_color)
+      }
+    ])
+  );
 
   async function cancelBooking(formData: FormData) {
     "use server";
@@ -137,9 +145,16 @@ export default async function AdminBookingsPage() {
               const isExpired = new Date(booking.ends_at).getTime() < Date.now();
               const canDelete = booking.status === "cancelled" || isExpired;
               const canCancel = booking.status === "confirmed" && !isExpired;
+              const profileColor = getProfileColor(booking.booking_types, profileById);
 
               return (
-                <tr key={booking.id}>
+                <tr
+                  key={booking.id}
+                  style={{
+                    backgroundColor: hexToRgba(profileColor, 0.07),
+                    boxShadow: `inset 4px 0 0 ${hexToRgba(profileColor, 0.5)}`
+                  }}
+                >
                   <td className="px-4 py-3">
                     <p className="font-medium text-slate-950">{booking.booking_types?.name}</p>
                     <p className="text-slate-500">
@@ -174,7 +189,7 @@ export default async function AdminBookingsPage() {
                   </td>
                   <td className="px-4 py-3">
                     <p className="font-medium text-slate-950">{booking.company}</p>
-                    <p className="mt-1 text-sm font-semibold text-slate-800">Profil: {getProfileName(booking.booking_types, profileNameById)}</p>
+                    <p className="mt-1 text-sm font-semibold text-slate-800">Profil: {getProfileName(booking.booking_types, profileById)}</p>
                     <p className="text-xs text-slate-500">Terminort: {getMeetingLocationLabel(booking.meeting_location)}</p>
                     <p className="text-xs text-slate-500">Kalender: {getCalendarProviderLabel(booking.calendar_event_url || booking.calendar_event_id)}</p>
                     <MeetingDetails meetingLocation={booking.meeting_location} meetingUrl={booking.meeting_url} phone={booking.phone} />
@@ -211,8 +226,31 @@ function StatusBadge({ status, isExpired }: { status: string; isExpired: boolean
   return <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600">Storniert</span>;
 }
 
-function getProfileName(bookingType: { profile_id?: string | null } | null | undefined, profileNameById: Map<string, string>) {
-  return bookingType?.profile_id ? profileNameById.get(bookingType.profile_id) || "Standardprofil" : "Standardprofil";
+type ProfileBookingMeta = {
+  name: string;
+  primaryColor: string;
+};
+
+function getProfileName(bookingType: { profile_id?: string | null } | null | undefined, profileById: Map<string, ProfileBookingMeta>) {
+  return bookingType?.profile_id ? profileById.get(bookingType.profile_id)?.name || "Standardprofil" : "Standardprofil";
+}
+
+function getProfileColor(bookingType: { profile_id?: string | null } | null | undefined, profileById: Map<string, ProfileBookingMeta>) {
+  return bookingType?.profile_id ? profileById.get(bookingType.profile_id)?.primaryColor || "#527DF6" : "#527DF6";
+}
+
+function normalizeHexColor(value: string | null | undefined) {
+  const color = String(value || "").trim();
+  return /^#[0-9a-fA-F]{6}$/.test(color) ? color : "#527DF6";
+}
+
+function hexToRgba(hex: string, alpha: number) {
+  const color = normalizeHexColor(hex).slice(1);
+  const red = parseInt(color.slice(0, 2), 16);
+  const green = parseInt(color.slice(2, 4), 16);
+  const blue = parseInt(color.slice(4, 6), 16);
+
+  return `rgba(${red}, ${green}, ${blue}, ${alpha})`;
 }
 
 function getCalendarProviderLabel(calendarReference: string | null | undefined) {
