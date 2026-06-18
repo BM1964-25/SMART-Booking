@@ -7,6 +7,9 @@ export type BookingType = {
   name: string;
   description: string | null;
   default_meeting_location?: MeetingLocation | null;
+  reminder_enabled?: boolean | null;
+  reminder_minutes_before?: number | null;
+  reminder_note?: string | null;
   duration_minutes: number;
   buffer_before_minutes: number;
   buffer_after_minutes: number;
@@ -118,6 +121,9 @@ export type Booking = {
   status: "confirmed" | "cancelled";
   cancellation_token: string;
   calendar_event_id: string | null;
+  reminder_sent_at?: string | null;
+  reminder_attempted_at?: string | null;
+  reminder_last_error?: string | null;
 };
 
 export type TimeRange = {

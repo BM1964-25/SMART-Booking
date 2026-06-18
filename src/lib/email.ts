@@ -23,6 +23,10 @@ type BookingEmail = {
   bookingType: BookingType;
 };
 
+type BookingReminderEmail = BookingEmail & {
+  reminder_note?: string | null;
+};
+
 export async function sendBookingEmails(booking: BookingEmail) {
   const env = getEnv();
   const settings = await getEffectiveAppSettings();
@@ -98,6 +102,40 @@ export async function sendBookingCancellationEmails(booking: BookingEmail) {
       html: ownerCancellationHtml(booking, label)
     })
   ]);
+}
+
+export async function sendBookingReminderEmail(booking: BookingReminderEmail) {
+  const env = getEnv();
+  const settings = await getEffectiveAppSettings();
+
+  if (!hasSmtpConfig(settings)) {
+    console.warn("SMTP-Konfiguration fehlt. Erinnerungs-E-Mail wurde übersprungen.");
+    return;
+  }
+
+  const transporter = createMailTransport(settings);
+  const ownerEmail = settings.bookingOwnerEmail || "bernhard@builtsmart-ai.app";
+  const cancelUrl = buildPublicUrl(env, `/cancel/${booking.cancellation_token}`);
+  const changeUrl = buildPublicUrl(env, `/change/${booking.cancellation_token}`);
+  const label = buildSlotLabel(new Date(booking.starts_at), new Date(booking.ends_at));
+  const ics = createIcsFallback(booking);
+  const from = settings.mailFrom || "SMART Booking <termine@builtsmart-ai.app>";
+
+  await transporter.sendMail({
+    from,
+    to: booking.customer_email,
+    replyTo: ownerEmail,
+    subject: `Terminerinnerung: ${booking.bookingType.name}`,
+    text: customerReminderText(booking, label, cancelUrl, changeUrl),
+    html: customerReminderHtml(booking, label, cancelUrl, changeUrl),
+    attachments: [
+      {
+        filename: "termin-builtsmart-ai.ics",
+        content: ics,
+        contentType: "text/calendar; charset=utf-8; method=PUBLISH"
+      }
+    ]
+  });
 }
 
 export async function sendEmailTest() {
@@ -292,6 +330,49 @@ function ownerCancellationText(booking: BookingEmail, label: string) {
     `Name: ${booking.customer_name}`,
     `E-Mail: ${booking.customer_email}`,
     `Unternehmen: ${booking.company}`
+  ]);
+}
+
+function customerReminderHtml(booking: BookingReminderEmail, label: string, cancelUrl: string, changeUrl: string) {
+  const meeting = getMeetingLocationDetails(booking.meeting_location, booking.phone, booking.meeting_url);
+
+  return `
+    <div style="font-family:Arial,sans-serif;color:#111827;line-height:1.6">
+      <h1>Erinnerung an Ihren Termin</h1>
+      <p>Guten Tag ${escapeHtml(booking.customer_name)},</p>
+      <p>dies ist eine kurze Erinnerung an Ihren gebuchten Termin.</p>
+      <p><strong>${escapeHtml(booking.bookingType.name)}</strong><br>${label}</p>
+      <p>Terminort: ${escapeHtml(meeting.label)}<br>
+      ${escapeHtml(meeting.description)}
+      ${meeting.link ? `<br><a href="${escapeHtml(meeting.link)}">${escapeHtml(meeting.linkLabel || meeting.link)}</a>` : ""}</p>
+      ${booking.reminder_note ? `<p>${escapeHtml(booking.reminder_note)}</p>` : ""}
+      <p>Änderung vorschlagen: <a href="${escapeHtml(changeUrl)}">${escapeHtml(changeUrl)}</a></p>
+      <p>Stornierung: <a href="${escapeHtml(cancelUrl)}">${escapeHtml(cancelUrl)}</a></p>
+      <p>BuiltSmart AI · Powered by BuiltSmart Hub</p>
+    </div>
+  `;
+}
+
+function customerReminderText(booking: BookingReminderEmail, label: string, cancelUrl: string, changeUrl: string) {
+  const meeting = getMeetingLocationDetails(booking.meeting_location, booking.phone, booking.meeting_url);
+
+  return joinTextLines([
+    `Guten Tag ${booking.customer_name},`,
+    "",
+    "dies ist eine kurze Erinnerung an Ihren gebuchten Termin.",
+    "",
+    booking.bookingType.name,
+    label,
+    `Terminort: ${meeting.label}`,
+    meeting.description,
+    meeting.link ? `${meeting.linkLabel || "Link"}: ${meeting.link}` : null,
+    booking.reminder_note ? "" : null,
+    booking.reminder_note || null,
+    "",
+    `Änderung vorschlagen: ${changeUrl}`,
+    `Termin stornieren: ${cancelUrl}`,
+    "",
+    "BuiltSmart AI · Powered by BuiltSmart Hub"
   ]);
 }
 

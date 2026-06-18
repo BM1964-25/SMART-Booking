@@ -27,6 +27,7 @@ const envSchema = z.object({
   GOOGLE_CLIENT_SECRET: z.string().optional(),
   MICROSOFT_CLIENT_ID: z.string().optional(),
   MICROSOFT_CLIENT_SECRET: z.string().optional(),
+  CRON_SECRET: z.string().optional(),
   ONSITE_MEETING_URL: optionalUrl
 });
 
@@ -56,6 +57,7 @@ export function getEnv() {
     GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
     MICROSOFT_CLIENT_ID: process.env.MICROSOFT_CLIENT_ID,
     MICROSOFT_CLIENT_SECRET: process.env.MICROSOFT_CLIENT_SECRET,
+    CRON_SECRET: process.env.CRON_SECRET,
     ONSITE_MEETING_URL: process.env.ONSITE_MEETING_URL
   });
 }

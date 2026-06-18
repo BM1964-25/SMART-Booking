@@ -95,6 +95,9 @@ export default async function AdminSettingsPage({ searchParams }: { searchParams
       buffer_before_minutes: Number(formData.get("buffer_before_minutes") || 10),
       buffer_after_minutes: Number(formData.get("buffer_after_minutes") || 15),
       default_meeting_location: normalizeMeetingLocation(formData.get("default_meeting_location")),
+      reminder_enabled: formData.get("reminder_enabled") === "on",
+      reminder_minutes_before: normalizeReminderMinutes(formData.get("reminder_minutes_before")),
+      reminder_note: nullableText(formData.get("reminder_note")),
       sort_order: clampSortOrder(formData.get("sort_order")),
       profile_id: profileId,
       is_active: formData.get("is_active") === "on"
@@ -107,6 +110,9 @@ export default async function AdminSettingsPage({ searchParams }: { searchParams
           buffer_before_minutes: number | null;
           buffer_after_minutes: number | null;
           default_meeting_location: MeetingLocation | null;
+          reminder_enabled: boolean | null;
+          reminder_minutes_before: number | null;
+          reminder_note: string | null;
           profile_id: string | null;
         }
       | null
@@ -117,7 +123,7 @@ export default async function AdminSettingsPage({ searchParams }: { searchParams
         .from("booking_types")
         .update(payload)
         .eq("id", id)
-        .select("id, description, buffer_before_minutes, buffer_after_minutes, default_meeting_location, profile_id")
+        .select("id, description, buffer_before_minutes, buffer_after_minutes, default_meeting_location, reminder_enabled, reminder_minutes_before, reminder_note, profile_id")
         .single<typeof saved>();
 
       if (error) {
@@ -129,7 +135,7 @@ export default async function AdminSettingsPage({ searchParams }: { searchParams
       const { data, error } = await supabase
         .from("booking_types")
         .insert(payload)
-        .select("id, description, buffer_before_minutes, buffer_after_minutes, default_meeting_location, profile_id")
+        .select("id, description, buffer_before_minutes, buffer_after_minutes, default_meeting_location, reminder_enabled, reminder_minutes_before, reminder_note, profile_id")
         .single<typeof saved>();
 
       if (error) {
@@ -458,6 +464,9 @@ function bookingTypeSaveMatches(
         buffer_before_minutes: number | null;
         buffer_after_minutes: number | null;
         default_meeting_location: MeetingLocation | null;
+        reminder_enabled: boolean | null;
+        reminder_minutes_before: number | null;
+        reminder_note: string | null;
         profile_id: string | null;
       }
     | null
@@ -467,6 +476,9 @@ function bookingTypeSaveMatches(
     buffer_before_minutes: number;
     buffer_after_minutes: number;
     default_meeting_location: MeetingLocation;
+    reminder_enabled: boolean;
+    reminder_minutes_before: number;
+    reminder_note: string | null;
     profile_id: string;
   }
 ) {
@@ -475,6 +487,9 @@ function bookingTypeSaveMatches(
     Number(data?.buffer_before_minutes || 0) === payload.buffer_before_minutes &&
     Number(data?.buffer_after_minutes || 0) === payload.buffer_after_minutes &&
     (data?.default_meeting_location || "phone") === payload.default_meeting_location &&
+    Boolean(data?.reminder_enabled) === payload.reminder_enabled &&
+    Number(data?.reminder_minutes_before || 120) === payload.reminder_minutes_before &&
+    String(data?.reminder_note || "").trim() === String(payload.reminder_note || "").trim() &&
     data?.profile_id === payload.profile_id
   );
 }
@@ -535,4 +550,14 @@ function clampSortOrder(value: FormDataEntryValue | null) {
   }
 
   return Math.min(4, Math.max(1, Math.trunc(number)));
+}
+
+function normalizeReminderMinutes(value: FormDataEntryValue | null) {
+  const number = Number(value || 120);
+
+  if (!Number.isFinite(number)) {
+    return 120;
+  }
+
+  return Math.min(10080, Math.max(15, Math.trunc(number)));
 }

@@ -87,6 +87,7 @@ const helpSections: HelpSection[] = [
     bullets: [
       "Standardwerte für neue Terminarten: Dauer 30 Minuten, Puffer davor 10 Minuten, Puffer danach 15 Minuten.",
       "Beschreibung, Pufferzeiten und Profil-Zuordnung werden nach dem Speichern geprüft. Wenn ein Wert nicht übernommen werden kann, erscheint eine Fehlermeldung.",
+      "E-Mail-Erinnerungen werden pro Terminart aktiviert. Änderungen an Zeitpunkt, Hinweistext oder Aktiv-Häkchen werden erst übernommen, wenn die jeweilige Terminart gespeichert wird.",
       "Der sichtbare Name einer Terminart darf in mehreren Profilen gleich sein, zum Beispiel „Kostenloses Erstgespräch“.",
       "Der technische Slug wird automatisch eindeutig gemacht. Bei Namensgleichheit hängt die App den Profil-Slug oder eine Nummer an.",
       "Nach dem Speichern bleibt der gewählte Profil-Tab im Terminartenbereich erhalten."
