@@ -248,7 +248,7 @@ function BookingTypeForm({
               <span className="text-sm font-medium text-slate-700">Zeitpunkt</span>
               <select
                 name="reminder_minutes_before"
-                defaultValue={String(type?.reminder_minutes_before ?? 1440)}
+                defaultValue={String(type?.reminder_minutes_before ?? 30)}
                 className="mt-2 min-h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
               >
                 {reminderTimeOptions.map((option) => (
@@ -262,7 +262,7 @@ function BookingTypeForm({
               <span className="text-sm font-medium text-slate-700">Hinweistext</span>
               <input
                 name="reminder_note"
-                defaultValue={type?.reminder_note || ""}
+                defaultValue={type?.reminder_note || defaultReminderNote}
                 placeholder="Optionaler Hinweis für die erste Erinnerung."
                 className="mt-2 min-h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
               />
@@ -285,7 +285,7 @@ function BookingTypeForm({
               <span className="text-sm font-medium text-slate-700">Zeitpunkt</span>
               <select
                 name="reminder_2_minutes_before"
-                defaultValue={String(type?.reminder_2_minutes_before ?? 120)}
+                defaultValue={String(type?.reminder_2_minutes_before ?? 1440)}
                 className="mt-2 min-h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
               >
                 {reminderTimeOptions.map((option) => (
@@ -299,7 +299,7 @@ function BookingTypeForm({
               <span className="text-sm font-medium text-slate-700">Hinweistext</span>
               <input
                 name="reminder_2_note"
-                defaultValue={type?.reminder_2_note || ""}
+                defaultValue={type?.reminder_2_note || defaultSecondReminderNote}
                 placeholder="Optionaler Hinweis für die zweite Erinnerung."
                 className="mt-2 min-h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
               />
@@ -307,7 +307,7 @@ function BookingTypeForm({
           </div>
         </div>
         <p className="mt-2 text-xs leading-5 text-slate-500">
-          Empfehlung: erste Erinnerung ein Tag vorher, zweite Erinnerung 2 Stunden vorher.
+          Empfehlung: erste Erinnerung 30 Minuten vorher, zweite Erinnerung 1 Tag vorher.
         </p>
       </fieldset>
     </form>
@@ -320,10 +320,13 @@ const reminderTimeOptions = [
   { value: "60", label: "1 Stunde vorher" },
   { value: "120", label: "2 Stunden vorher" },
   { value: "720", label: "12 Stunden vorher" },
-  { value: "1440", label: "Ein Tag vorher" },
+  { value: "1440", label: "1 Tag vorher" },
   { value: "2880", label: "2 Tage vorher" },
   { value: "4320", label: "3 Tage vorher" }
 ];
+
+const defaultReminderNote = "Dies ist eine kurze Erinnerung: Ihr Termin beginnt in 30 Minuten.";
+const defaultSecondReminderNote = "Dies ist eine freundliche Erinnerung an Ihren Termin morgen.";
 
 function Field({
   label,
