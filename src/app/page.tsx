@@ -31,7 +31,7 @@ const essentials = [
 
 export default function HomePage() {
   return (
-    <main className="min-h-screen bg-slate-50">
+    <main className="bg-slate-50">
       <section className="border-b border-slate-200 bg-white">
         <div className="mx-auto grid max-w-6xl gap-8 px-5 py-10 lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:py-14">
           <div>
