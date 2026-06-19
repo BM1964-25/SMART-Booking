@@ -8,8 +8,8 @@ const trialUrl = "https://www.builtsmart-ai.app/index.html#app-warteliste";
 const highlights = [
   {
     icon: Globe2,
-    title: "Bis zu 4 Buchungsprofile",
-    text: "Jede Webseite oder Landingpage kann eigene Texte, Farben, rechtliche Angaben und Terminangebote bekommen."
+    title: "Ein persönlicher Kalender für bis zu 4 Webseiten",
+    text: "Jede Webseite oder Landingpage erhält ein eigenes Buchungsprofil mit passenden Texten, Farben und Terminangeboten."
   },
   {
     icon: CalendarCheck,
@@ -24,9 +24,9 @@ const highlights = [
 ];
 
 const essentials = [
-  "Freie Zeiten werden aus den Verfügbarkeiten und dem Kalender berechnet.",
+  "Ein persönlicher Kalender verbindet bis zu vier Webseiten und zeigt nur freie Zeiten.",
   "Bestätigung, Kalendereintrag und Meeting-Details gehen automatisch raus.",
-  "Persönliche Erinnerungen erhöhen die Verbindlichkeit und reduzieren No-Shows."
+  "Persönliche Erinnerungen reduzieren No-Shows."
 ];
 
 export default function HomePage() {
