@@ -230,13 +230,13 @@ function BookingTypeForm({
         <p className="text-xs leading-5 text-slate-500">
           Optionaler Hinweis per E-Mail vor dem Termin. Pro Buchung wird nur eine Erinnerung gesendet.
         </p>
-        <div className="mt-3 grid gap-3 lg:grid-cols-[minmax(9rem,0.55fr)_minmax(28rem,2fr)_minmax(4.5rem,0.25fr)] lg:items-end">
+        <div className="mt-3 grid gap-3 lg:grid-cols-[minmax(9rem,0.55fr)_minmax(28rem,2fr)_minmax(4.5rem,0.25fr)] lg:items-start">
           <label className="block">
             <span className="text-sm font-medium text-slate-700">Zeitpunkt</span>
             <select
               name="reminder_minutes_before"
               defaultValue={String(type?.reminder_minutes_before ?? 120)}
-              className="mt-2 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+              className="mt-2 min-h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
             >
               <option value="15">15 Minuten vorher</option>
               <option value="30">30 Minuten vorher</option>
@@ -254,7 +254,7 @@ function BookingTypeForm({
               name="reminder_note"
               defaultValue={type?.reminder_note || ""}
               placeholder="Optionaler Hinweis, der in der Erinnerung an den Kunden erscheint."
-              className="mt-2 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+              className="mt-2 min-h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
             />
           </label>
           <div className="block">
