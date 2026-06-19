@@ -243,10 +243,9 @@ function BookingTypeForm({
               <option value="60">1 Stunde vorher</option>
               <option value="120">2 Stunden vorher</option>
               <option value="720">12 Stunden vorher</option>
-              <option value="1440">24 Stunden vorher</option>
+              <option value="1440">Ein Tag vorher</option>
               <option value="2880">2 Tage vorher</option>
               <option value="4320">3 Tage vorher</option>
-              <option value="10080">7 Tage vorher</option>
             </select>
           </label>
           <label className="block">

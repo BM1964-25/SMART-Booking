@@ -87,7 +87,7 @@ const helpSections: HelpSection[] = [
     bullets: [
       "Standardwerte für neue Terminarten: Dauer 30 Minuten, Puffer davor 10 Minuten, Puffer danach 15 Minuten.",
       "Beschreibung, Pufferzeiten und Profil-Zuordnung werden nach dem Speichern geprüft. Wenn ein Wert nicht übernommen werden kann, erscheint eine Fehlermeldung.",
-      "E-Mail-Erinnerungen werden pro Terminart aktiviert. Als Zeitpunkt stehen 15 Minuten, 30 Minuten, 1 Stunde, 2 Stunden, 12 Stunden, 24 Stunden, 2 Tage, 3 Tage oder 7 Tage vor dem Termin zur Auswahl.",
+      "E-Mail-Erinnerungen werden pro Terminart aktiviert. Als Zeitpunkt stehen 15 Minuten, 30 Minuten, 1 Stunde, 2 Stunden, 12 Stunden, ein Tag, 2 Tage oder 3 Tage vor dem Termin zur Auswahl.",
       "Änderungen an Zeitpunkt, Hinweistext oder Aktiv-Häkchen werden erst übernommen, wenn die jeweilige Terminart gespeichert wird.",
       "Damit Erinnerungen automatisch versendet werden, muss der Erinnerungs-Endpunkt regelmäßig durch einen externen Zeitplaner aufgerufen werden. Auf Vercel Hobby ist das der empfohlene Weg.",
       "Der sichtbare Name einer Terminart darf in mehreren Profilen gleich sein, zum Beispiel „Kostenloses Erstgespräch“.",
