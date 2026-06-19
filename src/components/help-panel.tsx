@@ -160,9 +160,12 @@ const helpSections: HelpSection[] = [
       "Für einen zuverlässigen Versand sollte die Absenderdomain beim Mailanbieter authentifiziert sein. SPF, DKIM und DMARC helfen dabei, dass E-Mails nicht im Spam landen und beim Empfänger professionell wirken."
     ],
     bullets: [
-      "SMTP-Host, SMTP-Port, Benutzername und Passwort verbinden SMART Booking mit dem Mailanbieter.",
-      "Die Absender-E-Mail sollte eine beim Anbieter freigegebene Adresse sein. Sie erscheint beim Kunden als Absender der Buchungs- und Erinnerungs-E-Mails.",
-      "Die Admin-/Empfänger-E-Mail erhält interne Hinweise zu neuen Buchungen, damit eingehende Termine schnell geprüft werden können.",
+      "SMTP-Host: Der Servername des Mailanbieters, über den SMART Booking E-Mails versendet. Bei Brevo steht dieser Wert im SMTP-Bereich des Kontos, meist als smtp-relay.brevo.com.",
+      "SMTP-Port: Der technische Zugangspunkt für den SMTP-Server. Der Mailanbieter nennt den passenden Port in den SMTP-Einstellungen; häufig ist es 587 für TLS.",
+      "SMTP-Benutzer: Der Benutzername für den SMTP-Zugang. Bei Brevo ist das in der Regel die Login-E-Mail oder der im SMTP-Bereich angezeigte Benutzername.",
+      "SMTP-Passwort: Das SMTP-Passwort oder der SMTP-Key des Mailanbieters. Es ist nicht zwingend identisch mit dem normalen Login-Passwort und wird im Konto des Mailanbieters erzeugt oder angezeigt.",
+      "Absender: Die E-Mail-Adresse, die Kunden als Absender sehen. Sie sollte beim Mailanbieter freigegeben und über die eigene Domain authentifiziert sein.",
+      "Admin-/Empfänger-E-Mail: Die interne Zieladresse für Betreiber-Benachrichtigungen. An diese Adresse sendet SMART Booking Hinweise zu neuen Buchungen und wichtigen Vorgängen.",
       "Der Testversand prüft, ob SMART Booking über die gespeicherten SMTP-Daten eine E-Mail zustellen kann. Ein erfolgreicher Test ersetzt trotzdem keine echte Testbuchung.",
       "Nach jeder Änderung am E-Mail-Versand sollte eine Testbuchung durchgeführt werden. Dabei sollten Kundenmail, Adminmail, Kalendereintrag und Meeting-Details gemeinsam geprüft werden.",
       "Wenn keine E-Mail ankommt, zuerst SMTP-Daten, Absenderadresse und Provider-Logs prüfen. Danach Spam-Ordner, Domain-Authentifizierung und mögliche Tippfehler in der Empfängeradresse kontrollieren.",
