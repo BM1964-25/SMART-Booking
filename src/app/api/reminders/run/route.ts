@@ -26,6 +26,7 @@ type ReminderBookingRow = {
 type DueReminder = {
   number: 1 | 2;
   minutesBefore: number;
+  note: string | null | undefined;
   sentField: "reminder_sent_at" | "reminder_2_sent_at";
   attemptedField: "reminder_attempted_at" | "reminder_2_attempted_at";
   errorField: "reminder_last_error" | "reminder_2_last_error";
@@ -69,7 +70,7 @@ async function runReminders(request: NextRequest) {
     checked += 1;
     const bookingType = normalizeBookingType(booking.booking_types);
 
-    if (!bookingType?.reminder_enabled) {
+    if (!bookingType?.reminder_enabled && !bookingType?.reminder_2_enabled) {
       continue;
     }
 
@@ -87,7 +88,7 @@ async function runReminders(request: NextRequest) {
         meeting_url: booking.meeting_url,
         phone: booking.phone,
         bookingType,
-        reminder_note: bookingType.reminder_note
+        reminder_note: dueReminder.note
       });
 
       await supabase
@@ -136,6 +137,7 @@ function getDueReminder(booking: ReminderBookingRow, bookingType: BookingType, n
     candidates.push({
       number: 1,
       minutesBefore: clampReminderMinutes(bookingType.reminder_minutes_before),
+      note: bookingType.reminder_note,
       sentField: "reminder_sent_at",
       attemptedField: "reminder_attempted_at",
       errorField: "reminder_last_error"
@@ -146,6 +148,7 @@ function getDueReminder(booking: ReminderBookingRow, bookingType: BookingType, n
     candidates.push({
       number: 2,
       minutesBefore: clampReminderMinutes(bookingType.reminder_2_minutes_before),
+      note: bookingType.reminder_2_note,
       sentField: "reminder_2_sent_at",
       attemptedField: "reminder_2_attempted_at",
       errorField: "reminder_2_last_error"

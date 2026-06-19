@@ -12,6 +12,7 @@ export type BookingType = {
   reminder_note?: string | null;
   reminder_2_enabled?: boolean | null;
   reminder_2_minutes_before?: number | null;
+  reminder_2_note?: string | null;
   duration_minutes: number;
   buffer_before_minutes: number;
   buffer_after_minutes: number;

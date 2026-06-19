@@ -230,7 +230,7 @@ function BookingTypeForm({
         <p className="text-xs leading-5 text-slate-500">
           Optionaler Hinweis per E-Mail vor dem Termin. Pro Buchung kann jede aktivierte Erinnerung einmal gesendet werden.
         </p>
-        <div className="mt-3 grid gap-3 lg:grid-cols-[minmax(11rem,0.7fr)_minmax(11rem,0.7fr)_minmax(0,1.8fr)] lg:items-start">
+        <div className="mt-3 grid gap-3 lg:grid-cols-2 lg:items-start">
           <div className="rounded-md border border-slate-200 bg-white p-3">
             <div className="flex min-h-10 items-center justify-between gap-3">
               <span className="text-sm font-semibold text-slate-800">Erinnerung 1</span>
@@ -257,6 +257,15 @@ function BookingTypeForm({
                   </option>
                 ))}
               </select>
+            </label>
+            <label className="mt-3 block">
+              <span className="text-sm font-medium text-slate-700">Hinweistext</span>
+              <input
+                name="reminder_note"
+                defaultValue={type?.reminder_note || ""}
+                placeholder="Optionaler Hinweis für die erste Erinnerung."
+                className="mt-2 min-h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+              />
             </label>
           </div>
           <div className="rounded-md border border-slate-200 bg-white p-3">
@@ -286,20 +295,20 @@ function BookingTypeForm({
                 ))}
               </select>
             </label>
+            <label className="mt-3 block">
+              <span className="text-sm font-medium text-slate-700">Hinweistext</span>
+              <input
+                name="reminder_2_note"
+                defaultValue={type?.reminder_2_note || ""}
+                placeholder="Optionaler Hinweis für die zweite Erinnerung."
+                className="mt-2 min-h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+              />
+            </label>
           </div>
-          <label className="block">
-            <span className="text-sm font-medium text-slate-700">Hinweistext</span>
-            <input
-              name="reminder_note"
-              defaultValue={type?.reminder_note || ""}
-              placeholder="Optionaler Hinweis, der in beiden Erinnerungen erscheint."
-              className="mt-2 min-h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
-            />
-            <span className="mt-2 block text-xs leading-5 text-slate-500">
-              Empfehlung: erste Erinnerung ein Tag vorher, zweite Erinnerung 2 Stunden vorher.
-            </span>
-          </label>
         </div>
+        <p className="mt-2 text-xs leading-5 text-slate-500">
+          Empfehlung: erste Erinnerung ein Tag vorher, zweite Erinnerung 2 Stunden vorher.
+        </p>
       </fieldset>
     </form>
   );
