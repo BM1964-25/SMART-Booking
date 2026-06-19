@@ -47,7 +47,7 @@ export default function HomePage() {
               Die kompakte Terminplattform für professionelle Kundengespräche.
             </h1>
             <p className="mt-5 max-w-2xl text-lg leading-8 text-slate-600">
-              SMART Booking verbindet Buchungsseiten, Kalenderabgleich, Meeting-Details, Bestätigungen und Erinnerungen in einem klaren System.
+              SMART Booking automatisiert den Buchungsprozess von der Terminseite bis zur Bestätigung. Kunden wählen selbstständig passende Zeiten und erhalten Meeting-Links sowie Erinnerungen automatisch. Die zentrale Verwaltung spart Abstimmung, erhöht die Verbindlichkeit und reduziert No-Shows.
             </p>
             <div className="mt-7 flex flex-wrap items-center gap-3">
               <PrimaryLink href="/book">Buchungsseite öffnen</PrimaryLink>
@@ -107,7 +107,7 @@ export default function HomePage() {
       </section>
 
       <section className="border-t border-slate-200 bg-white">
-        <div className="mx-auto flex max-w-6xl flex-col gap-5 px-5 py-8 md:flex-row md:items-center md:justify-between">
+        <div className="mx-auto flex max-w-6xl flex-col gap-5 px-5 py-10 md:flex-row md:items-center md:justify-between">
           <div>
             <p className="text-sm font-semibold uppercase text-brand-600">Nächster Schritt</p>
             <h2 className="mt-1 text-2xl font-semibold text-slate-950">Buchungsprozess testen oder Details ansehen.</h2>
