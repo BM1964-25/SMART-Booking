@@ -248,7 +248,7 @@ function BookingTypeForm({
               <span className="text-sm font-medium text-slate-700">Zeitpunkt</span>
               <select
                 name="reminder_minutes_before"
-                defaultValue={String(type?.reminder_minutes_before ?? 30)}
+                defaultValue={String(normalizeReminderOneDefault(type?.reminder_minutes_before))}
                 className="mt-2 min-h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
               >
                 {reminderTimeOptions.map((option) => (
@@ -262,7 +262,7 @@ function BookingTypeForm({
               <span className="text-sm font-medium text-slate-700">Hinweistext</span>
               <input
                 name="reminder_note"
-                defaultValue={type?.reminder_note || defaultReminderNote}
+                defaultValue={normalizeReminderNoteDefault(type?.reminder_note)}
                 placeholder="Optionaler Hinweis für die erste Erinnerung."
                 className="mt-2 min-h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
               />
@@ -285,7 +285,7 @@ function BookingTypeForm({
               <span className="text-sm font-medium text-slate-700">Zeitpunkt</span>
               <select
                 name="reminder_2_minutes_before"
-                defaultValue={String(type?.reminder_2_minutes_before ?? 1440)}
+                defaultValue={String(normalizeReminderTwoDefault(type?.reminder_2_minutes_before))}
                 className="mt-2 min-h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
               >
                 {reminderTimeOptions.map((option) => (
@@ -299,7 +299,7 @@ function BookingTypeForm({
               <span className="text-sm font-medium text-slate-700">Hinweistext</span>
               <input
                 name="reminder_2_note"
-                defaultValue={type?.reminder_2_note || defaultSecondReminderNote}
+                defaultValue={normalizeSecondReminderNoteDefault(type?.reminder_2_note)}
                 placeholder="Optionaler Hinweis für die zweite Erinnerung."
                 className="mt-2 min-h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
               />
@@ -325,8 +325,36 @@ const reminderTimeOptions = [
   { value: "4320", label: "3 Tage vorher" }
 ];
 
-const defaultReminderNote = "Ihr Termin beginnt in 30 Minuten. Bitte halten Sie relevante Unterlagen bereit und nutzen Sie bei Online-Terminen den zugesendeten Link.";
-const defaultSecondReminderNote = "Morgen findet Ihr Termin statt. Bitte prüfen Sie kurz, ob Zeitpunkt und Terminort für Sie passen.";
+const defaultReminderNote = "Ihr Termin beginnt in 30 Minuten. Bitte öffnen Sie rechtzeitig den Terminlink und halten Sie Ihre Unterlagen bereit.";
+const defaultSecondReminderNote = "Morgen ist Ihr Termin. Falls sich bei Ihnen etwas geändert hat, können Sie den Termin über den Link in dieser E-Mail anpassen oder stornieren.";
+
+function normalizeReminderOneDefault(value: number | null | undefined) {
+  return value && ![120, 1440].includes(value) ? value : 30;
+}
+
+function normalizeReminderTwoDefault(value: number | null | undefined) {
+  return value && value !== 120 ? value : 1440;
+}
+
+function normalizeReminderNoteDefault(value: string | null | undefined) {
+  const text = String(value || "").trim();
+
+  if (!text || text === "Dies ist eine kurze Erinnerung: Ihr Termin beginnt in 30 Minuten.") {
+    return defaultReminderNote;
+  }
+
+  return text;
+}
+
+function normalizeSecondReminderNoteDefault(value: string | null | undefined) {
+  const text = String(value || "").trim();
+
+  if (!text || text === "Dies ist eine freundliche Erinnerung an Ihren Termin morgen.") {
+    return defaultSecondReminderNote;
+  }
+
+  return text;
+}
 
 function Field({
   label,
