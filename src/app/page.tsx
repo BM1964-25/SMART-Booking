@@ -24,9 +24,9 @@ const highlights = [
 ];
 
 const essentials = [
-  "zeigt Kunden nur buchbare freie Zeitfenster",
-  "erstellt Bestätigung, Kalendereintrag und Meeting-Details automatisch",
-  "verschickt persönliche Erinnerungen und reduziert No-Shows"
+  "Freie Zeiten werden aus den Verfügbarkeiten und dem Kalender berechnet.",
+  "Bestätigung, Kalendereintrag und Meeting-Details gehen automatisch raus.",
+  "Persönliche Erinnerungen erhöhen die Verbindlichkeit und reduzieren No-Shows."
 ];
 
 export default function HomePage() {
@@ -43,9 +43,12 @@ export default function HomePage() {
                 Produkt von BuiltSmart AI
               </span>
             </div>
-            <h1 className="max-w-3xl text-4xl font-semibold tracking-normal text-slate-950 md:text-5xl">
-              Terminbuchung, Kalenderabgleich und Erinnerungen in einem System.
+            <h1 className="max-w-3xl text-6xl font-semibold tracking-normal text-slate-950 md:text-7xl">
+              SMART Booking
             </h1>
+            <p className="mt-4 max-w-3xl text-2xl font-semibold leading-tight text-slate-950 md:text-3xl">
+              Terminbuchung, Kalenderabgleich und Erinnerungen in einem System.
+            </p>
             <p className="mt-5 max-w-2xl text-lg leading-8 text-slate-600">
               SMART Booking automatisiert den Buchungsprozess von der Terminseite bis zur Bestätigung. Kunden wählen selbstständig passende Zeiten und erhalten Meeting-Links sowie Erinnerungen automatisch. Die zentrale Verwaltung spart Abstimmung, erhöht die Verbindlichkeit und reduziert No-Shows.
             </p>
