@@ -18,7 +18,17 @@ type ReminderBookingRow = {
   starts_at: string;
   ends_at: string;
   cancellation_token: string;
+  reminder_sent_at: string | null;
+  reminder_2_sent_at: string | null;
   booking_types: BookingType | BookingType[] | null;
+};
+
+type DueReminder = {
+  number: 1 | 2;
+  minutesBefore: number;
+  sentField: "reminder_sent_at" | "reminder_2_sent_at";
+  attemptedField: "reminder_attempted_at" | "reminder_2_attempted_at";
+  errorField: "reminder_last_error" | "reminder_2_last_error";
 };
 
 export async function GET(request: NextRequest) {
@@ -41,7 +51,6 @@ async function runReminders(request: NextRequest) {
     .from("bookings")
     .select("*, booking_types(*)")
     .eq("status", "confirmed")
-    .is("reminder_sent_at", null)
     .gte("starts_at", now.toISOString())
     .lte("starts_at", horizon.toISOString())
     .order("starts_at", { ascending: true })
@@ -64,10 +73,9 @@ async function runReminders(request: NextRequest) {
       continue;
     }
 
-    const reminderMinutes = clampReminderMinutes(bookingType.reminder_minutes_before);
-    const reminderAt = addMinutes(new Date(booking.starts_at), -reminderMinutes);
+    const dueReminder = getDueReminder(booking, bookingType, now);
 
-    if (reminderAt.getTime() > now.getTime()) {
+    if (!dueReminder) {
       continue;
     }
 
@@ -85,9 +93,9 @@ async function runReminders(request: NextRequest) {
       await supabase
         .from("bookings")
         .update({
-          reminder_sent_at: new Date().toISOString(),
-          reminder_attempted_at: new Date().toISOString(),
-          reminder_last_error: null
+          [dueReminder.sentField]: new Date().toISOString(),
+          [dueReminder.attemptedField]: new Date().toISOString(),
+          [dueReminder.errorField]: null
         })
         .eq("id", booking.id);
       sent += 1;
@@ -96,8 +104,8 @@ async function runReminders(request: NextRequest) {
       await supabase
         .from("bookings")
         .update({
-          reminder_attempted_at: new Date().toISOString(),
-          reminder_last_error: message
+          [dueReminder.attemptedField]: new Date().toISOString(),
+          [dueReminder.errorField]: message
         })
         .eq("id", booking.id);
       failed += 1;
@@ -119,6 +127,36 @@ function isAuthorized(request: NextRequest) {
 
 function normalizeBookingType(value: BookingType | BookingType[] | null) {
   return Array.isArray(value) ? value[0] : value;
+}
+
+function getDueReminder(booking: ReminderBookingRow, bookingType: BookingType, now: Date): DueReminder | null {
+  const candidates: DueReminder[] = [];
+
+  if (bookingType.reminder_enabled && !booking.reminder_sent_at) {
+    candidates.push({
+      number: 1,
+      minutesBefore: clampReminderMinutes(bookingType.reminder_minutes_before),
+      sentField: "reminder_sent_at",
+      attemptedField: "reminder_attempted_at",
+      errorField: "reminder_last_error"
+    });
+  }
+
+  if (bookingType.reminder_2_enabled && !booking.reminder_2_sent_at) {
+    candidates.push({
+      number: 2,
+      minutesBefore: clampReminderMinutes(bookingType.reminder_2_minutes_before),
+      sentField: "reminder_2_sent_at",
+      attemptedField: "reminder_2_attempted_at",
+      errorField: "reminder_2_last_error"
+    });
+  }
+
+  return (
+    candidates
+      .filter((candidate) => addMinutes(new Date(booking.starts_at), -candidate.minutesBefore).getTime() <= now.getTime())
+      .sort((a, b) => b.minutesBefore - a.minutesBefore)[0] || null
+  );
 }
 
 function clampReminderMinutes(value: number | null | undefined) {

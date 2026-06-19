@@ -228,52 +228,93 @@ function BookingTypeForm({
       <fieldset className="mt-4 rounded-md border border-slate-200 bg-slate-50 p-3">
         <legend className="px-1 text-sm font-semibold text-slate-800">Erinnerung</legend>
         <p className="text-xs leading-5 text-slate-500">
-          Optionaler Hinweis per E-Mail vor dem Termin. Pro Buchung wird nur eine Erinnerung gesendet.
+          Optionaler Hinweis per E-Mail vor dem Termin. Pro Buchung kann jede aktivierte Erinnerung einmal gesendet werden.
         </p>
-        <div className="mt-3 grid gap-3 lg:grid-cols-[minmax(9rem,0.55fr)_minmax(28rem,2fr)_minmax(4.5rem,0.25fr)] lg:items-start">
-          <label className="block">
-            <span className="text-sm font-medium text-slate-700">Zeitpunkt</span>
-            <select
-              name="reminder_minutes_before"
-              defaultValue={String(type?.reminder_minutes_before ?? 120)}
-              className="mt-2 min-h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
-            >
-              <option value="15">15 Minuten vorher</option>
-              <option value="30">30 Minuten vorher</option>
-              <option value="60">1 Stunde vorher</option>
-              <option value="120">2 Stunden vorher</option>
-              <option value="720">12 Stunden vorher</option>
-              <option value="1440">Ein Tag vorher</option>
-              <option value="2880">2 Tage vorher</option>
-              <option value="4320">3 Tage vorher</option>
-            </select>
-          </label>
+        <div className="mt-3 grid gap-3 lg:grid-cols-[minmax(11rem,0.7fr)_minmax(11rem,0.7fr)_minmax(0,1.8fr)] lg:items-start">
+          <div className="rounded-md border border-slate-200 bg-white p-3">
+            <div className="flex min-h-10 items-center justify-between gap-3">
+              <span className="text-sm font-semibold text-slate-800">Erinnerung 1</span>
+              <label className="flex items-center gap-2 text-sm font-medium text-slate-700">
+                <input
+                  name="reminder_enabled"
+                  type="checkbox"
+                  defaultChecked={type?.reminder_enabled ?? false}
+                  className="h-4 w-4 rounded border-slate-300 text-brand-600"
+                />
+                Aktiv
+              </label>
+            </div>
+            <label className="mt-3 block">
+              <span className="text-sm font-medium text-slate-700">Zeitpunkt</span>
+              <select
+                name="reminder_minutes_before"
+                defaultValue={String(type?.reminder_minutes_before ?? 1440)}
+                className="mt-2 min-h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+              >
+                {reminderTimeOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+          <div className="rounded-md border border-slate-200 bg-white p-3">
+            <div className="flex min-h-10 items-center justify-between gap-3">
+              <span className="text-sm font-semibold text-slate-800">Erinnerung 2</span>
+              <label className="flex items-center gap-2 text-sm font-medium text-slate-700">
+                <input
+                  name="reminder_2_enabled"
+                  type="checkbox"
+                  defaultChecked={type?.reminder_2_enabled ?? false}
+                  className="h-4 w-4 rounded border-slate-300 text-brand-600"
+                />
+                Aktiv
+              </label>
+            </div>
+            <label className="mt-3 block">
+              <span className="text-sm font-medium text-slate-700">Zeitpunkt</span>
+              <select
+                name="reminder_2_minutes_before"
+                defaultValue={String(type?.reminder_2_minutes_before ?? 120)}
+                className="mt-2 min-h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+              >
+                {reminderTimeOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
           <label className="block">
             <span className="text-sm font-medium text-slate-700">Hinweistext</span>
             <input
               name="reminder_note"
               defaultValue={type?.reminder_note || ""}
-              placeholder="Optionaler Hinweis, der in der Erinnerung an den Kunden erscheint."
+              placeholder="Optionaler Hinweis, der in beiden Erinnerungen erscheint."
               className="mt-2 min-h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
             />
+            <span className="mt-2 block text-xs leading-5 text-slate-500">
+              Empfehlung: erste Erinnerung ein Tag vorher, zweite Erinnerung 2 Stunden vorher.
+            </span>
           </label>
-          <div className="block">
-            <span className="text-sm font-medium text-slate-700">Status</span>
-            <label className="mt-2 flex min-h-10 items-center gap-2 text-sm font-medium text-slate-700">
-              <input
-                name="reminder_enabled"
-                type="checkbox"
-                defaultChecked={type?.reminder_enabled ?? false}
-                className="h-4 w-4 rounded border-slate-300 text-brand-600"
-              />
-              Aktiv
-            </label>
-          </div>
         </div>
       </fieldset>
     </form>
   );
 }
+
+const reminderTimeOptions = [
+  { value: "15", label: "15 Minuten vorher" },
+  { value: "30", label: "30 Minuten vorher" },
+  { value: "60", label: "1 Stunde vorher" },
+  { value: "120", label: "2 Stunden vorher" },
+  { value: "720", label: "12 Stunden vorher" },
+  { value: "1440", label: "Ein Tag vorher" },
+  { value: "2880", label: "2 Tage vorher" },
+  { value: "4320", label: "3 Tage vorher" }
+];
 
 function Field({
   label,
