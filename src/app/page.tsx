@@ -8,18 +8,30 @@ const trialUrl = "https://www.builtsmart-ai.app/index.html#app-warteliste";
 const highlights = [
   {
     icon: Globe2,
-    title: "Ein persönlicher Kalender für bis zu 4 Webseiten",
-    text: "Jede Webseite oder Landingpage erhält ein eigenes Buchungsprofil mit passenden Texten, Farben und Terminangeboten."
+    titleLines: ["Ein persönlicher Kalender", "für bis zu 4 Webseiten"],
+    textLines: [
+      "Jede Webseite oder Landingpage erhält ein eigenes Buchungsprofil.",
+      "Texte, Farben und Terminangebote lassen sich getrennt steuern.",
+      "So passt die Buchungsseite exakt zum jeweiligen Angebot."
+    ]
   },
   {
     icon: CalendarCheck,
-    title: "Nur freie Zeiten werden angeboten",
-    text: "Der Kalenderabgleich verhindert Doppelbuchungen, während Pufferzeiten und Verfügbarkeiten zentral gesteuert werden."
+    titleLines: ["Nur freie Zeiten", "werden angeboten"],
+    textLines: [
+      "SMART Booking prüft Verfügbarkeiten direkt gegen den Kalender.",
+      "Pufferzeiten, Terminarten und Buchungsfenster bleiben zentral steuerbar.",
+      "Kunden sehen nur Termine, die wirklich gebucht werden können."
+    ]
   },
   {
     icon: BellRing,
-    title: "Reduziert No-Shows",
-    text: "Bestätigungen, Meeting-Details und persönliche Erinnerungen erhöhen die Verbindlichkeit vor dem Termin."
+    titleLines: ["Reduziert No-Shows", "durch Erinnerungen"],
+    textLines: [
+      "Bestätigung, Kalendereintrag und Meeting-Details gehen automatisch raus.",
+      "Persönliche Erinnerungen werden passend vor dem Termin versendet.",
+      "Das erhöht die Verbindlichkeit und senkt vergessene Termine."
+    ]
   }
 ];
 
@@ -98,12 +110,24 @@ export default function HomePage() {
         </div>
         <div className="grid gap-4 md:grid-cols-3">
           {highlights.map((item) => (
-            <div key={item.title} className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+            <div key={item.titleLines.join(" ")} className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
               <div className="mb-4 inline-flex h-10 w-10 items-center justify-center rounded-md bg-brand-50 text-brand-600">
                 <item.icon className="h-5 w-5" />
               </div>
-              <h3 className="text-base font-semibold text-slate-950">{item.title}</h3>
-              <p className="mt-2 text-sm leading-6 text-slate-600">{item.text}</p>
+              <h3 className="min-h-12 text-base font-semibold leading-6 text-slate-950">
+                {item.titleLines.map((line) => (
+                  <span key={line} className="block">
+                    {line}
+                  </span>
+                ))}
+              </h3>
+              <p className="mt-2 min-h-[4.5rem] text-sm leading-6 text-slate-600">
+                {item.textLines.map((line) => (
+                  <span key={line} className="block">
+                    {line}
+                  </span>
+                ))}
+              </p>
             </div>
           ))}
         </div>
