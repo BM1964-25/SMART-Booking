@@ -18,16 +18,16 @@ export function AdminNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="mt-6 flex w-full flex-wrap items-center gap-3 text-sm">
+    <nav className="mt-6 flex w-full flex-wrap items-end justify-between gap-3 text-sm">
       <div className="flex flex-wrap gap-3">
         {navItems.map((item) => (
           <AdminNavLink key={item.href} href={item.href} label={item.label} active={isActivePath(pathname, item.href)} />
         ))}
         <AdminNavLink href="/admin/backup" label="Datensicherung" active={isActivePath(pathname, "/admin/backup")} />
       </div>
-      <div className="flex flex-1 flex-wrap items-center justify-start gap-3 sm:justify-end">
-        <HelpPanel />
+      <div className="flex flex-col items-start gap-2 sm:items-end">
         <CurrentDateTime />
+        <HelpPanel />
       </div>
     </nav>
   );
