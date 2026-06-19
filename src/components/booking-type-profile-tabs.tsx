@@ -325,8 +325,8 @@ const reminderTimeOptions = [
   { value: "4320", label: "3 Tage vorher" }
 ];
 
-const defaultReminderNote = "Dies ist eine kurze Erinnerung: Ihr Termin beginnt in 30 Minuten.";
-const defaultSecondReminderNote = "Dies ist eine freundliche Erinnerung an Ihren Termin morgen.";
+const defaultReminderNote = "Ihr Termin beginnt in 30 Minuten. Bitte halten Sie relevante Unterlagen bereit und nutzen Sie bei Online-Terminen den zugesendeten Link.";
+const defaultSecondReminderNote = "Morgen findet Ihr Termin statt. Bitte prüfen Sie kurz, ob Zeitpunkt und Terminort für Sie passen.";
 
 function Field({
   label,
