@@ -116,7 +116,6 @@ export async function sendBookingReminderEmail(booking: BookingReminderEmail) {
   const transporter = createMailTransport(settings);
   const ownerEmail = settings.bookingOwnerEmail || "bernhard@builtsmart-ai.app";
   const cancelUrl = buildPublicUrl(env, `/cancel/${booking.cancellation_token}`);
-  const changeUrl = buildPublicUrl(env, `/change/${booking.cancellation_token}`);
   const label = buildSlotLabel(new Date(booking.starts_at), new Date(booking.ends_at));
   const ics = createIcsFallback(booking);
   const from = settings.mailFrom || "SMART Booking <termine@builtsmart-ai.app>";
@@ -126,8 +125,8 @@ export async function sendBookingReminderEmail(booking: BookingReminderEmail) {
     to: booking.customer_email,
     replyTo: ownerEmail,
     subject: `Terminerinnerung: ${booking.bookingType.name}`,
-    text: customerReminderText(booking, label, cancelUrl, changeUrl),
-    html: customerReminderHtml(booking, label, cancelUrl, changeUrl),
+    text: customerReminderText(booking, label, cancelUrl),
+    html: customerReminderHtml(booking, label, cancelUrl),
     attachments: [
       {
         filename: "termin-builtsmart-ai.ics",
@@ -333,7 +332,7 @@ function ownerCancellationText(booking: BookingEmail, label: string) {
   ]);
 }
 
-function customerReminderHtml(booking: BookingReminderEmail, label: string, cancelUrl: string, changeUrl: string) {
+function customerReminderHtml(booking: BookingReminderEmail, label: string, cancelUrl: string) {
   const meeting = getMeetingLocationDetails(booking.meeting_location, booking.phone, booking.meeting_url);
 
   return `
@@ -346,14 +345,13 @@ function customerReminderHtml(booking: BookingReminderEmail, label: string, canc
       ${escapeHtml(meeting.description)}
       ${meeting.link ? `<br><a href="${escapeHtml(meeting.link)}">${escapeHtml(meeting.linkLabel || meeting.link)}</a>` : ""}</p>
       ${booking.reminder_note ? `<p>${escapeHtml(booking.reminder_note)}</p>` : ""}
-      <p>Änderung vorschlagen: <a href="${escapeHtml(changeUrl)}">${escapeHtml(changeUrl)}</a></p>
       <p>Stornierung: <a href="${escapeHtml(cancelUrl)}">${escapeHtml(cancelUrl)}</a></p>
       <p>BuiltSmart AI · Powered by BuiltSmart Hub</p>
     </div>
   `;
 }
 
-function customerReminderText(booking: BookingReminderEmail, label: string, cancelUrl: string, changeUrl: string) {
+function customerReminderText(booking: BookingReminderEmail, label: string, cancelUrl: string) {
   const meeting = getMeetingLocationDetails(booking.meeting_location, booking.phone, booking.meeting_url);
 
   return joinTextLines([
@@ -369,7 +367,6 @@ function customerReminderText(booking: BookingReminderEmail, label: string, canc
     booking.reminder_note ? "" : null,
     booking.reminder_note || null,
     "",
-    `Änderung vorschlagen: ${changeUrl}`,
     `Termin stornieren: ${cancelUrl}`,
     "",
     "BuiltSmart AI · Powered by BuiltSmart Hub"

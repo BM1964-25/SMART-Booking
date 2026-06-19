@@ -325,8 +325,8 @@ const reminderTimeOptions = [
   { value: "4320", label: "3 Tage vorher" }
 ];
 
-const defaultReminderNote = "Ihr Termin beginnt in 30 Minuten. Bitte öffnen Sie rechtzeitig den Terminlink und halten Sie Ihre Unterlagen bereit.";
-const defaultSecondReminderNote = "Morgen ist Ihr Termin. Falls sich bei Ihnen etwas geändert hat, können Sie den Termin über den Link in dieser E-Mail anpassen oder stornieren.";
+const defaultReminderNote = "Unser Termin beginnt in {zeit}. Ich freue mich auf das Gespräch.";
+const defaultSecondReminderNote = "Zur Erinnerung: Unser Termin findet in {zeit} statt. Ich freue mich auf den Austausch mit Ihnen.";
 
 function normalizeReminderOneDefault(value: number | null | undefined) {
   return value && ![120, 1440].includes(value) ? value : 30;
@@ -339,7 +339,14 @@ function normalizeReminderTwoDefault(value: number | null | undefined) {
 function normalizeReminderNoteDefault(value: string | null | undefined) {
   const text = String(value || "").trim();
 
-  if (!text || text === "Dies ist eine kurze Erinnerung: Ihr Termin beginnt in 30 Minuten.") {
+  if (
+    !text ||
+    [
+      "Dies ist eine kurze Erinnerung: Ihr Termin beginnt in 30 Minuten.",
+      "Ihr Termin beginnt in 30 Minuten. Bitte halten Sie relevante Unterlagen bereit und nutzen Sie bei Online-Terminen den zugesendeten Link.",
+      "Ihr Termin beginnt in 30 Minuten. Bitte öffnen Sie rechtzeitig den Terminlink und halten Sie Ihre Unterlagen bereit."
+    ].includes(text)
+  ) {
     return defaultReminderNote;
   }
 
@@ -349,7 +356,14 @@ function normalizeReminderNoteDefault(value: string | null | undefined) {
 function normalizeSecondReminderNoteDefault(value: string | null | undefined) {
   const text = String(value || "").trim();
 
-  if (!text || text === "Dies ist eine freundliche Erinnerung an Ihren Termin morgen.") {
+  if (
+    !text ||
+    [
+      "Dies ist eine freundliche Erinnerung an Ihren Termin morgen.",
+      "Morgen findet Ihr Termin statt. Bitte prüfen Sie kurz, ob Zeitpunkt und Terminort für Sie passen.",
+      "Morgen ist Ihr Termin. Falls sich bei Ihnen etwas geändert hat, können Sie den Termin über den Link in dieser E-Mail anpassen oder stornieren."
+    ].includes(text)
+  ) {
     return defaultSecondReminderNote;
   }
 

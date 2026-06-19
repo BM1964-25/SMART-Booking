@@ -88,7 +88,7 @@ async function runReminders(request: NextRequest) {
         meeting_url: booking.meeting_url,
         phone: booking.phone,
         bookingType,
-        reminder_note: dueReminder.note
+        reminder_note: renderReminderNote(dueReminder.note, dueReminder.minutesBefore)
       });
 
       await supabase
@@ -170,4 +170,26 @@ function clampReminderMinutes(value: number | null | undefined) {
   }
 
   return Math.min(10080, Math.max(15, Math.trunc(minutes)));
+}
+
+function renderReminderNote(note: string | null | undefined, minutesBefore: number) {
+  return String(note || "").replaceAll("{zeit}", formatReminderLeadTime(minutesBefore));
+}
+
+function formatReminderLeadTime(minutes: number) {
+  if (minutes < 60) {
+    return `${minutes} Minuten`;
+  }
+
+  if (minutes % 1440 === 0) {
+    const days = minutes / 1440;
+    return days === 1 ? "1 Tag" : `${days} Tage`;
+  }
+
+  if (minutes % 60 === 0) {
+    const hours = minutes / 60;
+    return hours === 1 ? "1 Stunde" : `${hours} Stunden`;
+  }
+
+  return `${minutes} Minuten`;
 }
