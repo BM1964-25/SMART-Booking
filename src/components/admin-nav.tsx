@@ -4,6 +4,7 @@ import { Clock3 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import { HelpPanel } from "@/components/help-panel";
 
 const navItems = [
   { href: "/admin", label: "Dashboard" },
@@ -24,7 +25,8 @@ export function AdminNav() {
         ))}
         <AdminNavLink href="/admin/backup" label="Datensicherung" active={isActivePath(pathname, "/admin/backup")} />
       </div>
-      <div className="flex flex-1 justify-start sm:justify-end">
+      <div className="flex flex-1 flex-wrap items-center justify-start gap-3 sm:justify-end">
+        <HelpPanel />
         <CurrentDateTime />
       </div>
     </nav>

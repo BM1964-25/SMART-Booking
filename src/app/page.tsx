@@ -1,32 +1,32 @@
 import { ArrowRight, BellRing, CalendarCheck, CheckCircle2, Globe2 } from "lucide-react";
-import Link from "next/link";
 
 import { PrimaryLink } from "@/components/button";
 
 const landingPageUrl = "https://www.builtsmart-ai.app/smartbooking/index.html";
+const trialUrl = "https://www.builtsmart-ai.app/index.html#app-warteliste";
 
 const highlights = [
   {
     icon: Globe2,
-    title: "Buchungsseiten für bis zu 4 Webseiten",
-    text: "Eigene Profile, Texte, Farben und Terminangebote für unterschiedliche Webseiten oder Landingpages."
+    title: "Bis zu 4 Buchungsprofile",
+    text: "Jede Webseite oder Landingpage kann eigene Texte, Farben, rechtliche Angaben und Terminangebote bekommen."
   },
   {
     icon: CalendarCheck,
-    title: "Kalenderabgleich gegen Doppelbuchungen",
-    text: "Nur freie Zeitfenster werden angeboten. Pufferzeiten und Verfügbarkeiten bleiben zentral steuerbar."
+    title: "Nur freie Zeiten werden angeboten",
+    text: "Der Kalenderabgleich verhindert Doppelbuchungen, während Pufferzeiten und Verfügbarkeiten zentral gesteuert werden."
   },
   {
     icon: BellRing,
-    title: "Bestätigungen und Erinnerungen automatisch",
-    text: "Kunden erhalten Kalendereintrag, Meeting-Details und persönliche Erinnerungen ohne manuelle Nacharbeit."
+    title: "Reduziert No-Shows",
+    text: "Bestätigungen, Meeting-Details und persönliche Erinnerungen erhöhen die Verbindlichkeit vor dem Termin."
   }
 ];
 
 const essentials = [
-  "Öffentliche Buchungslinks für Kunden und Interessenten",
-  "Telefon, Zoom, Google Meet, Microsoft Teams, Ortstermin oder individuelle Abstimmung",
-  "Zentrale Verwaltung von Buchungen, Profilen, Terminarten und Einstellungen"
+  "zeigt Kunden nur buchbare freie Zeitfenster",
+  "erstellt Bestätigung, Kalendereintrag und Meeting-Details automatisch",
+  "verschickt persönliche Erinnerungen und reduziert No-Shows"
 ];
 
 export default function HomePage() {
@@ -44,19 +44,19 @@ export default function HomePage() {
               </span>
             </div>
             <h1 className="max-w-3xl text-4xl font-semibold tracking-normal text-slate-950 md:text-5xl">
-              Die kompakte Terminplattform für professionelle Kundengespräche.
+              Terminbuchung, Kalenderabgleich und Erinnerungen in einem System.
             </h1>
             <p className="mt-5 max-w-2xl text-lg leading-8 text-slate-600">
               SMART Booking automatisiert den Buchungsprozess von der Terminseite bis zur Bestätigung. Kunden wählen selbstständig passende Zeiten und erhalten Meeting-Links sowie Erinnerungen automatisch. Die zentrale Verwaltung spart Abstimmung, erhöht die Verbindlichkeit und reduziert No-Shows.
             </p>
             <div className="mt-7 flex flex-wrap items-center gap-3">
-              <PrimaryLink href="/book">Buchungsseite öffnen</PrimaryLink>
-              <Link
-                href="/admin"
-                className="inline-flex min-h-11 items-center justify-center rounded-md border border-slate-300 bg-white px-5 py-2.5 text-sm font-semibold text-slate-800 transition hover:border-brand-400 hover:text-brand-700"
+              <a
+                href={trialUrl}
+                className="inline-flex min-h-11 items-center justify-center rounded-md bg-brand-500 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2"
               >
-                Adminbereich öffnen
-              </Link>
+                Free Trial anfragen
+              </a>
+              <PrimaryLink href="/book">Buchungsseite ansehen</PrimaryLink>
               <a
                 href={landingPageUrl}
                 className="inline-flex min-h-11 items-center justify-center gap-2 rounded-md border border-slate-300 bg-slate-950 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800"
@@ -68,8 +68,8 @@ export default function HomePage() {
 
           <div className="rounded-lg border border-slate-200 bg-slate-50 p-5 shadow-subtle">
             <div className="rounded-md border border-slate-200 bg-white p-5">
-              <p className="text-xs font-semibold uppercase text-brand-600">Livebetrieb</p>
-              <h2 className="mt-1 text-xl font-semibold text-slate-950">Terminprozess in einem System</h2>
+              <p className="text-xs font-semibold uppercase text-brand-600">Automatisiert</p>
+              <h2 className="mt-1 text-xl font-semibold text-slate-950">Was SMART Booking konkret übernimmt</h2>
               <div className="mt-5 space-y-3">
                 {essentials.map((item) => (
                   <div key={item} className="flex items-start gap-3 rounded-md border border-slate-200 bg-slate-50 p-3">
@@ -110,10 +110,15 @@ export default function HomePage() {
         <div className="mx-auto flex max-w-6xl flex-col gap-5 px-5 py-10 md:flex-row md:items-center md:justify-between">
           <div>
             <p className="text-sm font-semibold uppercase text-brand-600">Nächster Schritt</p>
-            <h2 className="mt-1 text-2xl font-semibold text-slate-950">Buchungsprozess testen oder Details ansehen.</h2>
+            <h2 className="mt-1 text-2xl font-semibold text-slate-950">Free Trial anfragen oder Produktseite ansehen.</h2>
           </div>
           <div className="flex flex-wrap gap-3">
-            <PrimaryLink href="/book">Zur Buchungsseite</PrimaryLink>
+            <a
+              href={trialUrl}
+              className="inline-flex min-h-11 items-center justify-center rounded-md bg-brand-500 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2"
+            >
+              Free Trial anfragen
+            </a>
             <a
               href={landingPageUrl}
               className="inline-flex min-h-11 items-center justify-center gap-2 rounded-md border border-slate-300 bg-white px-5 py-2.5 text-sm font-semibold text-slate-800 transition hover:border-brand-400 hover:text-brand-700"

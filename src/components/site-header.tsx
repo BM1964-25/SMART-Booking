@@ -1,6 +1,5 @@
 import Image from "next/image";
 import Link from "next/link";
-import { HelpPanel } from "@/components/help-panel";
 
 export function SiteHeader() {
   return (
@@ -24,7 +23,6 @@ export function SiteHeader() {
           <Link href="/admin" className="hover:text-brand-600">
             Admin
           </Link>
-          <HelpPanel />
         </nav>
       </div>
     </header>
