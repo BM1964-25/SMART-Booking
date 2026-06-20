@@ -410,20 +410,19 @@ function ProfileForm({
   canDeleteProfile: boolean;
   initialSaveState?: ProfileSaveState;
 }) {
-  const slug = profile?.slug || "";
   const publicPath = profile ? profileBookPath(profile) : "/book";
   const isPremiumPreview = profile?.allow_embed_view === true;
-  const previewParams = new URLSearchParams({ preview: "admin" });
+  const standardPreviewParams = new URLSearchParams({ preview: "admin" });
 
   if (profile?.id) {
-    previewParams.set("returnProfile", profile.id);
+    standardPreviewParams.set("returnProfile", profile.id);
   }
 
-  if (isPremiumPreview) {
-    previewParams.set("embed", "1");
-  }
+  const premiumPreviewParams = new URLSearchParams(standardPreviewParams);
+  premiumPreviewParams.set("embed", "1");
 
-  const previewPath = `${publicPath}?${previewParams.toString()}`;
+  const standardPreviewPath = `${publicPath}?${standardPreviewParams.toString()}`;
+  const premiumPreviewPath = `${publicPath}?${premiumPreviewParams.toString()}`;
   const publicUrl = `${siteUrl}${publicPath}`;
   const embedUrl = `${publicUrl}${publicUrl.includes("?") ? "&" : "?"}embed=1`;
 
@@ -439,23 +438,39 @@ function ProfileForm({
               {publicUrl}
             </Link>
             {profile ? (
-              <Link
-                href={previewPath}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex w-fit items-center gap-2 rounded-md border border-emerald-300 bg-emerald-100 px-3 py-1.5 text-sm font-semibold text-emerald-950 transition hover:border-emerald-400 hover:bg-emerald-200"
-              >
-                Live-Vorschau öffnen
-                <ExternalLink className="h-3.5 w-3.5" />
-              </Link>
+              <div className="flex flex-wrap gap-2">
+                <Link
+                  href={standardPreviewPath}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex w-fit items-center gap-2 rounded-md border border-slate-300 bg-white px-3 py-1.5 text-sm font-semibold text-slate-800 transition hover:border-brand-400 hover:text-brand-700"
+                >
+                  Standard-Vorschau
+                  <ExternalLink className="h-3.5 w-3.5" />
+                </Link>
+                {isPremiumPreview ? (
+                  <Link
+                    href={premiumPreviewPath}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex w-fit items-center gap-2 rounded-md border border-emerald-300 bg-emerald-100 px-3 py-1.5 text-sm font-semibold text-emerald-950 transition hover:border-emerald-400 hover:bg-emerald-200"
+                  >
+                    Premium-Vorschau
+                    <ExternalLink className="h-3.5 w-3.5" />
+                  </Link>
+                ) : (
+                  <span className="inline-flex w-fit items-center gap-2 rounded-md border border-slate-200 bg-slate-100 px-3 py-1.5 text-sm font-semibold text-slate-400">
+                    Premium-Vorschau gesperrt
+                  </span>
+                )}
+              </div>
             ) : (
               <span className="text-sm text-slate-500">Live-Vorschau ist nach dem ersten Speichern verfügbar.</span>
             )}
           </div>
           <p className="mt-2 text-xs leading-5 text-slate-500">
-            Die Live-Vorschau zeigt den zuletzt gespeicherten Stand
-            {isPremiumPreview ? " als Premium-Einbettung ohne Header und Footer" : " als Standard-Buchungsseite mit Header und Footer"}. Änderungen werden erst
-            nach „Profil speichern“ sichtbar.
+            Die Standard-Vorschau zeigt die Buchungsseite mit SMART-Booking-Header und Footer. Die Premium-Vorschau zeigt die reduzierte Einbettung ohne Header und
+            Footer, sobald der Premium-Link freigeschaltet ist. Änderungen werden erst nach „Profil speichern“ sichtbar.
           </p>
         </div>
         <label className="flex items-center gap-2 text-sm text-slate-700">

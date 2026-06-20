@@ -68,10 +68,11 @@ const helpSections: HelpSection[] = [
       "Eigene Vorlage speichern: Im Profilbereich auf „Als eigene Vorlage speichern“ klicken. Die aktuelle Konfiguration wird als wiederverwendbare Vorlage abgelegt.",
       "Vorlage laden: Eine Vorlagen-Karte anklicken. Die Werte der Vorlage werden sofort in das Formular übernommen.",
       "Profilname und Slug bleiben beim Anwenden einer Vorlage unverändert, damit der öffentliche Link nicht versehentlich geändert wird.",
+      "Der sichtbare Profilname darf mehrfach vorkommen. Entscheidend für die öffentliche Webseite ist der Slug im Link; dieser muss eindeutig sein und verhindert, dass zwei Profil-Webseiten unter derselben Adresse erreichbar sind.",
       "Subheadline 1 erscheint fett direkt unter der Headline. Subheadline 2 steht darunter als normaler erklärender Text.",
       "Der Name unter dem Profilfoto und der optionale Slogan/Info-Text werden im Abschnitt „Profilbild“ gepflegt und sind unabhängig vom Kontaktname-Feld.",
       "Die Ablaufanzeige 01/02/03 kann im Profil unter „Profilansicht“ ein- oder ausgeschaltet werden.",
-      "Der Button „Live-Vorschau öffnen“ zeigt den zuletzt gespeicherten Stand. Ist der Premium-Link freigeschaltet, öffnet die Vorschau automatisch die reduzierte Ansicht ohne SMART-Booking-Header und Footer.",
+      "Die Standard-Vorschau zeigt den zuletzt gespeicherten Stand mit SMART-Booking-Header und Footer. Die Premium-Vorschau zeigt die reduzierte Ansicht ohne Header und Footer, sobald der Premium-Link freigeschaltet ist.",
       "Standard- und Premium-Link können im Profil über das Copy-Icon kopiert werden. Nach erfolgreichem Kopieren erscheint kurz ein grünes Häkchen.",
       "Nach dem Anwenden einer Vorlage die Felder kontrollieren und bei Bedarf anpassen.",
       "Erst mit „Profil speichern“ wird die geladene Vorlage dauerhaft übernommen und auf der öffentlichen Buchungsseite sichtbar."
