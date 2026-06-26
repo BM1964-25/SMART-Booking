@@ -80,6 +80,7 @@ export default async function BookPage({ searchParams }: { searchParams?: Promis
   const showPortraitInfo = profile.show_portrait_info === true;
   const portraitDisplayName = profile.portrait_display_name || profile.contact_name;
   const preheadline = profile.preheadline || "SMART Booking";
+  const preheadlineUrl = normalizeExternalUrl(profile.preheadline_url);
   const isCenteredLayout = profile.profile_layout === "centered";
   const bookingQueryParams = new URLSearchParams();
 
@@ -135,9 +136,21 @@ export default async function BookPage({ searchParams }: { searchParams?: Promis
             <div className={isCenteredLayout ? "mx-auto max-w-4xl" : "max-w-3xl"}>
               <div className={isCenteredLayout ? "flex flex-wrap items-center justify-center gap-3" : "flex flex-wrap items-center gap-3"}>
                 {showPreheadline && preheadline ? (
-                  <p className="text-sm font-semibold uppercase" style={{ color: primaryColor }}>
-                    {preheadline}
-                  </p>
+                  preheadlineUrl ? (
+                    <a
+                      href={preheadlineUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-sm font-semibold uppercase transition hover:underline"
+                      style={{ color: primaryColor }}
+                    >
+                      {preheadline}
+                    </a>
+                  ) : (
+                    <p className="text-sm font-semibold uppercase" style={{ color: primaryColor }}>
+                      {preheadline}
+                    </p>
+                  )
                 ) : null}
               </div>
               <h1 className={isCenteredLayout ? "mx-auto mt-4 max-w-4xl text-4xl font-semibold tracking-normal text-slate-950 md:text-5xl" : "mt-4 max-w-3xl text-4xl font-semibold tracking-normal text-slate-950 md:text-5xl"}>
@@ -248,6 +261,16 @@ export default async function BookPage({ searchParams }: { searchParams?: Promis
 function normalizeColor(value: string | null | undefined, fallback = "#527DF6") {
   const color = String(value || "").trim();
   return /^#[0-9a-fA-F]{6}$/.test(color) ? color : fallback;
+}
+
+function normalizeExternalUrl(value: string | null | undefined) {
+  const url = String(value || "").trim();
+
+  if (!url) {
+    return null;
+  }
+
+  return /^https?:\/\//i.test(url) ? url : `https://${url}`;
 }
 
 function clampNumber(value: number | string | null | undefined, min: number, max: number, fallback: number) {

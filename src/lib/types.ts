@@ -25,6 +25,7 @@ export type BookingProfile = {
   slug: string;
   name: string;
   preheadline: string | null;
+  preheadline_url: string | null;
   headline: string;
   subheadline: string;
   highlight_subheadline: string | null;

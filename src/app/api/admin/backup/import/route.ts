@@ -24,6 +24,7 @@ const profileColumns = [
   "slug",
   "name",
   "preheadline",
+  "preheadline_url",
   "headline",
   "subheadline",
   "highlight_subheadline",

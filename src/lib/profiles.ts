@@ -7,6 +7,7 @@ export const defaultBookingProfile: BookingProfile = {
   slug: "builtsmart-ai",
   name: "BuiltSmart AI",
   preheadline: "SMART Booking",
+  preheadline_url: null,
   headline: "Termin mit BuiltSmart AI buchen",
   subheadline: "Wählen Sie einen passenden 30-Minuten-Termin für ein Erstgespräch, eine KI-Demo oder eine projektbezogene Beratung.",
   highlight_subheadline: "Sichern Sie sich Ihr persönliches Zeitfenster direkt online.",

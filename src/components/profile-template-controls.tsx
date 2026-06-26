@@ -23,6 +23,7 @@ const standardTemplates: ProfileTemplateOption[] = [
     kind: "standard",
     data: {
       preheadline: "Terminplanung",
+      preheadline_url: null,
       headline: "Termin buchen",
       subheadline: "Wählen Sie einen passenden 30-Minuten-Termin für ein Erstgespräch oder eine persönliche Beratung.",
       highlight_subheadline: "Sichern Sie sich Ihr persönliches Zeitfenster direkt online.",
@@ -59,6 +60,7 @@ const standardTemplates: ProfileTemplateOption[] = [
     kind: "standard",
     data: {
       preheadline: "Online buchbar",
+      preheadline_url: null,
       headline: "Persönlichen Termin vereinbaren",
       subheadline: "Buchen Sie direkt einen freien Termin. Die Bestätigung erhalten Sie automatisch per E-Mail.",
       highlight_subheadline: "Ideal für schnelle Abstimmung ohne E-Mail-Pingpong.",

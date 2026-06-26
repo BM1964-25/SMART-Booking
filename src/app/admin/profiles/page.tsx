@@ -59,6 +59,7 @@ export default async function AdminProfilesPage({ searchParams }: { searchParams
       slug: slugify(String(formData.get("slug") || "")),
       name: String(formData.get("name") || "").trim(),
       preheadline: nullableString(formData.get("preheadline")),
+      preheadline_url: nullableString(formData.get("preheadline_url")),
       headline: String(formData.get("headline") || "").trim(),
       subheadline: String(formData.get("subheadline") || "").trim(),
       highlight_subheadline: nullableString(formData.get("highlight_subheadline")),
@@ -207,6 +208,7 @@ export default async function AdminProfilesPage({ searchParams }: { searchParams
       slug: nextSlug,
       name: `${sourceProfile.name} Kopie`,
       preheadline: sourceProfile.preheadline || "SMART Booking",
+      preheadline_url: sourceProfile.preheadline_url,
       headline: sourceProfile.headline,
       subheadline: sourceProfile.subheadline,
       highlight_subheadline: sourceProfile.highlight_subheadline,
@@ -481,21 +483,36 @@ function ProfileForm({
 
       <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         <ProfileIdentityFields defaultName={profile?.name || ""} defaultSlug={profile?.slug || ""} />
-        <label className="block sm:col-span-2 lg:col-span-3">
-          <span className="flex items-center justify-between gap-3 text-sm font-medium text-slate-700">
+        <div className="sm:col-span-2 lg:col-span-3">
+          <div className="flex items-center justify-between gap-3 text-sm font-medium text-slate-700">
             Pre-Headline
             <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500">
               <input name="show_preheadline" type="checkbox" defaultChecked={profile?.show_preheadline ?? true} className="h-3.5 w-3.5 rounded border-slate-300 text-brand-600" />
               Anzeigen
             </span>
-          </span>
-          <input
-            name="preheadline"
-            type="text"
-            defaultValue={profile?.preheadline || "SMART Booking"}
-            className="mt-2 w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
-          />
-        </label>
+          </div>
+          <div className="mt-2 grid gap-3 md:grid-cols-2">
+            <label className="block">
+              <span className="sr-only">Pre-Headline Text</span>
+              <input
+                name="preheadline"
+                type="text"
+                defaultValue={profile?.preheadline || "SMART Booking"}
+                className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+              />
+            </label>
+            <label className="block">
+              <span className="sr-only">Pre-Headline URL</span>
+              <input
+                name="preheadline_url"
+                type="text"
+                defaultValue={profile?.preheadline_url || ""}
+                placeholder="https://www.beispiel.de"
+                className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+              />
+            </label>
+          </div>
+        </div>
         <div className="sm:col-span-2 lg:col-span-3">
           <Field label="Headline" name="headline" defaultValue={profile?.headline || "Termin buchen"} required />
         </div>
@@ -929,6 +946,7 @@ function normalizePublicSiteUrl(value: string) {
 function buildProfileTemplateData(formData: FormData) {
   return {
     preheadline: nullableString(formData.get("preheadline")),
+    preheadline_url: nullableString(formData.get("preheadline_url")),
     headline: String(formData.get("headline") || "").trim(),
     subheadline: String(formData.get("subheadline") || "").trim(),
     highlight_subheadline: nullableString(formData.get("highlight_subheadline")),
@@ -977,6 +995,7 @@ function buildProfileTemplateData(formData: FormData) {
 function buildProfileTemplateDataFromProfile(profile: BookingProfile) {
   return {
     preheadline: profile.preheadline,
+    preheadline_url: profile.preheadline_url,
     headline: profile.headline,
     subheadline: profile.subheadline,
     highlight_subheadline: profile.highlight_subheadline,
