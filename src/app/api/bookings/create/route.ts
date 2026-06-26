@@ -1,4 +1,4 @@
-import { addMinutes } from "date-fns";
+import { addDays, addMinutes } from "date-fns";
 import { NextRequest, NextResponse } from "next/server";
 import { assertSlotAvailable } from "@/lib/availability";
 import { createEvent } from "@/lib/calendar/caldav";
@@ -92,6 +92,11 @@ export async function POST(request: NextRequest) {
 
   const startsAt = new Date(parsed.data.startsAt);
   const endsAt = addMinutes(startsAt, bookingType.duration_minutes);
+
+  if (startsAt.getTime() > addDays(new Date(), settings.bookingWindowDays).getTime()) {
+    return navigate(`/booking-error?reason=unavailable&type=${encodeURIComponent(parsed.data.bookingTypeSlug)}`);
+  }
+
   const { data: existingBooking } = await supabase
     .from("bookings")
     .select("id")

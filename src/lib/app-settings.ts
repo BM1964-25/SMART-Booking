@@ -3,6 +3,7 @@ import { createSupabaseAdmin } from "@/lib/supabase/admin";
 
 export type AppSettings = {
   active_calendar_provider: "apple" | "google" | "microsoft" | null;
+  booking_window_days: number | null;
   booking_owner_email: string | null;
   google_meeting_mode: "fixed_link" | "api" | null;
   google_client_id: string | null;
@@ -27,6 +28,7 @@ export type AppSettings = {
 
 export type EffectiveAppSettings = {
   activeCalendarProvider: "apple" | "google" | "microsoft";
+  bookingWindowDays: number;
   bookingOwnerEmail?: string;
   googleMeetingMode: "fixed_link" | "api";
   googleClientId?: string;
@@ -70,6 +72,7 @@ export async function getEffectiveAppSettings(): Promise<EffectiveAppSettings> {
 
   return {
     activeCalendarProvider: normalizeCalendarProvider(settings?.active_calendar_provider),
+    bookingWindowDays: normalizeBookingWindowDays(settings?.booking_window_days),
     bookingOwnerEmail: firstValue(settings?.booking_owner_email, env.BOOKING_OWNER_EMAIL),
     googleMeetingMode: normalizeMeetingMode(settings?.google_meeting_mode),
     googleClientId: firstValue(settings?.google_client_id, env.GOOGLE_CLIENT_ID),
@@ -92,6 +95,15 @@ export async function getEffectiveAppSettings(): Promise<EffectiveAppSettings> {
     zoomMeetingUrl: firstValue(settings?.zoom_meeting_url, env.ZOOM_MEETING_URL)
   };
 }
+
+export const bookingWindowOptions = [
+  { value: 14, label: "2 Wochen" },
+  { value: 28, label: "4 Wochen" },
+  { value: 42, label: "6 Wochen" },
+  { value: 56, label: "8 Wochen" },
+  { value: 90, label: "3 Monate" },
+  { value: 180, label: "6 Monate" }
+] as const;
 
 export async function saveAppSettings(input: Partial<AppSettings>) {
   const supabase = createSupabaseAdmin();
@@ -119,4 +131,14 @@ function normalizeCalendarProvider(value: string | null | undefined): "apple" | 
 
 function normalizeMeetingMode(value: string | null | undefined): "fixed_link" | "api" {
   return value === "api" ? "api" : "fixed_link";
+}
+
+export function normalizeBookingWindowDays(value: unknown) {
+  const number = Number(value || 28);
+  const allowed = bookingWindowOptions.map((option) => option.value) as number[];
+  return allowed.includes(number) ? number : 28;
+}
+
+export function formatBookingWindowLabel(days: number) {
+  return bookingWindowOptions.find((option) => option.value === normalizeBookingWindowDays(days))?.label || "4 Wochen";
 }

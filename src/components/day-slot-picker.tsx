@@ -14,6 +14,7 @@ type DaySlotPickerProps = {
   profileSlug?: string;
   days: string[];
   groupedSlots: Record<string, Slot[]>;
+  bookingWindowLabel: string;
 };
 
 const dayFormatter = new Intl.DateTimeFormat("de-DE", {
@@ -35,7 +36,7 @@ const longDayFormatter = new Intl.DateTimeFormat("de-DE", {
   timeZone: TIMEZONE
 });
 
-export function DaySlotPicker({ bookingTypeSlug, embedView = false, profileSlug, days, groupedSlots }: DaySlotPickerProps) {
+export function DaySlotPicker({ bookingTypeSlug, embedView = false, profileSlug, days, groupedSlots, bookingWindowLabel }: DaySlotPickerProps) {
   const firstAvailableDay = days.find((day) => (groupedSlots[day] || []).length > 0) || days[0];
   const [selectedDay, setSelectedDay] = useState(firstAvailableDay);
   const selectedSlots = groupedSlots[selectedDay] || [];
@@ -45,7 +46,7 @@ export function DaySlotPicker({ bookingTypeSlug, embedView = false, profileSlug,
       <section className="rounded-lg border border-slate-200 bg-white p-5">
         <div>
           <h2 className="text-lg font-semibold text-slate-950">Tag auswählen</h2>
-          <p className="mt-1 text-sm text-slate-500">Buchbar sind Termine innerhalb der nächsten 4 Wochen.</p>
+          <p className="mt-1 text-sm text-slate-500">Buchbar sind Termine innerhalb der nächsten {bookingWindowLabel}.</p>
         </div>
         <div className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-4 md:grid-cols-7">
           {days.map((day) => {

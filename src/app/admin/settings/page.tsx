@@ -6,6 +6,7 @@ import { AvailabilityGrid } from "@/components/availability-grid";
 import { BookingTypeProfileTabs } from "@/components/booking-type-profile-tabs";
 import { SaveSubmitButton } from "@/components/save-submit-button";
 import { requireAdmin } from "@/lib/admin";
+import { bookingWindowOptions, formatBookingWindowLabel, getAppSettings, normalizeBookingWindowDays, saveAppSettings } from "@/lib/app-settings";
 import { getBookingTypeProfileAssignments, replaceBookingTypeProfileAssignments } from "@/lib/booking-type-profiles";
 import { MeetingLocation, meetingLocationValues } from "@/lib/meeting-location";
 import { createSupabaseAdmin } from "@/lib/supabase/admin";
@@ -23,21 +24,29 @@ const weekdays = [
   { value: 7, label: "Sonntag" }
 ];
 
-export default async function AdminSettingsPage({ searchParams }: { searchParams?: Promise<{ bookingProfile?: string; bookingTypeError?: string; bookingTypeSaved?: string }> }) {
+export default async function AdminSettingsPage({
+  searchParams
+}: {
+  searchParams?: Promise<{ bookingProfile?: string; bookingTypeError?: string; bookingTypeSaved?: string; bookingWindowSaved?: string; bookingWindowError?: string }>;
+}) {
   await requireAdmin();
   const resolvedSearchParams = await searchParams;
   const activeBookingProfileId = resolvedSearchParams?.bookingProfile;
   const bookingTypeError = resolvedSearchParams?.bookingTypeError || "";
   const bookingTypeSaved = resolvedSearchParams?.bookingTypeSaved || "";
+  const bookingWindowSaved = resolvedSearchParams?.bookingWindowSaved === "1";
+  const bookingWindowError = resolvedSearchParams?.bookingWindowError || "";
   const supabase = createSupabaseAdmin();
-  const [{ data: types }, { data: profiles }, { data: rules }, { data: blockedTimes }, { data: bookingsForTypes }, typeProfileAssignments] = await Promise.all([
+  const [{ data: types }, { data: profiles }, { data: rules }, { data: blockedTimes }, { data: bookingsForTypes }, typeProfileAssignments, appSettings] = await Promise.all([
     supabase.from("booking_types").select("*").order("sort_order").returns<BookingType[]>(),
     supabase.from("booking_profiles").select("*").order("name").returns<BookingProfile[]>(),
     supabase.from("availability_rules").select("*").order("weekday").order("start_time"),
     supabase.from("blocked_times").select("*").order("starts_at", { ascending: false }).limit(20),
     supabase.from("bookings").select("booking_type_id").returns<Array<{ booking_type_id: string }>>(),
-    getBookingTypeProfileAssignments()
+    getBookingTypeProfileAssignments(),
+    getAppSettings()
   ]);
+  const bookingWindowDays = normalizeBookingWindowDays(appSettings?.booking_window_days);
   const profileIdsByType = new Map<string, string[]>();
   for (const assignment of typeProfileAssignments) {
     const ids = profileIdsByType.get(assignment.booking_type_id) || [];
@@ -277,6 +286,22 @@ export default async function AdminSettingsPage({ searchParams }: { searchParams
     revalidatePath("/book");
   }
 
+  async function saveBookingWindow(formData: FormData) {
+    "use server";
+
+    await requireAdmin();
+    const bookingWindowDays = normalizeBookingWindowDays(formData.get("booking_window_days"));
+    const { error } = await saveAppSettings({ booking_window_days: bookingWindowDays });
+
+    if (error) {
+      redirect(`/admin/settings?bookingWindowError=${encodeURIComponent(error.message || "Buchungszeitraum konnte nicht gespeichert werden.")}`);
+    }
+
+    revalidatePath("/admin/settings");
+    revalidatePath("/book");
+    redirect("/admin/settings?bookingWindowSaved=1");
+  }
+
   return (
     <section className="mx-auto max-w-6xl px-5 py-12">
       <h1 className="text-3xl font-semibold text-slate-950">Einstellungen</h1>
@@ -284,6 +309,40 @@ export default async function AdminSettingsPage({ searchParams }: { searchParams
         Verwalten Sie Terminarten, Dauer, Pufferzeiten und regelbasierte Verfügbarkeit für die Buchungsseite.
       </p>
       <AdminNav />
+
+      <form action={saveBookingWindow} className="mt-8 rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+        <div className="grid gap-5 md:grid-cols-[minmax(0,1fr)_260px_auto] md:items-end">
+          <div>
+            <h2 className="text-lg font-semibold text-slate-950">Buchungszeitraum im Voraus</h2>
+            <p className="mt-2 text-sm leading-6 text-slate-600">
+              Kunden können nur Termine innerhalb dieses Zeitraums buchen. Verfügbarkeiten, Kalenderabgleich und blockierte Zeiten gelten weiterhin zusätzlich.
+            </p>
+            <p className="mt-2 text-xs font-semibold text-slate-500">Aktuell: {formatBookingWindowLabel(bookingWindowDays)}</p>
+          </div>
+          <label className="block">
+            <span className="text-xs font-semibold text-slate-700">Buchbar im Voraus</span>
+            <select
+              name="booking_window_days"
+              defaultValue={bookingWindowDays}
+              className="mt-1 h-10 w-full rounded-md border border-slate-300 bg-white px-2.5 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+            >
+              {bookingWindowOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <SaveSubmitButton
+            idleLabel="Zeitraum speichern"
+            pendingLabel="Wird gespeichert"
+            savedLabel="Gespeichert"
+            className="h-10 whitespace-nowrap rounded-md bg-brand-500 px-4 text-sm font-semibold text-white transition hover:bg-brand-600 disabled:cursor-wait disabled:bg-slate-300"
+          />
+        </div>
+        {bookingWindowSaved ? <p className="mt-4 rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-700">Buchungszeitraum wurde gespeichert.</p> : null}
+        {bookingWindowError ? <p className="mt-4 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-700">{bookingWindowError}</p> : null}
+      </form>
 
       <div className="mt-8">
         <AvailabilityGrid action={saveAvailabilityGrid} rules={rules || []} />
