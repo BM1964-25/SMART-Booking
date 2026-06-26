@@ -2,6 +2,7 @@ import { addDays, getDay, startOfWeek } from "date-fns";
 import { BookingLegalFooter } from "@/components/booking-legal-footer";
 import { DaySlotPicker } from "@/components/day-slot-picker";
 import { EmbedShellStyle } from "@/components/embed-shell-style";
+import { ProfilePreheadlineLink } from "@/components/profile-preheadline-link";
 import { getAvailableSlots } from "@/lib/availability";
 import { formatBookingWindowLabel, getEffectiveAppSettings } from "@/lib/app-settings";
 import { getBookingTypeIdsForProfile } from "@/lib/booking-type-profiles";
@@ -30,6 +31,7 @@ export default async function SlotPage({
   }
 
   const isEmbedView = embed === "1" && profile.allow_embed_view === true;
+  const primaryColor = normalizeColor(profile.primary_color);
   const isConfigured = hasSupabaseConfig();
   const appSettings = isConfigured ? await getEffectiveAppSettings() : null;
   let bookingType: BookingType | null | undefined = findSeedBookingType(type);
@@ -72,7 +74,8 @@ export default async function SlotPage({
   return (
     <section className="mx-auto max-w-5xl px-5 py-12">
       {isEmbedView ? <EmbedShellStyle /> : null}
-      <p className="text-sm font-semibold uppercase tracking-wider text-brand-600">{bookingType.duration_minutes} Minuten</p>
+      <ProfilePreheadlineLink profile={profile} color={primaryColor} />
+      <p className="mt-3 text-sm font-semibold uppercase tracking-wider text-brand-600">{bookingType.duration_minutes} Minuten</p>
       <h1 className="mt-2 text-3xl font-semibold text-slate-950">{bookingType.name}</h1>
       <p className="mt-3 text-slate-600">Wählen Sie zuerst einen Tag und anschließend eine freie Uhrzeit. Termine sind maximal {bookingWindowLabel} im Voraus buchbar.</p>
       {!isConfigured ? (
@@ -132,4 +135,9 @@ function formatAvailabilityError(error: string) {
   }
 
   return "Der Kalenderabgleich konnte gerade nicht vollständig geprüft werden. Bitte versuchen Sie es später erneut oder wenden Sie sich direkt an den Anbieter.";
+}
+
+function normalizeColor(value: string | null | undefined, fallback = "#527DF6") {
+  const color = String(value || "").trim();
+  return /^#[0-9a-fA-F]{6}$/.test(color) ? color : fallback;
 }

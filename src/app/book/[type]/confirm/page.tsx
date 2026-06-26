@@ -3,6 +3,7 @@ import Link from "next/link";
 import { BookingLegalFooter } from "@/components/booking-legal-footer";
 import { BookingForm } from "@/components/booking-form";
 import { EmbedShellStyle } from "@/components/embed-shell-style";
+import { ProfilePreheadlineLink } from "@/components/profile-preheadline-link";
 import { getEffectiveAppSettings } from "@/lib/app-settings";
 import { getBookingTypeIdsForProfile } from "@/lib/booking-type-profiles";
 import { hasSupabaseConfig } from "@/lib/config";
@@ -31,6 +32,7 @@ export default async function ConfirmPage({
   }
 
   const isEmbedView = embed === "1" && profile.allow_embed_view === true;
+  const primaryColor = normalizeColor(profile.primary_color);
   const isConfigured = hasSupabaseConfig();
   let bookingType: BookingType | null | undefined = findSeedBookingType(type);
 
@@ -53,7 +55,8 @@ export default async function ConfirmPage({
   return (
     <section className="mx-auto max-w-3xl px-5 py-12">
       {isEmbedView ? <EmbedShellStyle /> : null}
-      <h1 className="text-3xl font-semibold text-slate-950">Termin bestätigen</h1>
+      <ProfilePreheadlineLink profile={profile} color={primaryColor} />
+      <h1 className="mt-3 text-3xl font-semibold text-slate-950">Termin bestätigen</h1>
       <div className="mt-6 flex flex-col gap-4 rounded-lg border border-slate-200 bg-white p-5 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <p className="text-sm text-slate-500">Ausgewählter Termin</p>
@@ -160,4 +163,9 @@ async function hasActiveOauthConnection(provider: "google" | "microsoft") {
     .maybeSingle();
 
   return Boolean(data);
+}
+
+function normalizeColor(value: string | null | undefined, fallback = "#527DF6") {
+  const color = String(value || "").trim();
+  return /^#[0-9a-fA-F]{6}$/.test(color) ? color : fallback;
 }

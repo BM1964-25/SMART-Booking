@@ -11,6 +11,7 @@ import { FacebookIcon, InstagramIcon, LinkedInIcon, SpotifyIcon, XIcon, XingIcon
 import { BookingLegalFooter } from "@/components/booking-legal-footer";
 import { BookingTypeCardLink } from "@/components/booking-type-card-link";
 import { EmbedShellStyle } from "@/components/embed-shell-style";
+import { ProfilePreheadlineLink } from "@/components/profile-preheadline-link";
 import { getBookingTypeIdsForProfile } from "@/lib/booking-type-profiles";
 import { hasSupabaseConfig, missingSupabaseKeys } from "@/lib/config";
 import { ContactIconKey, normalizeContactIconOrder } from "@/lib/contact-icon-order";
@@ -72,15 +73,12 @@ export default async function BookPage({ searchParams }: { searchParams?: Promis
   const portraitPositionY = clampNumber(profile.portrait_position_y, 0, 100, 35);
   const portraitZoom = clampNumber(profile.portrait_zoom, 1, 1.8, 1);
   const showPortrait = profile.show_portrait !== false;
-  const showPreheadline = profile.show_preheadline !== false;
   const showSubheadline = profile.show_subheadline !== false;
   const showHighlightSubheadline = profile.show_highlight_subheadline === true;
   const showWorkflowSteps = profile.show_workflow_steps !== false;
   const showPortraitDisplayName = profile.show_portrait_display_name !== false;
   const showPortraitInfo = profile.show_portrait_info === true;
   const portraitDisplayName = profile.portrait_display_name || profile.contact_name;
-  const preheadline = profile.preheadline || "SMART Booking";
-  const preheadlineUrl = normalizeExternalUrl(profile.preheadline_url);
   const isCenteredLayout = profile.profile_layout === "centered";
   const bookingQueryParams = new URLSearchParams();
 
@@ -135,23 +133,7 @@ export default async function BookPage({ searchParams }: { searchParams?: Promis
           <div className={isCenteredLayout ? "flex flex-col items-center gap-7 text-center" : "flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between"}>
             <div className={isCenteredLayout ? "mx-auto max-w-4xl" : "max-w-3xl"}>
               <div className={isCenteredLayout ? "flex flex-wrap items-center justify-center gap-3" : "flex flex-wrap items-center gap-3"}>
-                {showPreheadline && preheadline ? (
-                  preheadlineUrl ? (
-                    <a
-                      href={preheadlineUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="text-sm font-semibold uppercase transition hover:underline"
-                      style={{ color: primaryColor }}
-                    >
-                      {preheadline}
-                    </a>
-                  ) : (
-                    <p className="text-sm font-semibold uppercase" style={{ color: primaryColor }}>
-                      {preheadline}
-                    </p>
-                  )
-                ) : null}
+                <ProfilePreheadlineLink profile={profile} color={primaryColor} className="tracking-normal" />
               </div>
               <h1 className={isCenteredLayout ? "mx-auto mt-4 max-w-4xl text-4xl font-semibold tracking-normal text-slate-950 md:text-5xl" : "mt-4 max-w-3xl text-4xl font-semibold tracking-normal text-slate-950 md:text-5xl"}>
                 {profile.headline}
@@ -261,16 +243,6 @@ export default async function BookPage({ searchParams }: { searchParams?: Promis
 function normalizeColor(value: string | null | undefined, fallback = "#527DF6") {
   const color = String(value || "").trim();
   return /^#[0-9a-fA-F]{6}$/.test(color) ? color : fallback;
-}
-
-function normalizeExternalUrl(value: string | null | undefined) {
-  const url = String(value || "").trim();
-
-  if (!url) {
-    return null;
-  }
-
-  return /^https?:\/\//i.test(url) ? url : `https://${url}`;
 }
 
 function clampNumber(value: number | string | null | undefined, min: number, max: number, fallback: number) {
