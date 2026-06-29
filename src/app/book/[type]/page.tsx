@@ -1,4 +1,5 @@
 import { addDays, getDay, startOfWeek } from "date-fns";
+import Link from "next/link";
 import { BookingLegalFooter } from "@/components/booking-legal-footer";
 import { DaySlotPicker } from "@/components/day-slot-picker";
 import { EmbedShellStyle } from "@/components/embed-shell-style";
@@ -76,7 +77,15 @@ export default async function SlotPage({
       {isEmbedView ? <EmbedShellStyle /> : null}
       <ProfilePreheadlineLink profile={profile} color={primaryColor} />
       <p className="mt-3 text-sm font-semibold uppercase tracking-wider text-brand-600">{bookingType.duration_minutes} Minuten</p>
-      <h1 className="mt-2 text-3xl font-semibold text-slate-950">{bookingType.name}</h1>
+      <div className="mt-2 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <h1 className="text-3xl font-semibold text-slate-950">{bookingType.name}</h1>
+        <Link
+          href={buildBookingOverviewHref(profileSlug, isEmbedView)}
+          className="inline-flex min-h-10 shrink-0 items-center justify-center rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-brand-500 hover:text-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2"
+        >
+          Zurück zur Terminart-Auswahl
+        </Link>
+      </div>
       <p className="mt-3 text-slate-600">Wählen Sie zuerst einen Tag und anschließend eine freie Uhrzeit. Termine sind maximal {bookingWindowLabel} im Voraus buchbar.</p>
       {!isConfigured ? (
         <div className="mt-6 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-900">
@@ -123,6 +132,18 @@ function groupByDay(slots: { startsAt: string; endsAt: string }[]) {
     acc[key].push(slot);
     return acc;
   }, {});
+}
+
+function buildBookingOverviewHref(profileSlug: string | undefined, embedView: boolean) {
+  const params = new URLSearchParams();
+
+  if (embedView) {
+    params.set("embed", "1");
+  }
+
+  const query = params.toString() ? `?${params.toString()}` : "";
+
+  return profileSlug ? `/book/profile/${profileSlug}${query}` : `/book${query}`;
 }
 
 function formatAvailabilityError(error: string) {
