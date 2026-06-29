@@ -168,12 +168,15 @@ export function BookingForm({
       <input type="hidden" name="embedView" value={embedView ? "1" : "0"} />
       <input type="hidden" name="profileSlug" value={profileSlug || ""} />
       <input type="hidden" name="startsAt" value={startsAt} />
+      <p className="text-xs leading-5 text-slate-500">Mit * markierte Felder sind Pflichtfelder.</p>
       <Field label="Name" name="customerName" minLength={2} required />
       <Field label="E-Mail" name="customerEmail" type="email" required />
       <Field label="Unternehmen" name="company" minLength={2} required />
       <Field label="Telefonnummer" name="phone" type="tel" minLength={5} required />
       <fieldset>
-        <legend className="text-sm font-medium text-slate-700">Terminort</legend>
+        <legend className="text-sm font-medium text-slate-700">
+          Terminort <RequiredMark />
+        </legend>
         <div className="mt-2 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {visibleMeetingOptions.map((option) => {
             const isServiceIcon = option.value === "zoom" || option.value === "teams" || option.value === "google_meet";
@@ -228,12 +231,10 @@ export function BookingForm({
         <span className="text-sm font-medium text-slate-700">Anliegen</span>
         <textarea
           name="topic"
-          required
-          minLength={10}
           rows={5}
           className="mt-2 w-full rounded-md border border-slate-300 px-3 py-2 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 invalid:border-red-300"
         />
-        <span className="mt-1 block text-xs text-slate-500">Bitte mindestens 10 Zeichen eingeben.</span>
+        <span className="mt-1 block text-xs text-slate-500">Optional, wenn die gewählte Terminart Ihr Anliegen bereits eindeutig beschreibt.</span>
       </label>
       <label className="flex gap-3 text-sm leading-6 text-slate-700">
         <input
@@ -243,7 +244,9 @@ export function BookingForm({
           required
           className="mt-1 h-4 w-4 rounded border-slate-300 text-brand-600 invalid:outline invalid:outline-2 invalid:outline-red-300"
         />
-        <span>Ich habe die Datenschutzhinweise gelesen und stimme zu, dass meine Angaben zur Bearbeitung der Terminanfrage verarbeitet werden.</span>
+        <span>
+          Ich habe die Datenschutzhinweise gelesen und stimme zu, dass meine Angaben zur Bearbeitung der Terminanfrage verarbeitet werden. <RequiredMark />
+        </span>
       </label>
       <div>
         <div className="flex flex-wrap items-center gap-3">
@@ -326,7 +329,15 @@ function Field({
 }) {
   return (
     <label className="block">
-      <span className="text-sm font-medium text-slate-700">{label}</span>
+      <span className="text-sm font-medium text-slate-700">
+        {label}
+        {required ? (
+          <>
+            {" "}
+            <RequiredMark />
+          </>
+        ) : null}
+      </span>
       <input
         name={name}
         type={type}
@@ -335,5 +346,13 @@ function Field({
         className="mt-2 w-full rounded-md border border-slate-300 px-3 py-2 focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 invalid:border-red-300"
       />
     </label>
+  );
+}
+
+function RequiredMark() {
+  return (
+    <span aria-label="Pflichtfeld" className="text-red-500">
+      *
+    </span>
   );
 }

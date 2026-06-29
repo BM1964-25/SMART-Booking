@@ -2,7 +2,7 @@ import Link from "next/link";
 
 const messages: Record<string, string> = {
   invalid:
-    "Bitte prüfen Sie Ihre Eingaben. Name und Unternehmen benötigen mindestens 2 Zeichen, das Anliegen mindestens 10 Zeichen. E-Mail-Adresse und Datenschutz-Zustimmung sind ebenfalls erforderlich.",
+    "Bitte prüfen Sie Ihre Eingaben. Name und Unternehmen benötigen mindestens 2 Zeichen. E-Mail-Adresse, Telefonnummer, Terminort und Datenschutz-Zustimmung sind ebenfalls erforderlich.",
   unavailable: "Dieses Zeitfenster ist leider nicht mehr verfügbar. Bitte wählen Sie einen anderen Termin.",
   calendar: "Der Termin konnte nicht in den Apple Kalender eingetragen werden. Bitte versuchen Sie es erneut oder kontaktieren Sie BuiltSmart AI.",
   config: "Die Buchungsfunktion ist noch nicht vollständig konfiguriert.",

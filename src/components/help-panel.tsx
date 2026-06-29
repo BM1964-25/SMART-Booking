@@ -225,7 +225,7 @@ const helpSections: HelpSection[] = [
     id: "data",
     title: "Eingaben & Daten",
     body: [
-      "Kunden geben Name, E-Mail, Unternehmen, Telefonnummer, Anliegen, Terminort und Datenschutz-Zustimmung ein.",
+      "Kunden geben Name, E-Mail, Unternehmen, Telefonnummer, Terminort und Datenschutz-Zustimmung ein. Das Anliegen ist optional, wenn die gewählte Terminart bereits eindeutig genug ist.",
       "Admin-Daten, Kalenderzugänge und Schlüssel werden geschützt verarbeitet und nicht auf der öffentlichen Buchungsseite offengelegt."
     ]
   },

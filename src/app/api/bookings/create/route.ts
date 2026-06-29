@@ -138,7 +138,7 @@ export async function POST(request: NextRequest) {
       company: parsed.data.company,
       phone: parsed.data.phone || null,
       meeting_location: parsed.data.meetingLocation,
-      topic: parsed.data.topic,
+      topic: parsed.data.topic || "Nicht angegeben",
       starts_at: startsAt.toISOString(),
       ends_at: endsAt.toISOString(),
       timezone: "Europe/Berlin"

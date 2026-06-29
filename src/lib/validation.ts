@@ -9,7 +9,7 @@ export const createBookingSchema = z.object({
   company: z.string().min(2, "Bitte geben Sie Ihr Unternehmen ein."),
   phone: z.string().trim().min(5, "Bitte geben Sie Ihre Telefonnummer ein.").max(60, "Die Telefonnummer ist zu lang."),
   meetingLocation: z.enum(meetingLocationValues),
-  topic: z.string().min(10, "Bitte beschreiben Sie Ihr Anliegen kurz."),
+  topic: z.string().trim().optional().or(z.literal("")),
   privacyAccepted: z.literal(true, {
     errorMap: () => ({ message: "Bitte bestätigen Sie den Datenschutzhinweis." })
   })
