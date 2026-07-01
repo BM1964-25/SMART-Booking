@@ -194,6 +194,152 @@ export default async function AdminPage() {
 
       <div className="mt-6">
         <Panel
+          title="Nächste Buchungen"
+          action={
+            <Link href="/admin/bookings" className="inline-flex items-center gap-1 text-sm font-semibold text-brand-600 hover:text-brand-700">
+              Alle anzeigen
+              <ArrowUpRight className="h-4 w-4" />
+            </Link>
+          }
+        >
+          <div className="space-y-3">
+            {(nextBookings || []).length ? (
+              (nextBookings || []).map((booking) => (
+                <div key={booking.id} className="grid gap-3 rounded-md border border-slate-200 bg-slate-50 p-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
+                  <div>
+                    <p className="font-semibold text-slate-950">{booking.booking_types?.name || "Termin"}</p>
+                    <p className="mt-1 text-sm text-slate-600">
+                      {booking.customer_name} · {booking.company}
+                    </p>
+                    <p className="mt-1 text-xs text-slate-500">{booking.customer_email}</p>
+                  </div>
+                  <div className="text-sm font-semibold text-slate-700 sm:text-right">
+                    <p>{formatGermanDate(new Date(booking.starts_at))}</p>
+                    <p className="mt-1 text-brand-600">{formatGermanTime(new Date(booking.starts_at))}</p>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <EmptyState text="Noch keine anstehenden Buchungen vorhanden." />
+            )}
+          </div>
+        </Panel>
+      </div>
+
+      <div className="mt-6">
+        <Panel
+          title="Termin-Erinnerungen"
+          action={
+            <Link href="/admin/settings#terminarten" className="inline-flex items-center gap-1 text-sm font-semibold text-brand-600 hover:text-brand-700">
+              Terminarten prüfen
+              <ArrowUpRight className="h-4 w-4" />
+            </Link>
+          }
+        >
+          <div className="grid gap-4 lg:grid-cols-2">
+            <div className="rounded-md border border-slate-200 bg-slate-50 p-4">
+              <div className="flex items-start gap-3">
+                <span className={`inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-md ${reminderStatus.disabledRows.length ? "bg-amber-50 text-amber-600" : "bg-emerald-50 text-emerald-600"}`}>
+                  <BellRing className="h-5 w-5" />
+                </span>
+                <div>
+                  <p className="text-sm font-semibold text-slate-950">{reminderStatus.enabledTypes} von {reminderStatus.activeTypes} aktiven Terminarten</p>
+                  <p className="mt-1 text-xs leading-5 text-slate-500">
+                    {reminderStatus.disabledRows.length
+                      ? `${reminderStatus.disabledRows.length} aktive Terminarten haben keine Erinnerung aktiviert.`
+                      : "Alle aktiven Terminarten haben mindestens eine Erinnerung aktiviert."}
+                  </p>
+                  <p className="mt-3 rounded-md border border-slate-200 bg-white px-3 py-2 text-xs leading-5 text-slate-600">
+                    Der automatische Versand greift nur für aktivierte Erinnerungen und wird regelmäßig im Hintergrund geprüft.
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div>
+              {reminderStatus.disabledRows.length ? (
+                <div className="overflow-hidden rounded-md border border-amber-200">
+                  <div className="hidden grid-cols-[minmax(0,1fr)_7rem_7rem] gap-3 bg-amber-50 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-amber-800 sm:grid">
+                    <span>Terminart</span>
+                    <span>Erinnerung 1</span>
+                    <span>Erinnerung 2</span>
+                  </div>
+                  <div className="divide-y divide-amber-100 bg-white">
+                    {reminderStatus.disabledRows.slice(0, 6).map((row) => (
+                      <div key={row.id} className="grid gap-3 px-3 py-2 text-sm sm:grid-cols-[minmax(0,1fr)_7rem_7rem]">
+                        <span className="min-w-0">
+                          <span className="block truncate font-semibold text-slate-950">{row.name}</span>
+                          <span className="mt-0.5 block truncate text-xs text-slate-500">{row.profileName}</span>
+                        </span>
+                        <span className="flex items-center gap-2">
+                          <span className="text-xs font-semibold text-slate-500 sm:hidden">Erinnerung 1</span>
+                          <ReminderBadge active={row.reminder1} />
+                        </span>
+                        <span className="flex items-center gap-2">
+                          <span className="text-xs font-semibold text-slate-500 sm:hidden">Erinnerung 2</span>
+                          <ReminderBadge active={row.reminder2} />
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                  {reminderStatus.disabledRows.length > 6 ? (
+                    <p className="border-t border-amber-100 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+                      {reminderStatus.disabledRows.length - 6} weitere aktive Terminarten ohne vollständige Erinnerung.
+                    </p>
+                  ) : null}
+                </div>
+              ) : (
+                <EmptyState text="Keine aktiven Terminarten ohne Erinnerung vorhanden." />
+              )}
+            </div>
+          </div>
+        </Panel>
+      </div>
+
+      <div className="mt-6">
+        <Panel title="Terminvolumen der letzten 4 Wochen">
+          <div className="grid gap-5 lg:grid-cols-2">
+            <div>
+              <h3 className="text-sm font-semibold text-slate-950">Verlauf pro Woche</h3>
+              <div className="mt-3 space-y-3">
+                {weeklySeries.map((week) => (
+                  <div key={week.label}>
+                    <div className="mb-1 flex items-center justify-between text-xs font-semibold text-slate-500">
+                      <span>{week.label}</span>
+                      <span>{week.count}</span>
+                    </div>
+                    <div className="h-2 overflow-hidden rounded-full bg-slate-100">
+                      <div className="h-full rounded-full bg-brand-500" style={{ width: `${Math.max(6, (week.count / maxWeeklyValue) * 100)}%` }} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div>
+              <h3 className="text-sm font-semibold text-slate-950">Aufteilung nach Profil</h3>
+              <div className="mt-3 space-y-3">
+                {profileVolumeRows.map((row) => (
+                  <div key={row.id}>
+                    <div className="mb-1 flex items-center justify-between gap-3 text-xs font-semibold text-slate-500">
+                      <span className="truncate">{row.name}</span>
+                      <span>{row.count}</span>
+                    </div>
+                    <div className="h-2 overflow-hidden rounded-full bg-slate-100">
+                      <div className="h-full rounded-full bg-emerald-500" style={{ width: `${row.count === 0 ? 0 : Math.max(6, (row.count / maxProfileVolume) * 100)}%` }} />
+                    </div>
+                  </div>
+                ))}
+                {profileVolumeRows.length === 0 ? <EmptyState text="Noch keine Profile für die Auswertung vorhanden." /> : null}
+              </div>
+              <p className="mt-3 text-xs leading-5 text-slate-500">
+                Gezählt werden bestätigte SMART-Booking-Buchungen nach Termindatum. Externe Kalendertermine ohne Buchung werden nicht berücksichtigt.
+              </p>
+            </div>
+          </div>
+        </Panel>
+      </div>
+
+      <div className="mt-6">
+        <Panel
           title="Livebetrieb prüfen"
           action={
             <span className="inline-flex items-center gap-2 rounded-full bg-brand-50 px-3 py-1 text-xs font-semibold text-brand-700">
@@ -249,159 +395,6 @@ export default async function AdminPage() {
         </Panel>
       </div>
 
-      <div className="mt-6">
-        <Panel
-          title="Termin-Erinnerungen"
-          action={
-            <Link href="/admin/settings#terminarten" className="inline-flex items-center gap-1 text-sm font-semibold text-brand-600 hover:text-brand-700">
-              Terminarten prüfen
-              <ArrowUpRight className="h-4 w-4" />
-            </Link>
-          }
-        >
-          <div className="grid gap-4 lg:grid-cols-2">
-            <div className="rounded-md border border-slate-200 bg-slate-50 p-4">
-              <div className="flex items-start gap-3">
-                <span className={`inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-md ${reminderStatus.disabledRows.length ? "bg-amber-50 text-amber-600" : "bg-emerald-50 text-emerald-600"}`}>
-                  <BellRing className="h-5 w-5" />
-                </span>
-                <div>
-                  <p className="text-sm font-semibold text-slate-950">{reminderStatus.enabledTypes} von {reminderStatus.activeTypes} aktiven Terminarten</p>
-                  <p className="mt-1 text-xs leading-5 text-slate-500">
-                    {reminderStatus.disabledRows.length
-                      ? `${reminderStatus.disabledRows.length} aktive Terminarten haben keine Erinnerung aktiviert.`
-                      : "Alle aktiven Terminarten haben mindestens eine Erinnerung aktiviert."}
-                  </p>
-                </div>
-              </div>
-            </div>
-            <div>
-              {reminderStatus.disabledRows.length ? (
-                <div className="overflow-hidden rounded-md border border-amber-200">
-                  <div className="hidden grid-cols-[minmax(0,1fr)_7rem_7rem] gap-3 bg-amber-50 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-amber-800 sm:grid">
-                    <span>Terminart</span>
-                    <span>Erinnerung 1</span>
-                    <span>Erinnerung 2</span>
-                  </div>
-                  <div className="divide-y divide-amber-100 bg-white">
-                    {reminderStatus.disabledRows.slice(0, 6).map((row) => (
-                      <div key={row.id} className="grid gap-3 px-3 py-2 text-sm sm:grid-cols-[minmax(0,1fr)_7rem_7rem]">
-                        <span className="min-w-0">
-                          <span className="block truncate font-semibold text-slate-950">{row.name}</span>
-                          <span className="mt-0.5 block truncate text-xs text-slate-500">{row.profileName}</span>
-                        </span>
-                        <span className="flex items-center gap-2">
-                          <span className="text-xs font-semibold text-slate-500 sm:hidden">Erinnerung 1</span>
-                          <ReminderBadge active={row.reminder1} />
-                        </span>
-                        <span className="flex items-center gap-2">
-                          <span className="text-xs font-semibold text-slate-500 sm:hidden">Erinnerung 2</span>
-                          <ReminderBadge active={row.reminder2} />
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                  {reminderStatus.disabledRows.length > 6 ? (
-                    <p className="border-t border-amber-100 bg-amber-50 px-3 py-2 text-xs text-amber-800">
-                      {reminderStatus.disabledRows.length - 6} weitere aktive Terminarten ohne vollständige Erinnerung.
-                    </p>
-                  ) : null}
-                </div>
-              ) : (
-                <EmptyState text="Keine aktiven Terminarten ohne Erinnerung vorhanden." />
-              )}
-            </div>
-          </div>
-        </Panel>
-      </div>
-
-      <div className="mt-6 grid gap-5 lg:grid-cols-2">
-        <Panel
-          title="Nächste Buchungen"
-          action={
-            <Link href="/admin/bookings" className="inline-flex items-center gap-1 text-sm font-semibold text-brand-600 hover:text-brand-700">
-              Alle anzeigen
-              <ArrowUpRight className="h-4 w-4" />
-            </Link>
-          }
-        >
-          <div className="space-y-3">
-            {(nextBookings || []).length ? (
-              (nextBookings || []).map((booking) => (
-                <div key={booking.id} className="grid gap-3 rounded-md border border-slate-200 bg-slate-50 p-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
-                  <div>
-                    <p className="font-semibold text-slate-950">{booking.booking_types?.name || "Termin"}</p>
-                    <p className="mt-1 text-sm text-slate-600">
-                      {booking.customer_name} · {booking.company}
-                    </p>
-                    <p className="mt-1 text-xs text-slate-500">{booking.customer_email}</p>
-                  </div>
-                  <div className="text-sm font-semibold text-slate-700 sm:text-right">
-                    <p>{formatGermanDate(new Date(booking.starts_at))}</p>
-                    <p className="mt-1 text-brand-600">{formatGermanTime(new Date(booking.starts_at))}</p>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <EmptyState text="Noch keine anstehenden Buchungen vorhanden." />
-            )}
-          </div>
-        </Panel>
-
-        <Panel title="Systemstatus">
-          <div className="space-y-2">
-            <StatusLine label="Supabase verbunden" ok={hasSupabaseConfig()} icon={Database} />
-            <StatusLine label="Apple CalDAV erreichbar" ok={calendarStatus.status === "ready"} icon={CalendarCheck} detail={calendarStatus.status === "unavailable" ? calendarStatus.message : undefined} />
-            <StatusLine label="E-Mail-Versand konfiguriert" ok={emailConfigured} icon={MailCheck} />
-            <StatusLine label="Online-Meeting-Link aktiv" ok={meetingConfigured} icon={Video} />
-            <StatusLine label="Öffentlicher Buchungslink" ok icon={Globe2} detail={publicBookingUrl} />
-          </div>
-        </Panel>
-      </div>
-
-      <div className="mt-6">
-        <Panel title="Terminvolumen der letzten 4 Wochen">
-          <div className="grid gap-5 lg:grid-cols-2">
-            <div>
-              <h3 className="text-sm font-semibold text-slate-950">Verlauf pro Woche</h3>
-              <div className="mt-3 space-y-3">
-                {weeklySeries.map((week) => (
-                  <div key={week.label}>
-                    <div className="mb-1 flex items-center justify-between text-xs font-semibold text-slate-500">
-                      <span>{week.label}</span>
-                      <span>{week.count}</span>
-                    </div>
-                    <div className="h-2 overflow-hidden rounded-full bg-slate-100">
-                      <div className="h-full rounded-full bg-brand-500" style={{ width: `${Math.max(6, (week.count / maxWeeklyValue) * 100)}%` }} />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div>
-              <h3 className="text-sm font-semibold text-slate-950">Aufteilung nach Profil</h3>
-              <div className="mt-3 space-y-3">
-                {profileVolumeRows.map((row) => (
-                  <div key={row.id}>
-                    <div className="mb-1 flex items-center justify-between gap-3 text-xs font-semibold text-slate-500">
-                      <span className="truncate">{row.name}</span>
-                      <span>{row.count}</span>
-                    </div>
-                    <div className="h-2 overflow-hidden rounded-full bg-slate-100">
-                      <div className="h-full rounded-full bg-emerald-500" style={{ width: `${row.count === 0 ? 0 : Math.max(6, (row.count / maxProfileVolume) * 100)}%` }} />
-                    </div>
-                  </div>
-                ))}
-                {profileVolumeRows.length === 0 ? <EmptyState text="Noch keine Profile für die Auswertung vorhanden." /> : null}
-              </div>
-              <p className="mt-3 text-xs leading-5 text-slate-500">
-                Gezählt werden bestätigte Termine nach Profil/Angebotsseite, nicht nach Kundenfirma.
-              </p>
-            </div>
-          </div>
-        </Panel>
-      </div>
-
       <div className="mt-6 grid gap-5 lg:grid-cols-2">
         <Panel title="Profile & Sichtbarkeit">
           <div className="grid gap-3 md:grid-cols-2">
@@ -435,6 +428,16 @@ export default async function AdminPage() {
             <QuickAction href="/admin/profiles" icon={UserRound} title="Profile gestalten" text="Headline, Kontaktdaten, Farben und Premium-Einbettung steuern." />
             <QuickAction href="/admin/backup" icon={Download} title="Datensicherung öffnen" text="Export und Import der Konfiguration verwalten." />
             <QuickAction href={publicBookingUrl} icon={ExternalLink} title="Öffentliche Buchung öffnen" text="Produktionslink in einem neuen Tab prüfen." external />
+          </div>
+        </Panel>
+
+        <Panel title="Systemstatus">
+          <div className="space-y-2">
+            <StatusLine label="Supabase verbunden" ok={hasSupabaseConfig()} icon={Database} />
+            <StatusLine label="Apple CalDAV erreichbar" ok={calendarStatus.status === "ready"} icon={CalendarCheck} detail={calendarStatus.status === "unavailable" ? calendarStatus.message : undefined} />
+            <StatusLine label="E-Mail-Versand konfiguriert" ok={emailConfigured} icon={MailCheck} />
+            <StatusLine label="Online-Meeting-Link aktiv" ok={meetingConfigured} icon={Video} />
+            <StatusLine label="Öffentlicher Buchungslink" ok icon={Globe2} detail={publicBookingUrl} />
           </div>
         </Panel>
       </div>
