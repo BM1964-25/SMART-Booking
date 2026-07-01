@@ -348,6 +348,9 @@ export default async function AdminPage() {
             </span>
           }
         >
+          <p className="mb-4 max-w-3xl text-sm leading-6 text-slate-600">
+            Prüft, ob die öffentlichen Buchungsseiten, Kalender, E-Mail-Versand und Meeting-Links für den laufenden Betrieb bereit sind.
+          </p>
           <div className="grid gap-3 md:grid-cols-2">
             {productionChecks.map((check) => (
               <ReadinessItem key={check.title} {...check} />
@@ -357,6 +360,9 @@ export default async function AdminPage() {
             <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
               <div>
                 <h3 className="text-sm font-semibold text-slate-950">Aktive Live-Webseiten prüfen</h3>
+                <p className="mt-1 text-xs leading-5 text-slate-500">
+                  Öffne die aktiven Buchungsseiten und prüfe Darstellung, Profiltexte und buchbare Terminarten.
+                </p>
                 <div className="mt-3 grid gap-2">
                   {activeProfileRows.length ? (
                     activeProfileRows.map((profile) => (
@@ -381,6 +387,9 @@ export default async function AdminPage() {
               </div>
               <div>
                 <h3 className="text-sm font-semibold text-slate-950">Empfohlene Testfolge</h3>
+                <p className="mt-1 text-xs leading-5 text-slate-500">
+                  Nutze diese Schritte nach Änderungen, um den gesamten Buchungsprozess bis zur Bestätigung zu testen.
+                </p>
                 <ol className="mt-3 grid gap-2 text-sm text-slate-600">
                   {["Live-Link öffnen", "Terminart wählen", "Testbuchung durchführen", "E-Mail und Kalendereintrag prüfen", "Storno oder Änderung testen"].map((step, index) => (
                     <li key={step} className="flex gap-2 rounded-md border border-slate-200 bg-white px-3 py-2">
