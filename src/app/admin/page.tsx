@@ -249,7 +249,7 @@ export default async function AdminPage() {
             </Link>
           }
         >
-          <div className="grid gap-4 lg:grid-cols-[18rem_minmax(0,1fr)]">
+          <div className="grid gap-4 lg:grid-cols-2">
             <div className="rounded-md border border-slate-200 bg-slate-50 p-4">
               <div className="flex items-start gap-3">
                 <span className={`inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-md ${reminderStatus.disabledRows.length ? "bg-amber-50 text-amber-600" : "bg-emerald-50 text-emerald-600"}`}>
@@ -298,7 +298,7 @@ export default async function AdminPage() {
                   ) : null}
                 </div>
               ) : (
-                <EmptyState text="Keine aktiven Terminarten ohne Erinnerung gefunden." />
+                <EmptyState text="Keine aktiven Terminarten ohne Erinnerung vorhanden." />
               )}
             </div>
           </div>
