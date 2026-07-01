@@ -395,15 +395,15 @@ export default async function AdminPage() {
         </Panel>
       </div>
 
-      <div className="mt-6 grid gap-5 lg:grid-cols-2">
+      <div className="mt-6">
         <Panel title="Profile & Sichtbarkeit">
-          <div className="grid gap-3 md:grid-cols-2">
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
             {profileRows.map((profile) => (
               <div key={profile.id} className="rounded-md border border-slate-200 bg-slate-50 p-3">
                 <div className="flex items-start justify-between gap-3">
-                  <div>
+                  <div className="min-w-0">
                     <p className="font-semibold text-slate-950">{profile.name}</p>
-                    <p className="mt-1 text-xs text-slate-500">{profile.url}</p>
+                    <p className="mt-1 truncate text-xs text-slate-500">{profile.url}</p>
                   </div>
                   <span className={`rounded-full px-2.5 py-1 text-xs font-semibold ${profile.isActive ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-500"}`}>
                     {profile.isActive ? "Aktiv" : "Inaktiv"}
@@ -419,9 +419,11 @@ export default async function AdminPage() {
             ))}
           </div>
         </Panel>
+      </div>
 
+      <div className="mt-6">
         <Panel title="Schnellaktionen">
-          <div className="grid gap-3">
+          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
             <QuickAction href="/admin/bookings" icon={CalendarCheck} title="Buchungen prüfen" text="Stornieren, löschen oder Änderungsvorschläge sehen." />
             <QuickAction href="/admin/settings#terminarten" icon={Settings} title="Terminarten bearbeiten" text="Aktive Formate, Reihenfolge und Profil-Zuordnung pflegen." />
             <QuickAction href="/admin/integrations" icon={Globe2} title="Kalender & Meetings" text="Buchungskalender, Abgleich-Kalender und Meeting-Dienste steuern." />
@@ -430,9 +432,11 @@ export default async function AdminPage() {
             <QuickAction href={publicBookingUrl} icon={ExternalLink} title="Öffentliche Buchung öffnen" text="Produktionslink in einem neuen Tab prüfen." external />
           </div>
         </Panel>
+      </div>
 
+      <div className="mt-6">
         <Panel title="Systemstatus">
-          <div className="space-y-2">
+          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
             <StatusLine label="Supabase verbunden" ok={hasSupabaseConfig()} icon={Database} />
             <StatusLine label="Apple CalDAV erreichbar" ok={calendarStatus.status === "ready"} icon={CalendarCheck} detail={calendarStatus.status === "unavailable" ? calendarStatus.message : undefined} />
             <StatusLine label="E-Mail-Versand konfiguriert" ok={emailConfigured} icon={MailCheck} />
