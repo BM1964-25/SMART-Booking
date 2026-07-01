@@ -446,12 +446,31 @@ export default async function AdminPage() {
 
       <div className="mt-6">
         <Panel title="Systemstatus">
-          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
-            <StatusLine label="Supabase verbunden" ok={hasSupabaseConfig()} icon={Database} />
-            <StatusLine label="Apple CalDAV erreichbar" ok={calendarStatus.status === "ready"} icon={CalendarCheck} detail={calendarStatus.status === "unavailable" ? calendarStatus.message : undefined} />
-            <StatusLine label="E-Mail-Versand konfiguriert" ok={emailConfigured} icon={MailCheck} />
-            <StatusLine label="Online-Meeting-Link aktiv" ok={meetingConfigured} icon={Video} />
-            <StatusLine label="Öffentlicher Buchungslink" ok icon={Globe2} detail={publicBookingUrl} />
+          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+            <StatusLine
+              label="Datenbank"
+              ok={hasSupabaseConfig()}
+              icon={Database}
+              detail={hasSupabaseConfig() ? "Buchungen, Profile und Einstellungen können geladen und gespeichert werden." : "Die Datenbank-Verbindung fehlt. Buchungen und Einstellungen können nicht zuverlässig gespeichert werden."}
+            />
+            <StatusLine
+              label="Kalender"
+              ok={calendarStatus.status === "ready"}
+              icon={CalendarCheck}
+              detail={calendarStatus.status === "ready" ? "Der aktive Kalenderanbieter ist erreichbar und Verfügbarkeiten können geprüft werden." : calendarStatus.message}
+            />
+            <StatusLine
+              label="E-Mail-Versand"
+              ok={emailConfigured}
+              icon={MailCheck}
+              detail={emailConfigured ? "SMTP-Daten sind gespeichert. Bestätigungen und Erinnerungen können versendet werden." : "SMTP-Daten fehlen. Bestätigungen und Erinnerungen können noch nicht zuverlässig versendet werden."}
+            />
+            <StatusLine
+              label="Online-Meetings"
+              ok={meetingConfigured}
+              icon={Video}
+              detail={meetingConfigured ? "Mindestens ein Meeting-Link oder eine API-Verbindung ist eingerichtet." : "Für Online-Termine fehlt noch ein Meeting-Link oder eine API-Verbindung."}
+            />
           </div>
         </Panel>
       </div>
@@ -538,14 +557,17 @@ function StatusLine({
   label: string;
   ok: boolean;
 }) {
+  const tone = ok ? "border-emerald-200 bg-emerald-50" : "border-amber-200 bg-amber-50";
+  const iconTone = ok ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700";
+
   return (
-    <div className="flex gap-3 rounded-md border border-slate-200 bg-slate-50 p-3">
-      <span className={`mt-0.5 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md ${ok ? "bg-emerald-50 text-emerald-600" : "bg-amber-50 text-amber-600"}`}>
+    <div className={`flex gap-3 rounded-md border p-3 ${tone}`}>
+      <span className={`mt-0.5 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md ${iconTone}`}>
         {ok ? <CheckCircle2 className="h-4 w-4" /> : <Icon className="h-4 w-4" />}
       </span>
       <div className="min-w-0">
         <p className="text-sm font-semibold text-slate-950">{label}</p>
-        {detail ? <p className="mt-1 break-words text-xs leading-5 text-slate-500">{detail}</p> : null}
+        {detail ? <p className="mt-1 break-words text-xs leading-5 text-slate-600">{detail}</p> : null}
       </div>
     </div>
   );
