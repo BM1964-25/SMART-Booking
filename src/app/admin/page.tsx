@@ -3,6 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import {
   ArrowUpRight,
+  BellRing,
   CalendarCheck,
   CalendarClock,
   CheckCircle2,
@@ -17,7 +18,6 @@ import {
   MailCheck,
   Rocket,
   Settings,
-  ShieldCheck,
   UserRound,
   Video
 } from "lucide-react";
@@ -65,6 +65,18 @@ type ProductionCheck = {
   detail: string;
   status: ProductionCheckStatus;
   title: string;
+};
+
+type ReminderStatus = {
+  activeTypes: number;
+  disabledRows: Array<{
+    id: string;
+    name: string;
+    profileName: string;
+    reminder1: boolean;
+    reminder2: boolean;
+  }>;
+  enabledTypes: number;
 };
 
 export default async function AdminPage() {
@@ -125,6 +137,7 @@ export default async function AdminPage() {
   const maxWeeklyValue = Math.max(1, ...weeklySeries.map((week) => week.count));
   const profileRows = buildProfileRows(profiles || [], bookingTypes || []);
   const activeProfileRows = profileRows.filter((profile) => profile.isActive);
+  const reminderStatus = buildReminderStatus(profiles || [], bookingTypes || []);
   const nextFreeHint = nextBookings?.[0] ? `${formatShortGermanDate(new Date(nextBookings[0].starts_at))}\n${formatGermanTime(new Date(nextBookings[0].starts_at))} Uhr` : "Keine Buchung\ngeplant";
   const publicBookingUrl = `${PUBLIC_BOOKING_SITE_URL}/book`;
   const emailConfigured = Boolean(appSettings.smtpUser && appSettings.smtpPassword);
@@ -221,6 +234,72 @@ export default async function AdminPage() {
                   ))}
                 </ol>
               </div>
+            </div>
+          </div>
+        </Panel>
+      </div>
+
+      <div className="mt-6">
+        <Panel
+          title="Erinnerungen"
+          action={
+            <Link href="/admin/settings#terminarten" className="inline-flex items-center gap-1 text-sm font-semibold text-brand-600 hover:text-brand-700">
+              Terminarten prüfen
+              <ArrowUpRight className="h-4 w-4" />
+            </Link>
+          }
+        >
+          <div className="grid gap-4 lg:grid-cols-[18rem_minmax(0,1fr)]">
+            <div className="rounded-md border border-slate-200 bg-slate-50 p-4">
+              <div className="flex items-start gap-3">
+                <span className={`inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-md ${reminderStatus.disabledRows.length ? "bg-amber-50 text-amber-600" : "bg-emerald-50 text-emerald-600"}`}>
+                  <BellRing className="h-5 w-5" />
+                </span>
+                <div>
+                  <p className="text-sm font-semibold text-slate-950">{reminderStatus.enabledTypes} von {reminderStatus.activeTypes} aktiven Terminarten</p>
+                  <p className="mt-1 text-xs leading-5 text-slate-500">
+                    {reminderStatus.disabledRows.length
+                      ? `${reminderStatus.disabledRows.length} aktive Terminarten haben keine Erinnerung aktiviert.`
+                      : "Alle aktiven Terminarten haben mindestens eine Erinnerung aktiviert."}
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div>
+              {reminderStatus.disabledRows.length ? (
+                <div className="overflow-hidden rounded-md border border-amber-200">
+                  <div className="hidden grid-cols-[minmax(0,1fr)_7rem_7rem] gap-3 bg-amber-50 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-amber-800 sm:grid">
+                    <span>Terminart</span>
+                    <span>Erinnerung 1</span>
+                    <span>Erinnerung 2</span>
+                  </div>
+                  <div className="divide-y divide-amber-100 bg-white">
+                    {reminderStatus.disabledRows.slice(0, 6).map((row) => (
+                      <div key={row.id} className="grid gap-3 px-3 py-2 text-sm sm:grid-cols-[minmax(0,1fr)_7rem_7rem]">
+                        <span className="min-w-0">
+                          <span className="block truncate font-semibold text-slate-950">{row.name}</span>
+                          <span className="mt-0.5 block truncate text-xs text-slate-500">{row.profileName}</span>
+                        </span>
+                        <span className="flex items-center gap-2">
+                          <span className="text-xs font-semibold text-slate-500 sm:hidden">Erinnerung 1</span>
+                          <ReminderBadge active={row.reminder1} />
+                        </span>
+                        <span className="flex items-center gap-2">
+                          <span className="text-xs font-semibold text-slate-500 sm:hidden">Erinnerung 2</span>
+                          <ReminderBadge active={row.reminder2} />
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                  {reminderStatus.disabledRows.length > 6 ? (
+                    <p className="border-t border-amber-100 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+                      {reminderStatus.disabledRows.length - 6} weitere aktive Terminarten ohne vollständige Erinnerung.
+                    </p>
+                  ) : null}
+                </div>
+              ) : (
+                <EmptyState text="Keine aktiven Terminarten ohne Erinnerung gefunden." />
+              )}
             </div>
           </div>
         </Panel>
@@ -455,6 +534,14 @@ function EmptyState({ text }: { text: string }) {
   return <p className="rounded-md border border-dashed border-slate-300 bg-slate-50 p-4 text-sm leading-6 text-slate-500">{text}</p>;
 }
 
+function ReminderBadge({ active }: { active: boolean }) {
+  return (
+    <span className={`inline-flex w-fit items-center rounded-full px-2.5 py-1 text-xs font-semibold ${active ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"}`}>
+      {active ? "Aktiv" : "Aus"}
+    </span>
+  );
+}
+
 function buildWeeklySeries(bookings: Array<{ starts_at: string; status: string }>, since: Date) {
   return Array.from({ length: 4 }, (_, index) => {
     const start = addDays(since, index * 7);
@@ -489,6 +576,29 @@ function buildProfileRows(profiles: BookingProfile[], bookingTypes: BookingType[
     bookingTypes: bookingTypes.filter((type) => type.profile_id === profile.id).length,
     url: `${PUBLIC_BOOKING_SITE_URL}${profile.slug === defaultBookingProfile.slug ? "/book" : `/book/profile/${profile.slug}`}`
   }));
+}
+
+function buildReminderStatus(profiles: BookingProfile[], bookingTypes: BookingType[]): ReminderStatus {
+  const profileNames = new Map(profiles.map((profile) => [profile.id, profile.name]));
+  const activeTypes = bookingTypes.filter((type) => type.is_active);
+  const rows = activeTypes.map((type) => {
+    const reminder1 = Boolean(type.reminder_enabled);
+    const reminder2 = Boolean(type.reminder_2_enabled);
+
+    return {
+      id: type.id,
+      name: type.name,
+      profileName: type.profile_id ? profileNames.get(type.profile_id) || "Profil nicht gefunden" : "Allgemeine Terminart",
+      reminder1,
+      reminder2
+    };
+  });
+
+  return {
+    activeTypes: activeTypes.length,
+    disabledRows: rows.filter((row) => !row.reminder1 && !row.reminder2),
+    enabledTypes: rows.filter((row) => row.reminder1 || row.reminder2).length
+  };
 }
 
 function buildProductionChecks({
