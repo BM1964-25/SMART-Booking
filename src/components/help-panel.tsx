@@ -58,6 +58,23 @@ const helpSections: HelpSection[] = [
     ]
   },
   {
+    id: "dashboard",
+    title: "Dashboard",
+    body: [
+      "Das Dashboard zeigt den laufenden Betrieb von SMART Booking: anstehende Buchungen, Termin-Erinnerungen, Terminvolumen, Livebetrieb, Profile, Schnellaktionen und Systemstatus.",
+      "Die Bereiche sind nach praktischer Nutzung sortiert. Oben stehen Buchungen und Erinnerungen, weiter unten folgen Auswertung, Einrichtungskontrolle und technische Betriebsbereitschaft."
+    ],
+    bullets: [
+      "Nächste Buchungen: Zeigt die nächsten bestätigten SMART-Booking-Termine aus der Datenbank. Externe Kalendertermine ohne SMART-Booking-Buchung erscheinen hier nicht.",
+      "Termin-Erinnerungen: Zeigt, ob aktive Terminarten mindestens eine Erinnerung aktiviert haben. Der automatische Versand greift nur für aktivierte Erinnerungen und wird regelmäßig im Hintergrund geprüft.",
+      "Terminvolumen der letzten 4 Wochen: Zählt bestätigte SMART-Booking-Buchungen nach Termindatum. Kalendertermine, die nicht über SMART Booking gebucht wurden, werden nicht mitgezählt.",
+      "Livebetrieb prüfen: Prüft, ob öffentliche Buchungsseiten, Kalender, E-Mail-Versand und Meeting-Links für den laufenden Betrieb bereit sind.",
+      "Profile & Sichtbarkeit: Zeigt aktive und inaktive Profil-Webseiten, die Anzahl der Terminarten und den Premium-Status.",
+      "Schnellaktionen: Öffnet häufig genutzte Verwaltungsbereiche direkt, zum Beispiel Buchungen, Terminarten, Kalender & Meetings, Profile und Datensicherung.",
+      "Systemstatus: Zeigt Datenbank, Kalender, E-Mail-Versand und Online-Meetings. Grüne Kacheln bedeuten betriebsbereit; gelbe Kacheln bedeuten, dass eine Einstellung geprüft oder ergänzt werden sollte."
+    ]
+  },
+  {
     id: "profiles",
     title: "Profile & Vorlagen",
     body: [
@@ -92,7 +109,7 @@ const helpSections: HelpSection[] = [
       "Für jede Erinnerung wird ein eigener Zeitpunkt gewählt: 15 Minuten, 30 Minuten, 1 Stunde, 2 Stunden, 12 Stunden, 1 Tag, 2 Tage oder 3 Tage vor dem Termin.",
       "Jede Erinnerung kann einen eigenen Hinweistext bekommen, damit die frühere Nachricht anders klingt als die kurzfristige Erinnerung.",
       "Änderungen an Zeitpunkt, Hinweistext oder Aktiv-Häkchen werden erst übernommen, wenn die jeweilige Terminart gespeichert wird.",
-      "Damit Erinnerungen automatisch versendet werden, muss der Erinnerungs-Endpunkt regelmäßig durch einen externen Zeitplaner aufgerufen werden. Auf Vercel Hobby ist das der empfohlene Weg.",
+      "Damit Erinnerungen automatisch versendet werden, wird die Erinnerungsprüfung regelmäßig im Hintergrund aufgerufen. Auf Vercel Hobby erfolgt das über einen externen Zeitplaner.",
       "Der sichtbare Name einer Terminart darf in mehreren Profilen gleich sein, zum Beispiel „Kostenloses Erstgespräch“.",
       "Der technische Slug wird automatisch eindeutig gemacht. Bei Namensgleichheit hängt die App den Profil-Slug oder eine Nummer an.",
       "Nach dem Speichern bleibt der gewählte Profil-Tab im Terminartenbereich erhalten."
@@ -121,11 +138,13 @@ const helpSections: HelpSection[] = [
       "Innerhalb dieses aktiven Anbieters wird genau ein Buchungskalender ausgewählt. Zusätzliche Abgleich-Kalender müssen aus demselben Anbieter stammen, zum Beispiel mehrere Apple-Kalender bei Apple CalDAV."
     ],
     bullets: [
+      "Kalenderanbieter: Apple, Google oder Microsoft. Nur der aktiv gespeicherte Anbieter wird für den laufenden Betrieb verwendet.",
       "Buchungskalender: Ein Kalender für neue Buchungen. Dort erstellt SMART Booking den verbindlichen Kalendereintrag.",
       "Abgleich-Kalender: Weitere Kalender desselben Anbieters für die reine Verfügbarkeitsprüfung. Sie werden gelesen, aber nicht verändert.",
       "Ein Kalender kann gleichzeitig Buchungskalender und Abgleich-Kalender sein, wenn die dort eingetragenen Buchungen ebenfalls freie Zeiten blockieren sollen.",
       "Private, geschäftliche oder Urlaubskalender können als Abgleich-Kalender aktiviert werden, sofern sie im aktiven Kalenderanbieter verfügbar sind. SMART Booking trägt dort keine Termine ein.",
-      "Kalenderanbieter aktiv setzen: Nur der aktiv gespeicherte Anbieter wird für neue Buchungen verwendet. Wenn Sie nur einen anderen Tab öffnen, bearbeiten Sie dessen Einstellungen, wechseln aber noch nicht den produktiven Anbieter.",
+      "Kalenderanbieter aktiv setzen: Wenn Sie nur einen anderen Tab öffnen, bearbeiten Sie dessen Einstellungen, wechseln aber noch nicht den produktiven Anbieter. Der Wechsel erfolgt erst durch Speichern des aktiven Kalenderanbieters.",
+      "Testdaten anderer Anbieter: Google- oder Microsoft-Kalender können vorbereitet oder getestet werden. Solange Apple aktiv ist, zählen diese gespeicherten Kalender nicht für den Livebetrieb. Das Gleiche gilt umgekehrt für alle Anbieter.",
       "Kalenderauswahl speichern: Nach dem Verbinden oder Ändern eines Anbieters muss genau ein Buchungskalender ausgewählt und gespeichert werden. Ohne Buchungskalender kann SMART Booking keinen verbindlichen Kalendereintrag erstellen.",
       "Apple / iCloud CalDAV: Benötigt CalDAV-URL, Apple-ID als Benutzername und ein app-spezifisches Passwort. Die Apple-ID ist die E-Mail-Adresse des iCloud-Kontos; das app-spezifische Passwort wird in den Apple-ID-Sicherheitseinstellungen erzeugt.",
       "Apple CalDAV-URL: Die Serveradresse für iCloud-Kalender. Sie wird in der technischen Einrichtung hinterlegt und zeigt SMART Booking, wo die iCloud-Kalender gelesen und beschrieben werden.",
@@ -190,7 +209,7 @@ const helpSections: HelpSection[] = [
       "Der Testversand prüft, ob SMART Booking über die gespeicherten SMTP-Daten eine E-Mail zustellen kann. Ein erfolgreicher Test ersetzt trotzdem keine echte Testbuchung.",
       "Nach jeder Änderung am E-Mail-Versand sollte eine Testbuchung durchgeführt werden. Dabei sollten Kundenmail, Adminmail, Kalendereintrag und Meeting-Details gemeinsam geprüft werden.",
       "Wenn keine E-Mail ankommt, zuerst SMTP-Daten, Absenderadresse und Provider-Logs prüfen. Danach Spam-Ordner, Domain-Authentifizierung und mögliche Tippfehler in der Empfängeradresse kontrollieren.",
-      "Erinnerungen werden nur versendet, wenn sie in der jeweiligen Terminart aktiviert sind und der Erinnerungs-Endpunkt regelmäßig durch den externen Zeitplaner aufgerufen wird."
+      "Erinnerungen werden nur versendet, wenn sie in der jeweiligen Terminart aktiviert sind und die automatische Erinnerungsprüfung regelmäßig läuft."
     ]
   },
   {
@@ -200,6 +219,7 @@ const helpSections: HelpSection[] = [
     bullets: [
       "Profil und Terminarten vorbereiten.",
       "Kalender & Meetings prüfen: Buchungskalender festlegen und gewünschte Abgleich-Kalender aktivieren.",
+      "Im Dashboard den Systemstatus kontrollieren. Datenbank, Kalender, E-Mail-Versand und Online-Meetings sollten grün sein oder bewusst als gelber Prüfpunkt akzeptiert werden.",
       "Bei Bedarf eine Profilvorlage anwenden und danach das Profil speichern.",
       "Verfügbarkeiten und blockierte Zeiten pflegen.",
       "Live-Buchungsseite testen.",
@@ -242,8 +262,8 @@ const helpSections: HelpSection[] = [
     title: "Fehler & Lösungen",
     body: ["Häufige Ursachen lassen sich meist über Einstellungen und Provider-Logs eingrenzen."],
     bullets: [
-      "Kein freier Termin sichtbar: Verfügbarkeiten, blockierte Zeiten, Pufferzeiten und Apple Kalender prüfen.",
-      "Kalendereintrag schlägt fehl: Apple CalDAV-URL, Benutzername, app-spezifisches Passwort und Kalender-ID prüfen.",
+      "Kein freier Termin sichtbar: Verfügbarkeiten, blockierte Zeiten, Pufferzeiten und Kalender des aktiven Anbieters prüfen.",
+      "Kalendereintrag schlägt fehl: Aktiven Kalenderanbieter, Buchungskalender, Zugangsdaten und Kalenderverbindung prüfen.",
       "Keine E-Mail: SMTP-Werte, Absenderdomain, SPF/DKIM/DMARC und Brevo-Logs prüfen.",
       "E-Mail landet im Spam: Absenderdomain in Brevo authentifizieren, SPF/DKIM/DMARC prüfen und möglichst nur die freigegebene Absenderadresse verwenden.",
       "Zoom-Link fehlt: Zoom Server-to-Server OAuth, Scopes und Environment Variables prüfen.",
