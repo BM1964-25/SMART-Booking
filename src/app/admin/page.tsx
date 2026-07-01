@@ -348,7 +348,7 @@ export default async function AdminPage() {
             </span>
           }
         >
-          <p className="mb-4 max-w-3xl text-sm leading-6 text-slate-600">
+          <p className="mb-4 text-sm leading-6 text-slate-600 lg:whitespace-nowrap">
             Prüft, ob die öffentlichen Buchungsseiten, Kalender, E-Mail-Versand und Meeting-Links für den laufenden Betrieb bereit sind.
           </p>
           <div className="grid gap-3 md:grid-cols-2">
@@ -725,10 +725,7 @@ function buildProductionChecks({
     {
       title: "Kalenderabgleich",
       status: calendarReady && bookingCalendarCount === 1 && availabilityCalendarCount > 0 ? "ready" : "warning",
-      detail:
-        bookingCalendarCount === 1
-          ? `${availabilityCalendarCount} Abgleich-Kalender aktiv. Neue Termine werden in genau einen Buchungskalender geschrieben.`
-          : "Genau ein Buchungskalender muss aktiv sein; Abgleich-Kalender dürfen mehrere sein."
+      detail: getCalendarCheckDetail({ availabilityCalendarCount, bookingCalendarCount, calendarReady })
     },
     {
       title: "E-Mail-Zustellung",
@@ -743,6 +740,34 @@ function buildProductionChecks({
       detail: meetingConfigured ? "Mindestens ein Meeting-Link ist eingerichtet." : "Optional: Nur für Online-Termine erforderlich. Zoom, Teams oder Google Meet können bei Bedarf in Kalender & Meetings hinterlegt werden."
     }
   ];
+}
+
+function getCalendarCheckDetail({
+  availabilityCalendarCount,
+  bookingCalendarCount,
+  calendarReady
+}: {
+  availabilityCalendarCount: number;
+  bookingCalendarCount: number;
+  calendarReady: boolean;
+}) {
+  if (!calendarReady) {
+    return "Der Kalender konnte gerade nicht geprüft werden. Bitte Verbindung und Zugangsdaten kontrollieren.";
+  }
+
+  if (bookingCalendarCount === 0) {
+    return "Es ist kein Buchungskalender aktiv. Neue Termine brauchen genau einen Zielkalender.";
+  }
+
+  if (bookingCalendarCount > 1) {
+    return `${bookingCalendarCount} Buchungskalender aktiv. Bitte genau einen Zielkalender für neue Termine auswählen.`;
+  }
+
+  if (availabilityCalendarCount === 0) {
+    return "Es ist kein Abgleich-Kalender aktiv. Mindestens ein Kalender sollte Verfügbarkeiten blockieren.";
+  }
+
+  return `${availabilityCalendarCount} Abgleich-Kalender aktiv. Neue Termine werden in genau einen Buchungskalender geschrieben.`;
 }
 
 async function loadCalendarStatus(from: Date, to: Date): Promise<CalendarStatus> {
