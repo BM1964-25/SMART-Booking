@@ -48,6 +48,13 @@ type DashboardBooking = {
   booking_types: { name: string | null } | null;
 };
 
+type DashboardVolumeBooking = {
+  id: string;
+  starts_at: string;
+  status: string;
+  booking_types: { profile_id: string | null } | null;
+};
+
 type CalendarStatus =
   | {
       status: "ready";
@@ -115,9 +122,10 @@ export default async function AdminPage() {
       .returns<DashboardBooking[]>(),
     supabase
       .from("bookings")
-      .select("id, starts_at, status")
+      .select("id, starts_at, status, booking_types(profile_id)")
       .gte("starts_at", since28Days.toISOString())
-      .order("starts_at", { ascending: true }),
+      .order("starts_at", { ascending: true })
+      .returns<DashboardVolumeBooking[]>(),
     supabase.from("booking_profiles").select("*").order("name").returns<BookingProfile[]>(),
     supabase.from("booking_types").select("*").order("sort_order").returns<BookingType[]>(),
     supabase.from("calendar_connections").select("*").order("display_name").returns<CalendarConnection[]>(),
@@ -135,6 +143,8 @@ export default async function AdminPage() {
 
   const weeklySeries = buildWeeklySeries(recentBookings || [], since28Days);
   const maxWeeklyValue = Math.max(1, ...weeklySeries.map((week) => week.count));
+  const profileVolumeRows = buildProfileVolumeRows(recentBookings || [], profiles || []);
+  const maxProfileVolume = Math.max(1, ...profileVolumeRows.map((row) => row.count));
   const profileRows = buildProfileRows(profiles || [], bookingTypes || []);
   const activeProfileRows = profileRows.filter((profile) => profile.isActive);
   const reminderStatus = buildReminderStatus(profiles || [], bookingTypes || []);
@@ -350,19 +360,44 @@ export default async function AdminPage() {
       </div>
 
       <div className="mt-6">
-        <Panel title="Buchungsentwicklung">
-          <div className="space-y-3">
-            {weeklySeries.map((week) => (
-              <div key={week.label}>
-                <div className="mb-1 flex items-center justify-between text-xs font-semibold text-slate-500">
-                  <span>{week.label}</span>
-                  <span>{week.count}</span>
-                </div>
-                <div className="h-2 overflow-hidden rounded-full bg-slate-100">
-                  <div className="h-full rounded-full bg-brand-500" style={{ width: `${Math.max(6, (week.count / maxWeeklyValue) * 100)}%` }} />
-                </div>
+        <Panel title="Terminvolumen der letzten 4 Wochen">
+          <div className="grid gap-5 lg:grid-cols-2">
+            <div>
+              <h3 className="text-sm font-semibold text-slate-950">Verlauf pro Woche</h3>
+              <div className="mt-3 space-y-3">
+                {weeklySeries.map((week) => (
+                  <div key={week.label}>
+                    <div className="mb-1 flex items-center justify-between text-xs font-semibold text-slate-500">
+                      <span>{week.label}</span>
+                      <span>{week.count}</span>
+                    </div>
+                    <div className="h-2 overflow-hidden rounded-full bg-slate-100">
+                      <div className="h-full rounded-full bg-brand-500" style={{ width: `${Math.max(6, (week.count / maxWeeklyValue) * 100)}%` }} />
+                    </div>
+                  </div>
+                ))}
               </div>
-            ))}
+            </div>
+            <div>
+              <h3 className="text-sm font-semibold text-slate-950">Aufteilung nach Profil</h3>
+              <div className="mt-3 space-y-3">
+                {profileVolumeRows.map((row) => (
+                  <div key={row.id}>
+                    <div className="mb-1 flex items-center justify-between gap-3 text-xs font-semibold text-slate-500">
+                      <span className="truncate">{row.name}</span>
+                      <span>{row.count}</span>
+                    </div>
+                    <div className="h-2 overflow-hidden rounded-full bg-slate-100">
+                      <div className="h-full rounded-full bg-emerald-500" style={{ width: `${row.count === 0 ? 0 : Math.max(6, (row.count / maxProfileVolume) * 100)}%` }} />
+                    </div>
+                  </div>
+                ))}
+                {profileVolumeRows.length === 0 ? <EmptyState text="Noch keine Profile für die Auswertung vorhanden." /> : null}
+              </div>
+              <p className="mt-3 text-xs leading-5 text-slate-500">
+                Gezählt werden bestätigte Termine nach Profil/Angebotsseite, nicht nach Kundenfirma.
+              </p>
+            </div>
           </div>
         </Panel>
       </div>
@@ -556,6 +591,32 @@ function buildWeeklySeries(bookings: Array<{ starts_at: string; status: string }
       count
     };
   });
+}
+
+function buildProfileVolumeRows(bookings: DashboardVolumeBooking[], profiles: BookingProfile[]) {
+  const counts = new Map<string, number>();
+
+  for (const booking of bookings) {
+    if (booking.status !== "confirmed") {
+      continue;
+    }
+
+    const profileId = booking.booking_types?.profile_id || "general";
+    counts.set(profileId, (counts.get(profileId) || 0) + 1);
+  }
+
+  const profileRows = profiles.map((profile) => ({
+    id: profile.id,
+    name: profile.name,
+    count: counts.get(profile.id) || 0
+  }));
+
+  const generalCount = counts.get("general") || 0;
+
+  return [
+    ...profileRows,
+    ...(generalCount > 0 ? [{ id: "general", name: "Allgemeine Terminarten", count: generalCount }] : [])
+  ].sort((a, b) => b.count - a.count || a.name.localeCompare(b.name, "de"));
 }
 
 function formatShortGermanDate(date: Date) {
