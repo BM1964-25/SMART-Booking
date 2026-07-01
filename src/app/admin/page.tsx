@@ -155,6 +155,7 @@ export default async function AdminPage() {
   const productionChecks = buildProductionChecks({
     activeProfiles: activeProfiles || 0,
     activeTypes: activeTypes || 0,
+    activeCalendarProvider: appSettings.activeCalendarProvider,
     calendarConnections: calendarConnections || [],
     calendarReady: calendarStatus.status === "ready",
     emailConfigured,
@@ -679,6 +680,7 @@ function buildReminderStatus(profiles: BookingProfile[], bookingTypes: BookingTy
 }
 
 function buildProductionChecks({
+  activeCalendarProvider,
   activeProfiles,
   activeTypes,
   calendarConnections,
@@ -689,6 +691,7 @@ function buildProductionChecks({
   publicBookingUrl,
   supabaseReady
 }: {
+  activeCalendarProvider: "apple" | "google" | "microsoft";
   activeProfiles: number;
   activeTypes: number;
   calendarConnections: CalendarConnection[];
@@ -699,8 +702,9 @@ function buildProductionChecks({
   publicBookingUrl: string;
   supabaseReady: boolean;
 }): ProductionCheck[] {
-  const bookingCalendarCount = calendarConnections.filter((connection) => connection.is_active && connection.use_for_booking).length;
-  const availabilityCalendarCount = calendarConnections.filter((connection) => connection.is_active && connection.use_for_availability).length;
+  const activeProviderConnections = calendarConnections.filter((connection) => connection.provider === activeCalendarProvider);
+  const bookingCalendarCount = activeProviderConnections.filter((connection) => connection.is_active && connection.use_for_booking).length;
+  const availabilityCalendarCount = activeProviderConnections.filter((connection) => connection.is_active && connection.use_for_availability).length;
   const profilesWithoutTypes = profileRows.filter((profile) => profile.isActive && profile.bookingTypes === 0);
 
   return [
@@ -725,7 +729,7 @@ function buildProductionChecks({
     {
       title: "Kalenderabgleich",
       status: calendarReady && bookingCalendarCount === 1 && availabilityCalendarCount > 0 ? "ready" : "warning",
-      detail: getCalendarCheckDetail({ availabilityCalendarCount, bookingCalendarCount, calendarReady })
+      detail: getCalendarCheckDetail({ activeCalendarProvider, availabilityCalendarCount, bookingCalendarCount, calendarReady })
     },
     {
       title: "E-Mail-Zustellung",
@@ -743,31 +747,47 @@ function buildProductionChecks({
 }
 
 function getCalendarCheckDetail({
+  activeCalendarProvider,
   availabilityCalendarCount,
   bookingCalendarCount,
   calendarReady
 }: {
+  activeCalendarProvider: "apple" | "google" | "microsoft";
   availabilityCalendarCount: number;
   bookingCalendarCount: number;
   calendarReady: boolean;
 }) {
+  const providerLabel = getCalendarProviderLabel(activeCalendarProvider);
+
   if (!calendarReady) {
-    return "Der Kalender konnte gerade nicht geprüft werden. Bitte Verbindung und Zugangsdaten kontrollieren.";
+    return `${providerLabel} ist aktiv, konnte aber gerade nicht geprüft werden. Bitte Verbindung und Zugangsdaten kontrollieren.`;
   }
 
   if (bookingCalendarCount === 0) {
-    return "Es ist kein Buchungskalender aktiv. Neue Termine brauchen genau einen Zielkalender.";
+    return `${providerLabel} ist aktiv. Bitte einen Buchungskalender auswählen, in den neue Termine geschrieben werden.`;
   }
 
   if (bookingCalendarCount > 1) {
-    return `${bookingCalendarCount} Buchungskalender aktiv. Bitte genau einen Zielkalender für neue Termine auswählen.`;
+    return `${providerLabel} ist aktiv. Bitte genau einen Buchungskalender auswählen; andere Anbieter werden nicht für den Livebetrieb gezählt.`;
   }
 
   if (availabilityCalendarCount === 0) {
-    return "Es ist kein Abgleich-Kalender aktiv. Mindestens ein Kalender sollte Verfügbarkeiten blockieren.";
+    return `${providerLabel} ist aktiv. Mindestens ein Abgleich-Kalender sollte Verfügbarkeiten blockieren.`;
   }
 
-  return `${availabilityCalendarCount} Abgleich-Kalender aktiv. Neue Termine werden in genau einen Buchungskalender geschrieben.`;
+  return `${providerLabel} ist aktiv: 1 Buchungskalender und ${availabilityCalendarCount} Abgleich-Kalender. Andere Anbieter bleiben unberücksichtigt.`;
+}
+
+function getCalendarProviderLabel(provider: "apple" | "google" | "microsoft") {
+  if (provider === "google") {
+    return "Google";
+  }
+
+  if (provider === "microsoft") {
+    return "Microsoft";
+  }
+
+  return "Apple";
 }
 
 async function loadCalendarStatus(from: Date, to: Date): Promise<CalendarStatus> {
