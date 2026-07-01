@@ -251,7 +251,7 @@ export default async function AdminPage() {
 
       <div className="mt-6">
         <Panel
-          title="Erinnerungen"
+          title="Termin-Erinnerungen"
           action={
             <Link href="/admin/settings#terminarten" className="inline-flex items-center gap-1 text-sm font-semibold text-brand-600 hover:text-brand-700">
               Terminarten prüfen
